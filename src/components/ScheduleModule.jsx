@@ -1,8 +1,3 @@
-src/components/ScheduleModule.jsx
-
-아래 코드를 전체 복사하여 ScheduleModule.jsx 파일에 그대로 덮어씌워 주세요.
-(상단에 필요한 모든 import 구문을 포함하여 Vercel 빌드 에러가 발생하지 않도록 조치했습니다.)
-
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { 
