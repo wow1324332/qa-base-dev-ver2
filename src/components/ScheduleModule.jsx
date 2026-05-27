@@ -1,6 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { Plus, X, CalendarDays, Filter, LayoutDashboard, Calendar, List, Kanban, ChevronLeft, ChevronRight, User, LogOut, Power } from 'lucide-react';
+import { 
+  Plus, X, CalendarDays, Filter, LayoutDashboard, 
+  Calendar, List, Kanban, ChevronLeft, ChevronRight, 
+  User, LogOut, Power 
+} from 'lucide-react';
 import { collection, onSnapshot, doc, writeBatch, updateDoc, addDoc, deleteDoc } from "firebase/firestore";
 import { db } from '../firebaseConfig';
 import { AppLogo, CustomSelect, CustomDatePicker } from './SharedUI';
@@ -62,7 +66,6 @@ const ProjectModal = ({ isOpen, onClose, formData, setFormData, onSubmit, isView
               </div>
             </div>
             
-            {/* 프로젝트 색상 선택 */}
             {!isViewer && (
               <div>
                 <label className="text-xs font-medium text-gray-500 mb-2 block">프로젝트 라벨 색상</label>
@@ -120,18 +123,15 @@ const ScheduleCalendar = ({ schedules, onShowDetails, user, onUpdateEndDate, onU
     const firstDay = new Date(y, m, 1).getDay();
     let days = [];
     
-    // Prev month filling
     const prevMonthDays = new Date(y, m, 0).getDate();
     for (let i = firstDay - 1; i >= 0; i--) {
       days.push({ date: new Date(y, m - 1, prevMonthDays - i), isCurrentMonth: false });
     }
     
-    // Current month
     for (let i = 1; i <= daysInMonth; i++) {
       days.push({ date: new Date(y, m, i), isCurrentMonth: true });
     }
     
-    // Next month filling to complete the grid (usually 42 cells total for 6 rows)
     const totalCellsNeeded = Math.ceil(days.length / 7) * 7;
     let nextMonthDay = 1;
     while (days.length < totalCellsNeeded) {
@@ -246,7 +246,6 @@ const ScheduleCalendar = ({ schedules, onShowDetails, user, onUpdateEndDate, onU
                         }
                       }}
                     >
-                      {/* 빈공간 클릭 배경 층 (Plus 버튼 제거) */}
                       <div 
                         className="absolute inset-0 z-0 flex flex-col pointer-events-auto"
                         onClick={() => onCellClick && onCellClick(dateStr)}
@@ -254,14 +253,12 @@ const ScheduleCalendar = ({ schedules, onShowDetails, user, onUpdateEndDate, onU
                         <div className="absolute inset-0 bg-transparent hover:bg-gray-50/50 transition-colors pointer-events-none"></div>
                       </div>
 
-                      {/* 날짜 숫자 */}
                       <div className="h-8 pt-2 px-2 flex justify-start shrink-0 z-10 pointer-events-none">
                         <span className={`text-xs font-bold w-6 h-6 flex items-center justify-center rounded-full ${isToday ? 'bg-gray-900 text-white shadow-lg' : dateNumColor}`}>
                           {date.getDate()}
                         </span>
                       </div>
                       
-                      {/* 프로젝트 밴드 층 */}
                       <div className="flex flex-col space-y-[2px] py-1 pb-2 flex-1 z-20 pointer-events-none overflow-visible">
                         {dayProjects.map((s, sIdx) => {
                           if (!s) return <div key={`empty-${sIdx}`} className="h-[24px] shrink-0 pointer-events-none"></div>;
@@ -393,11 +390,9 @@ const ScheduleCalendar = ({ schedules, onShowDetails, user, onUpdateEndDate, onU
     let x = tooltipInfo.x + 15;
     let y = tooltipInfo.y + 15;
     
-    // 브라우저 뷰포트 크기를 벗어나지 않도록 방어 로직
     if (x + 160 > window.innerWidth) x = tooltipInfo.x - 160;
     if (y + 60 > window.innerHeight) y = tooltipInfo.y - 60;
     
-    // React Portal을 사용하여 모든 레이아웃 간섭을 피하고 최상위에 툴팁 렌더링
     return createPortal(
       <div 
         className="fixed z-[99999] px-3 py-2 bg-gray-900/95 backdrop-blur-sm text-white rounded-xl shadow-[0_10px_40px_rgba(0,0,0,0.2)] pointer-events-none animate-fast-fade border border-gray-700/50 flex flex-col gap-1 whitespace-nowrap"
@@ -515,7 +510,7 @@ const ProjectList = ({ projects, onShowDetails }) => {
   );
 };
 
-const ScheduleDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
+export const ScheduleDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [activeMenu, setActiveMenu] = useState('calendar'); 
   const [schedules, setSchedules] = useState([]);
