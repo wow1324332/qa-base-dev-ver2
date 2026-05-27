@@ -7,13 +7,36 @@ import { DevicesDashboard } from './components/DevicesModule';
 import { ScheduleDashboard } from './components/ScheduleModule';
 
 export default function App() {
-  const [screen, setScreen] = useState('splash');
-  const [user, setUser] = useState(null);
+  // 1. 세션 스토리지에서 이전 화면과 로그인 유저 상태를 읽어와 초기값으로 설정
+  const [screen, setScreen] = useState(() => {
+    return sessionStorage.getItem('qa_base_current_screen') || 'splash';
+  });
+  
+  const [user, setUser] = useState(() => {
+    const savedUser = sessionStorage.getItem('qa_base_current_user');
+    return savedUser ? JSON.parse(savedUser) : null;
+  });
+
   const [toastMessage, setToastMessage] = useState('');
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [showAdminModal, setShowAdminModal] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState(null);
 
+  // 2. 현재 화면 상태(screen)가 변경될 때마다 세션 스토리지에 자동 백업
+  useEffect(() => {
+    sessionStorage.setItem('qa_base_current_screen', screen);
+  }, [screen]);
+
+  // 3. 로그인 유저 상태(user)가 변경될 때마다 세션 스토리지에 자동 백업 (로그아웃 시 삭제)
+  useEffect(() => {
+    if (user) {
+      sessionStorage.setItem('qa_base_current_user', JSON.stringify(user));
+    } else {
+      sessionStorage.removeItem('qa_base_current_user');
+    }
+  }, [user]);
+
+  // 4. 전역 CSS 스타일 주입 로직
   useEffect(() => {
     const styleSheet = document.createElement("style");
     styleSheet.type = "text/css";
@@ -22,6 +45,7 @@ export default function App() {
     return () => { document.head.removeChild(styleSheet); };
   }, []);
 
+  // 5. PWA(앱 설치) 기능 활성화 로직
   useEffect(() => {
     const handleBeforeInstallPrompt = (e) => {
       e.preventDefault();
