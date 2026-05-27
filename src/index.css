@@ -1,0 +1,1 @@
+@tailwind base;@tailwind components;@tailwind utilities;/*App.jsx 내부에 있던 globalStyles 내용이 적용되는 곳입니다.App.jsx 내부의 코드를 수정하지 않기로 했으므로, 파일은 비워두거나 Tailwind 기본 설정만 유지합니다.(App.jsx 내부에서 useEffect로 스타일을 주입하는 로직이 그대로 동작합니다.)*/
