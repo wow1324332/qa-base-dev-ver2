@@ -1,17 +1,46 @@
+src/components/ScheduleModule.jsx
+
+아래 코드를 전체 복사하여 ScheduleModule.jsx 파일에 그대로 덮어씌워 주세요.
+(상단에 필요한 모든 import 구문을 포함하여 Vercel 빌드 에러가 발생하지 않도록 조치했습니다.)
+
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { 
   Plus, X, CalendarDays, Filter, LayoutDashboard, 
   Calendar, List, Kanban, ChevronLeft, ChevronRight, 
-  User, LogOut, Power 
+  User, LogOut, Power, ChevronDown
 } from 'lucide-react';
 import { collection, onSnapshot, doc, writeBatch, updateDoc, addDoc, deleteDoc } from "firebase/firestore";
 import { db } from '../firebaseConfig';
 import { AppLogo, CustomSelect, CustomDatePicker } from './SharedUI';
 import { INITIAL_SCHEDULES, PROJECT_COLORS, HOLIDAYS } from '../constants';
 
-const ProjectModal = ({ isOpen, onClose, formData, setFormData, onSubmit, isViewer, isEdit, onDelete }) => {
+const ProjectModal = ({ isOpen, onClose, formData, setFormData, onSubmit, isViewer, isEdit, onDelete, allAssigneesList, onAddCustomAssignee }) => {
+  const [isAssigneeOpen, setIsAssigneeOpen] = useState(false);
+  const [newAssigneeName, setNewAssigneeName] = useState('');
+  const assigneeRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => { if (assigneeRef.current && !assigneeRef.current.contains(e.target)) setIsAssigneeOpen(false); };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   if (!isOpen) return null;
+
+  const currentAssignees = formData.assignees || (formData.assignee ? [formData.assignee] : []);
+
+  const toggleAssignee = (name) => {
+    let newAssignees;
+    if (currentAssignees.includes(name)) {
+      newAssignees = currentAssignees.filter(n => n !== name);
+    } else {
+      if (currentAssignees.length < 3) newAssignees = [...currentAssignees, name];
+      else newAssignees = currentAssignees;
+    }
+    setFormData({ ...formData, assignees: newAssignees });
+  };
+
   return (
     <div className="fixed inset-0 bg-gray-900/30 backdrop-blur-sm z-50 flex items-center justify-center animate-fast-fade">
       <div className="bg-white rounded-2xl shadow-2xl p-6 w-[450px] border border-gray-100 relative max-h-[90vh] flex flex-col">
@@ -35,7 +64,47 @@ const ProjectModal = ({ isOpen, onClose, formData, setFormData, onSubmit, isView
             </div>
             
             <div className="grid grid-cols-2 gap-4 relative z-40">
-              <div><label className="text-xs font-medium text-gray-500 mb-1 block">담당자</label><input required disabled={isViewer} value={formData.assignee} onChange={e=>setFormData({...formData, assignee: e.target.value})} className="w-full bg-gray-50 border border-gray-200 text-sm rounded-lg px-3 py-2 outline-none focus:border-gray-400 shadow-sm disabled:bg-gray-100 disabled:text-gray-500" /></div>
+              <div ref={assigneeRef} className="relative">
+                <label className="text-xs font-medium text-gray-500 mb-1 block">담당자</label>
+                {/* 폼 유효성 검사를 위한 숨김 입력 필드 */}
+                <input type="hidden" required value={currentAssignees.length > 0 ? 'valid' : ''} />
+                <div 
+                  className={`w-full bg-gray-50 border border-gray-200 text-sm rounded-lg px-3 py-2 shadow-sm flex items-center justify-between ${isViewer ? 'bg-gray-100 text-gray-500' : 'cursor-pointer'}`}
+                  onClick={() => !isViewer && setIsAssigneeOpen(!isAssigneeOpen)}
+                >
+                  <div className="flex gap-1 overflow-hidden">
+                    {currentAssignees.length > 0 ? currentAssignees.map(a => (
+                      <span key={a} className="bg-gray-200 text-gray-700 px-1.5 py-0.5 rounded text-xs truncate max-w-[60px]">{a}</span>
+                    )) : <span className="text-gray-400">선택 (최대 3명)</span>}
+                  </div>
+                  {!isViewer && <ChevronDown className="w-4 h-4 text-gray-400 shrink-0"/>}
+                </div>
+                {isAssigneeOpen && !isViewer && (
+                  <div className="absolute z-[60] w-full mt-1 bg-white border border-gray-100 rounded-xl shadow-[0_10px_40px_rgba(0,0,0,0.08)] py-1.5 flex flex-col">
+                    <div className="max-h-32 overflow-y-auto no-scrollbar">
+                      {allAssigneesList.length > 0 ? allAssigneesList.map(a => (
+                        <div key={a} className="px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 cursor-pointer flex items-center"
+                             onClick={() => toggleAssignee(a)}>
+                          <input type="checkbox" checked={currentAssignees.includes(a)} readOnly className="mr-2 rounded border-gray-300 text-gray-800 focus:ring-gray-800" />
+                          <span className="truncate">{a}</span>
+                        </div>
+                      )) : <div className="px-4 py-2 text-xs text-gray-400">등록된 담당자가 없습니다.</div>}
+                    </div>
+                    <div className="border-t border-gray-100 p-2 flex gap-2">
+                      <input type="text" value={newAssigneeName} onChange={e=>setNewAssigneeName(e.target.value)} 
+                             placeholder="새 담당자 이름" className="flex-1 text-xs bg-gray-50 border border-gray-200 rounded-md px-2 py-1.5 outline-none focus:border-gray-400 transition-colors"/>
+                      <button type="button" onClick={(e) => {
+                        e.preventDefault();
+                        if(newAssigneeName.trim()) {
+                          onAddCustomAssignee(newAssigneeName.trim());
+                          toggleAssignee(newAssigneeName.trim());
+                          setNewAssigneeName('');
+                        }
+                      }} className="text-xs bg-gray-800 text-white px-3 py-1.5 rounded-md hover:bg-gray-900 transition-colors font-medium shrink-0">추가</button>
+                    </div>
+                  </div>
+                )}
+              </div>
               <div><label className="text-xs font-medium text-gray-500 mb-1 block">유관부서</label><input required disabled={isViewer} value={formData.department} onChange={e=>setFormData({...formData, department: e.target.value})} className="w-full bg-gray-50 border border-gray-200 text-sm rounded-lg px-3 py-2 outline-none focus:border-gray-400 shadow-sm disabled:bg-gray-100 disabled:text-gray-500" /></div>
             </div>
 
@@ -66,6 +135,7 @@ const ProjectModal = ({ isOpen, onClose, formData, setFormData, onSubmit, isView
               </div>
             </div>
             
+            {/* 프로젝트 색상 선택 */}
             {!isViewer && (
               <div>
                 <label className="text-xs font-medium text-gray-500 mb-2 block">프로젝트 라벨 색상</label>
@@ -107,10 +177,13 @@ const ScheduleCalendar = ({ schedules, onShowDetails, user, onUpdateEndDate, onU
   const [isDragging, setIsDragging] = useState(false);
   const calendarRef = useRef(null);
 
-  const uniqueAssignees = Array.from(new Set(schedules.map(s => s.assignee).filter(Boolean)));
+  const uniqueAssignees = Array.from(new Set(schedules.flatMap(s => s.assignees || (s.assignee ? [s.assignee] : []))));
   const assigneeOptions = [{ value: 'All', label: '담당자 전체' }, ...uniqueAssignees.map(a => ({ value: a, label: a }))];
 
-  const filteredSchedules = assigneeFilter === 'All' ? schedules : schedules.filter(s => s.assignee === assigneeFilter);
+  const filteredSchedules = assigneeFilter === 'All' ? schedules : schedules.filter(s => {
+    const assignees = s.assignees || (s.assignee ? [s.assignee] : []);
+    return assignees.includes(assigneeFilter);
+  });
 
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
@@ -123,15 +196,18 @@ const ScheduleCalendar = ({ schedules, onShowDetails, user, onUpdateEndDate, onU
     const firstDay = new Date(y, m, 1).getDay();
     let days = [];
     
+    // Prev month filling
     const prevMonthDays = new Date(y, m, 0).getDate();
     for (let i = firstDay - 1; i >= 0; i--) {
       days.push({ date: new Date(y, m - 1, prevMonthDays - i), isCurrentMonth: false });
     }
     
+    // Current month
     for (let i = 1; i <= daysInMonth; i++) {
       days.push({ date: new Date(y, m, i), isCurrentMonth: true });
     }
     
+    // Next month filling to complete the grid (usually 42 cells total for 6 rows)
     const totalCellsNeeded = Math.ceil(days.length / 7) * 7;
     let nextMonthDay = 1;
     while (days.length < totalCellsNeeded) {
@@ -246,6 +322,7 @@ const ScheduleCalendar = ({ schedules, onShowDetails, user, onUpdateEndDate, onU
                         }
                       }}
                     >
+                      {/* 빈공간 클릭 배경 층 (Plus 버튼 제거) */}
                       <div 
                         className="absolute inset-0 z-0 flex flex-col pointer-events-auto"
                         onClick={() => onCellClick && onCellClick(dateStr)}
@@ -253,12 +330,14 @@ const ScheduleCalendar = ({ schedules, onShowDetails, user, onUpdateEndDate, onU
                         <div className="absolute inset-0 bg-transparent hover:bg-gray-50/50 transition-colors pointer-events-none"></div>
                       </div>
 
+                      {/* 날짜 숫자 */}
                       <div className="h-8 pt-2 px-2 flex justify-start shrink-0 z-10 pointer-events-none">
                         <span className={`text-xs font-bold w-6 h-6 flex items-center justify-center rounded-full ${isToday ? 'bg-gray-900 text-white shadow-lg' : dateNumColor}`}>
                           {date.getDate()}
                         </span>
                       </div>
                       
+                      {/* 프로젝트 밴드 층 */}
                       <div className="flex flex-col space-y-[2px] py-1 pb-2 flex-1 z-20 pointer-events-none overflow-visible">
                         {dayProjects.map((s, sIdx) => {
                           if (!s) return <div key={`empty-${sIdx}`} className="h-[24px] shrink-0 pointer-events-none"></div>;
@@ -302,6 +381,10 @@ const ScheduleCalendar = ({ schedules, onShowDetails, user, onUpdateEndDate, onU
 
                           const widthStyle = `calc(${segmentDuration * 100}% + ${segmentDuration - 1}px - ${deduct}px)`;
 
+                          const assignees = s.assignees || (s.assignee ? [s.assignee] : []);
+                          const mainAssignee = assignees[0];
+                          const extraCount = assignees.length - 1;
+
                           const handleTooltip = (e, s) => {
                             if (!calendarRef.current) return;
                             const container = e.currentTarget.querySelector('.project-content-container');
@@ -311,8 +394,10 @@ const ScheduleCalendar = ({ schedules, onShowDetails, user, onUpdateEndDate, onU
                             if (textSpan && textSpan.scrollWidth > textSpan.clientWidth) isTruncated = true;
                             if (container && container.scrollWidth > container.clientWidth) isTruncated = true;
 
+                            const assigneesText = (s.assignees || (s.assignee ? [s.assignee] : [])).join(', ');
+
                             if (isTruncated) {
-                              setTooltipInfo({ visible: true, x: e.clientX, y: e.clientY, text: s.name, assignee: s.assignee });
+                              setTooltipInfo({ visible: true, x: e.clientX, y: e.clientY, text: s.name, assignee: assigneesText });
                             } else {
                               setTooltipInfo(prev => prev.visible ? { visible: false, x: 0, y: 0, text: '', assignee: '' } : prev);
                             }
@@ -344,9 +429,9 @@ const ScheduleCalendar = ({ schedules, onShowDetails, user, onUpdateEndDate, onU
 
                                 <span className="project-content-container w-full flex items-center pr-1 pl-2 h-full pointer-events-none min-w-0">
                                   <span className="truncate project-name-text shrink leading-none">{s.name}</span>
-                                  {s.assignee && (
+                                  {mainAssignee && (
                                     <span className="ml-1.5 px-[5px] h-[15px] bg-white/25 text-white rounded flex items-center justify-center text-[9px] font-bold tracking-wider shrink-0 shadow-sm border border-white/20 drop-shadow-md">
-                                      {s.assignee}
+                                      {mainAssignee}{extraCount > 0 ? ` +${extraCount}` : ''}
                                     </span>
                                   )}
                                   {s.progressStage && s.progressStage !== '없음' && s.progressStage !== '완료 됨' && (
@@ -390,9 +475,11 @@ const ScheduleCalendar = ({ schedules, onShowDetails, user, onUpdateEndDate, onU
     let x = tooltipInfo.x + 15;
     let y = tooltipInfo.y + 15;
     
+    // 브라우저 뷰포트 크기를 벗어나지 않도록 방어 로직
     if (x + 160 > window.innerWidth) x = tooltipInfo.x - 160;
     if (y + 60 > window.innerHeight) y = tooltipInfo.y - 60;
     
+    // React Portal을 사용하여 모든 레이아웃 간섭을 피하고 최상위에 툴팁 렌더링
     return createPortal(
       <div 
         className="fixed z-[99999] px-3 py-2 bg-gray-900/95 backdrop-blur-sm text-white rounded-xl shadow-[0_10px_40px_rgba(0,0,0,0.2)] pointer-events-none animate-fast-fade border border-gray-700/50 flex flex-col gap-1 whitespace-nowrap"
@@ -458,18 +545,36 @@ const ProjectKanban = ({ projects, user, onStatusChange, onShowDetails }) => {
             <span className="bg-white text-xs px-2 py-1 rounded-full shadow-sm text-gray-600 border border-gray-200 font-semibold">{projects.filter(p => p.status === col.id).length}</span>
           </div>
           <div className="flex-1 overflow-y-auto space-y-3 no-scrollbar pb-2">
-            {projects.filter(p => p.status === col.id).map(project => (
-              <div key={project.id} draggable={user.role !== 'viewer'} onDragStart={(e) => handleDragStart(e, project.id)} onClick={() => onShowDetails(project)} className={`bg-white p-4 rounded-xl shadow-md border border-gray-200 ${user.role !== 'viewer' ? 'cursor-grab active:cursor-grabbing hover-breath' : ''} group`}>
-                <div className="flex justify-between items-start mb-2">
-                  <span className="text-xs font-semibold text-gray-400 tracking-wider truncate max-w-[120px]" title={project.department}>{project.department}</span>
-                  <span className="text-[10px] bg-gray-50 text-gray-500 px-2 py-0.5 rounded-full border border-gray-100 font-medium whitespace-nowrap shrink-0">{project.startDate.slice(5)} ~ {project.endDate.slice(5)}</span>
+            {projects.filter(p => p.status === col.id).map(project => {
+              const assignees = project.assignees || (project.assignee ? [project.assignee] : []);
+              const mainAssignee = assignees[0];
+              const extraCount = assignees.length - 1;
+
+              return (
+                <div key={project.id} draggable={user.role !== 'viewer'} onDragStart={(e) => handleDragStart(e, project.id)} onClick={() => onShowDetails(project)} className={`bg-white p-4 rounded-xl shadow-md border border-gray-200 ${user.role !== 'viewer' ? 'cursor-grab active:cursor-grabbing hover-breath' : ''} group`}>
+                  <div className="flex justify-between items-start mb-2">
+                    <span className="text-xs font-semibold text-gray-400 tracking-wider truncate max-w-[120px]" title={project.department}>{project.department}</span>
+                    <span className="text-[10px] bg-gray-50 text-gray-500 px-2 py-0.5 rounded-full border border-gray-100 font-medium whitespace-nowrap shrink-0">{project.startDate.slice(5)} ~ {project.endDate.slice(5)}</span>
+                  </div>
+                  <h4 className="text-sm font-bold text-gray-800 mb-3 truncate" title={project.name}>{project.name}</h4>
+                  <div className="flex justify-between items-center text-xs text-gray-500 border-t border-gray-50 pt-3">
+                    <div className="flex items-center space-x-2 truncate">
+                      {mainAssignee && (
+                        <span className="flex items-center bg-gray-50 text-gray-600 px-2 py-1 rounded-md font-medium border border-gray-100 shadow-sm truncate max-w-[150px]" title={assignees.join(', ')}>
+                          <User className="w-3 h-3 mr-1 shrink-0" /> 
+                          <span className="truncate">{mainAssignee}{extraCount > 0 ? ` +${extraCount}` : ''}</span>
+                        </span>
+                      )}
+                      {project.progressStage && project.progressStage !== '없음' && project.progressStage !== '완료 됨' && (
+                        <span className="text-[10px] font-medium text-blue-500 italic animate-pulse whitespace-nowrap tracking-wide shrink-0">
+                          {project.progressStage}...
+                        </span>
+                      )}
+                    </div>
+                  </div>
                 </div>
-                <h4 className="text-sm font-bold text-gray-800 mb-3 truncate" title={project.name}>{project.name}</h4>
-                <div className="flex justify-between items-center text-xs text-gray-500 border-t border-gray-50 pt-3">
-                  <span className="flex items-center bg-gray-50 text-gray-600 px-2 py-1 rounded-md font-medium border border-gray-100 shadow-sm truncate max-w-[150px]" title={project.assignee}><User className="w-3 h-3 mr-1 shrink-0" /> <span className="truncate">{project.assignee}</span></span>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       ))}
@@ -494,13 +599,15 @@ const ProjectList = ({ projects, onShowDetails }) => {
         <tbody>
           {projects.map(project => {
             const colorMap = { '예정': 'bg-gray-100 text-gray-600 border-gray-200', '진행중': 'bg-blue-50 text-blue-600 border-blue-200', 'HOLD': 'bg-orange-50 text-orange-600 border-orange-200', '완료': 'bg-green-50 text-green-600 border-green-200' };
+            const assigneesText = (project.assignees || (project.assignee ? [project.assignee] : [])).join(', ');
+            
             return (
             <tr key={project.id} onClick={() => onShowDetails(project)} className="border-b border-gray-100 hover:bg-gray-50 transition-colors cursor-pointer group">
               <td className="px-6 py-4"><span className={`text-xs px-2.5 py-1 rounded-full font-bold shadow-sm border whitespace-nowrap ${colorMap[project.status]}`}>{project.status}</span></td>
               <td className="px-6 py-4 text-sm font-medium text-gray-600 whitespace-nowrap">{project.progressStage || '없음'}</td>
               <td className="px-6 py-4 text-sm font-bold text-gray-800"><div className="truncate max-w-[280px]" title={project.name}>{project.name}</div></td>
               <td className="px-6 py-4 text-sm font-medium text-gray-600 whitespace-nowrap">{project.startDate} ~ {project.endDate}</td>
-              <td className="px-6 py-4 text-sm font-medium text-gray-600"><div className="truncate max-w-[150px]" title={project.assignee}>{project.assignee}</div></td>
+              <td className="px-6 py-4 text-sm font-medium text-gray-600"><div className="truncate max-w-[150px]" title={assigneesText}>{assigneesText}</div></td>
               <td className="px-6 py-4 text-sm font-medium text-gray-600"><div className="truncate max-w-[150px]" title={project.department}>{project.department}</div></td>
             </tr>
           )})}
@@ -514,14 +621,18 @@ export const ScheduleDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [activeMenu, setActiveMenu] = useState('calendar'); 
   const [schedules, setSchedules] = useState([]);
+  const [customAssignees, setCustomAssignees] = useState([]);
   
   const [showModal, setShowModal] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
-  const [formData, setFormData] = useState({ name: '', startDate: '', endDate: '', assignee: '', department: '', description: '', status: '예정', color: 'bg-blue-500', progressStage: '없음' });
+  const [formData, setFormData] = useState({ name: '', startDate: '', endDate: '', assignees: [], department: '', description: '', status: '예정', color: 'bg-blue-500', progressStage: '없음' });
 
   const [filterStatus, setFilterStatus] = useState('All');
   const [filterAssignee, setFilterAssignee] = useState('');
   const [filterDept, setFilterDept] = useState('');
+
+  const allDbAssignees = Array.from(new Set(schedules.flatMap(s => s.assignees || (s.assignee ? [s.assignee] : []))));
+  const allAssigneesList = Array.from(new Set([...allDbAssignees, ...customAssignees])).filter(Boolean);
 
   useEffect(() => {
     const schedulesRef = collection(db, 'schedules');
@@ -582,20 +693,21 @@ export const ScheduleDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
 
   const openAddModal = () => {
     setIsEditMode(false);
-    setFormData({ name: '', startDate: '', endDate: '', assignee: '', department: '', description: '', status: '예정', color: 'bg-blue-500', progressStage: '없음' });
+    setFormData({ name: '', startDate: '', endDate: '', assignees: [], department: '', description: '', status: '예정', color: 'bg-blue-500', progressStage: '없음' });
     setShowModal(true);
   };
 
   const openEditModal = (project) => {
     setIsEditMode(true);
-    setFormData({ progressStage: '없음', ...project });
+    const currentAssignees = project.assignees || (project.assignee ? [project.assignee] : []);
+    setFormData({ progressStage: '없음', ...project, assignees: currentAssignees });
     setShowModal(true);
   };
 
   const handleCellClick = (dateStr) => {
     if (user.role === 'viewer') return;
     setIsEditMode(false);
-    setFormData({ name: '', startDate: dateStr, endDate: dateStr, assignee: '', department: '', description: '', status: '예정', color: 'bg-blue-500', progressStage: '없음' });
+    setFormData({ name: '', startDate: dateStr, endDate: dateStr, assignees: [], department: '', description: '', status: '예정', color: 'bg-blue-500', progressStage: '없음' });
     setShowModal(true);
   };
 
@@ -695,7 +807,10 @@ export const ScheduleDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
                  <ProjectList 
                    projects={schedules.filter(p => {
                      if (filterStatus !== 'All' && p.status !== filterStatus) return false;
-                     if (filterAssignee && !p.assignee.toLowerCase().includes(filterAssignee.toLowerCase())) return false;
+                     if (filterAssignee) {
+                       const assigneesStr = (p.assignees || (p.assignee ? [p.assignee] : [])).join(', ');
+                       if (!assigneesStr.toLowerCase().includes(filterAssignee.toLowerCase())) return false;
+                     }
                      if (filterDept && !p.department.toLowerCase().includes(filterDept.toLowerCase())) return false;
                      return true;
                    })} 
@@ -707,7 +822,12 @@ export const ScheduleDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
         </main>
       </div>
 
-      <ProjectModal isOpen={showModal} onClose={()=>setShowModal(false)} formData={formData} setFormData={setFormData} onSubmit={handleSaveSubmit} isViewer={user.role === 'viewer'} isEdit={isEditMode} onDelete={handleDeleteSchedule} />
+      <ProjectModal 
+        isOpen={showModal} onClose={()=>setShowModal(false)} formData={formData} setFormData={setFormData} onSubmit={handleSaveSubmit} 
+        isViewer={user.role === 'viewer'} isEdit={isEditMode} onDelete={handleDeleteSchedule} 
+        allAssigneesList={allAssigneesList}
+        onAddCustomAssignee={(name) => setCustomAssignees(prev => [...prev, name])}
+      />
     </div>
   );
 };
