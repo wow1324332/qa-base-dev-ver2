@@ -5,6 +5,7 @@ import { LoginScreen, ProfileModal, AdminModal } from './components/Auth';
 import { FunctionalBoard } from './components/FunctionalBoard';
 import { DevicesDashboard } from './components/DevicesModule';
 import { ScheduleDashboard } from './components/ScheduleModule';
+import { ProjectsDashboard } from './components/ProjectsModule';
 
 export default function App() {
   // 1. 세션 스토리지에서 이전 화면과 로그인 유저 상태를 읽어와 초기값으로 설정
@@ -88,6 +89,9 @@ export default function App() {
       {screen === 'loading_schedule' && <TransitionLoading title="Schedule Manager" onComplete={() => setScreen('schedule')} />}
       {screen === 'schedule' && <ScheduleDashboard user={user} onNavigate={(target) => setScreen(target === 'board' ? 'loadingBoard' : target)} onLogout={() => { setUser(null); setScreen('login'); }} onQuit={() => { setUser(null); setScreen('splash'); }} />}
 
+      {screen === 'loading_projects' && <TransitionLoading title="Jira Projects" onComplete={() => setScreen('projects')} />}
+      {screen === 'projects' && <ProjectsDashboard user={user} onNavigate={(target) => setScreen(target === 'board' ? 'loadingBoard' : target)} onLogout={() => { setUser(null); setScreen('login'); }} onQuit={() => { setUser(null); setScreen('splash'); }} />}
+      
       {showProfileModal && user && <ProfileModal user={user} onClose={() => setShowProfileModal(false)} onUpdateProfile={(image) => setUser({...user, profileImage: image})} />}
       {showAdminModal && <AdminModal onClose={() => setShowAdminModal(false)} />}
     </>
