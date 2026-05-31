@@ -93,6 +93,21 @@ export const FunctionalBoard = ({ user, onNavigate, onLogout, onShowProfileModal
                 프로젝트별 QA 일정을 캘린더로 확인하고<br/>칸반 보드로 진행 현황을 관리합니다.
               </p>
             </div>
+
+            <div 
+              onClick={() => onNavigate('projects')}
+              className="bg-white rounded-3xl p-8 cursor-pointer border border-gray-200 shadow-md hover-breath group"
+            >
+              <div className="w-14 h-14 bg-gray-50 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-blue-600 transition-colors duration-500 shadow-sm border border-gray-100">
+                <Bug className="w-6 h-6 text-gray-600 group-hover:text-white transition-colors duration-500" strokeWidth={1.5} />
+              </div>
+              <h3 className="text-xl font-medium text-gray-800 mb-2 flex items-center">
+                Projects <span className="ml-2 text-[10px] bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full font-bold">JIRA</span>
+              </h3>
+              <p className="text-sm text-gray-500 leading-relaxed">
+                JIRA 스페이스와 에픽을 연동하여<br/>개발결함(버그) 추적 및 통계를 관리합니다.
+              </p>
+            </div>
           </div>
         </div>
       </main>
