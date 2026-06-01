@@ -1,7 +1,8 @@
-// ==========================================
-// [구역 5] 메인 메뉴 모듈 (FunctionalBoard)
-// ==========================================
-const FunctionalBoard = ({ user, onNavigate, onLogout, onShowProfileModal, onShowAdminModal }) => {
+import React, { useState } from 'react';
+import { Users, Settings, User, LogOut, Server, Calendar, Bug } from 'lucide-react';
+import { AppLogo } from './SharedUI';
+
+export const FunctionalBoard = ({ user, onNavigate, onLogout, onShowProfileModal, onShowAdminModal }) => {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const onlineUsersCount = 1;
 
