@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Bug, Activity, CheckCircle2, AlertCircle, 
   ChevronUp, Equal, ChevronDown as ChevronDownIcon,
@@ -10,16 +10,6 @@ const AppLogo = ({ className }) => {
   if (imgError) return <MonitorSmartphone className={`text-gray-800 ${className}`} strokeWidth={1.5} />;
   return <img src="/icon-192x192.png" alt="QA Base" className={`object-contain ${className}`} onError={() => setImgError(true)} />;
 };
-
-const INITIAL_JIRA_ISSUES = [
-  { id: '1', key: 'DEVSCRUM-13600', summary: '원패스 모의기간 이용 상태에서 사용자 목록 진입 시 이용가능 기간 정렬 오류', component: 'iOS', priority: 'Medium', type: 'UI/UX', status: '작업 예정', reporter: '김정근', assignee: '홍길동', date: '2026-05-29 16:28', platform: 'iOS' },
-  { id: '2', key: 'DEVSCRUM-13595', summary: '원패스 앱 사용 권한 안내 팝업에 "기능" 문구가 보여짐', component: 'Android', priority: 'Low', type: 'UI/UX', status: 'QA 완료', reporter: '김정근', assignee: '김철수', date: '2026-05-29 16:07', platform: 'Android' },
-  { id: '3', key: 'DEVSCRUM-13593', summary: '원패스 모의기간이 이용 상태에서 해지 시 원패스 해지 안내 팝업이 발생함', component: 'Backend', priority: 'High', type: 'Function', status: 'REOPEN', reporter: '이영희', assignee: '박개발', date: '2026-05-29 15:50', platform: 'Backend' },
-  { id: '4', key: 'DEVSCRUM-13588', summary: '원패스 관리비 결제완료 화면에서 이용 시작일에 년도 표시가 [YYYY]로 노출됨', component: 'iOS', priority: 'Critical', type: 'Function', status: '수정중', reporter: '김정근', assignee: '홍길동', date: '2026-05-29 14:59', platform: 'iOS' },
-  { id: '5', key: 'DEVSCRUM-13586', summary: '원패스 관리비 결제 진행 시 "신청중입니다" 텍스트가 발생됨', component: 'Android', priority: 'Medium', type: 'UI/UX', status: 'QA 대기', reporter: '최테스트', assignee: '김철수', date: '2026-05-29 14:47', platform: 'Android' },
-  { id: '6', key: 'DEVSCRUM-13580', summary: '로그인 화면에서 비밀번호 찾기 진입 시 500 에러 발생', component: 'Backend', priority: 'Critical', type: 'Crash', status: '작업 예정', reporter: '김정근', assignee: '박개발', date: '2026-05-29 11:20', platform: 'Backend' },
-  { id: '7', key: 'DEVSCRUM-13575', summary: '푸시 알림 터치 시 해당 화면으로 이동하지 않고 메인으로 이동됨', component: 'Android', priority: 'High', type: 'Function', status: '진행중', reporter: '이영희', assignee: '김철수', date: '2026-05-28 17:15', platform: 'Android' },
-];
 
 const JiraStatsCard = ({ title, count, colorClass, icon: Icon }) => (
   <div className="bg-white rounded-2xl p-5 border border-gray-200 shadow-md flex items-center justify-between hover-breath">
@@ -114,8 +104,35 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
   const [activeSpace, setActiveSpace] = useState(null);
   const [activeEpic, setActiveEpic] = useState(null);
   
-  // Mock Data for Issues
-  const [issues, setIssues] = useState(INITIAL_JIRA_ISSUES);
+  // API Fetch를 위한 State 업데이트 (가짜 데이터 제거)
+  const [issues, setIssues] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  // JIRA 데이터 패칭 useEffect 추가
+  useEffect(() => {
+    if (view === 'issues' && activeEpic) {
+      const fetchJiraIssues = async () => {
+        setLoading(true);
+        try {
+          // Vercel Serverless Function 호출
+          const res = await fetch(`/api/jira?epicKey=${activeEpic}`);
+          const data = await res.json();
+          
+          if (res.ok) {
+            setIssues(data);
+          } else {
+            console.error("JIRA API 에러:", data.error);
+          }
+        } catch (error) {
+          console.error("JIRA 서버 통신 에러:", error);
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      fetchJiraIssues();
+    }
+  }, [view, activeEpic]);
 
   // Spaces State
   const [spaces, setSpaces] = useState([
@@ -344,30 +361,44 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">
-                      {issues.map(issue => (
-                        <tr key={issue.id} className="hover:bg-blue-50/30 transition-colors group cursor-pointer">
-                          <td className="px-5 py-4 text-xs font-bold text-blue-600 underline-offset-2 group-hover:underline">{issue.key}</td>
-                          <td className="px-5 py-4"><JiraBadge className={getStatusBadgeClass(issue.status)}>{issue.status}</JiraBadge></td>
-                          <td className="px-5 py-4 text-xs font-medium text-gray-700 flex items-center mt-1">
-                            {getPriorityIcon(issue.priority)} {issue.priority}
+                      {loading ? (
+                        <tr>
+                          <td colSpan="7" className="px-5 py-10 text-center text-sm text-gray-500 font-medium animate-pulse">
+                            JIRA 데이터를 실시간으로 불러오는 중입니다...
                           </td>
-                          <td className="px-5 py-4 text-sm font-bold text-gray-800">
-                            <div className="truncate max-w-sm" title={issue.summary}>{issue.summary}</div>
-                          </td>
-                          <td className="px-5 py-4">
-                            <div className="flex space-x-1">
-                              <span className={`text-[10px] px-1.5 py-0.5 rounded border font-bold ${issue.platform === 'iOS' ? 'bg-gray-100 text-gray-700 border-gray-200' : issue.platform === 'Android' ? 'bg-blue-50 text-blue-600 border-blue-200' : 'bg-orange-50 text-orange-600 border-orange-200'}`}>{issue.component}</span>
-                              <span className="text-[10px] px-1.5 py-0.5 rounded border bg-gray-50 text-gray-500 border-gray-200 font-medium">{issue.type}</span>
-                            </div>
-                          </td>
-                          <td className="px-5 py-4">
-                            <div className="flex flex-col space-y-1">
-                              <span className="text-xs font-medium text-gray-700 flex items-center"><User className="w-3 h-3 mr-1 text-gray-400"/> {issue.assignee}</span>
-                            </div>
-                          </td>
-                          <td className="px-5 py-4 text-xs text-gray-400 font-medium whitespace-nowrap">{issue.date}</td>
                         </tr>
-                      ))}
+                      ) : issues.length === 0 ? (
+                        <tr>
+                          <td colSpan="7" className="px-5 py-10 text-center text-sm text-gray-500 font-medium">
+                            등록된 개발결함 내역이 없습니다.
+                          </td>
+                        </tr>
+                      ) : (
+                        issues.map(issue => (
+                          <tr key={issue.id} className="hover:bg-blue-50/30 transition-colors group cursor-pointer">
+                            <td className="px-5 py-4 text-xs font-bold text-blue-600 underline-offset-2 group-hover:underline">{issue.key}</td>
+                            <td className="px-5 py-4"><JiraBadge className={getStatusBadgeClass(issue.status)}>{issue.status}</JiraBadge></td>
+                            <td className="px-5 py-4 text-xs font-medium text-gray-700 flex items-center mt-1">
+                              {getPriorityIcon(issue.priority)} {issue.priority}
+                            </td>
+                            <td className="px-5 py-4 text-sm font-bold text-gray-800">
+                              <div className="truncate max-w-sm" title={issue.summary}>{issue.summary}</div>
+                            </td>
+                            <td className="px-5 py-4">
+                              <div className="flex space-x-1">
+                                <span className={`text-[10px] px-1.5 py-0.5 rounded border font-bold ${issue.platform === 'iOS' ? 'bg-gray-100 text-gray-700 border-gray-200' : issue.platform === 'Android' ? 'bg-blue-50 text-blue-600 border-blue-200' : 'bg-orange-50 text-orange-600 border-orange-200'}`}>{issue.component}</span>
+                                <span className="text-[10px] px-1.5 py-0.5 rounded border bg-gray-50 text-gray-500 border-gray-200 font-medium">{issue.type}</span>
+                              </div>
+                            </td>
+                            <td className="px-5 py-4">
+                              <div className="flex flex-col space-y-1">
+                                <span className="text-xs font-medium text-gray-700 flex items-center"><User className="w-3 h-3 mr-1 text-gray-400"/> {issue.assignee}</span>
+                              </div>
+                            </td>
+                            <td className="px-5 py-4 text-xs text-gray-400 font-medium whitespace-nowrap">{issue.date}</td>
+                          </tr>
+                        ))
+                      )}
                     </tbody>
                   </table>
                 </div>
