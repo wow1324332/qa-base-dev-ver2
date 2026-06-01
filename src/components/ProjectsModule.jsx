@@ -371,7 +371,8 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
                   <div className="flex items-center space-x-3 mb-2">
                     <button onClick={() => setView('epics')} className="p-1 hover:bg-gray-200 rounded-md text-gray-500 transition-colors bg-white border border-gray-200 shadow-sm"><ChevronLeft className="w-4 h-4"/></button>
                     <span className="bg-blue-100 text-blue-700 text-xs font-bold px-2 py-0.5 rounded border border-blue-200">{activeEpic || activeSpace}</span>
-                    <h1 className="text-2xl font-bold text-gray-800">개발결함 추적 보드</h1>
+                    {/* [수정 포인트] 선택된 에픽의 실제 프로젝트명으로 제목 변경 */}
+                    <h1 className="text-2xl font-bold text-gray-800">{epics.find(e => e.epicKey === activeEpic)?.name || '개발결함 추적 보드'}</h1>
                   </div>
                   <div className="flex items-center space-x-2">
                     <div className="w-64 bg-white rounded-full h-2 shadow-inner border border-gray-100 overflow-hidden relative">
