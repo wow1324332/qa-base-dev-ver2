@@ -2,9 +2,14 @@ import React, { useState } from 'react';
 import { 
   Bug, Activity, CheckCircle2, AlertCircle, 
   ChevronUp, Equal, ChevronDown as ChevronDownIcon,
-  ChevronLeft, ChevronRight, LayoutDashboard, Server, Kanban, LogOut, Power, User
+  ChevronLeft, ChevronRight, LayoutDashboard, Server, Kanban, LogOut, Power, User, Plus, MonitorSmartphone
 } from 'lucide-react';
-import { AppLogo } from './SharedUI';
+
+const AppLogo = ({ className }) => {
+  const [imgError, setImgError] = useState(false);
+  if (imgError) return <MonitorSmartphone className={`text-gray-800 ${className}`} strokeWidth={1.5} />;
+  return <img src="/icon-192x192.png" alt="QA Base" className={`object-contain ${className}`} onError={() => setImgError(true)} />;
+};
 
 const INITIAL_JIRA_ISSUES = [
   { id: '1', key: 'DEVSCRUM-13600', summary: '원패스 모의기간 이용 상태에서 사용자 목록 진입 시 이용가능 기간 정렬 오류', component: 'iOS', priority: 'Medium', type: 'UI/UX', status: '작업 예정', reporter: '김정근', assignee: '홍길동', date: '2026-05-29 16:28', platform: 'iOS' },
