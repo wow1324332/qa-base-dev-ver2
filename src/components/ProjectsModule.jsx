@@ -4,6 +4,20 @@ import {
   ChevronUp, Equal, ChevronDown as ChevronDownIcon,
   ChevronLeft, ChevronRight, LayoutDashboard, Server, Kanban, LogOut, Power, User, Plus, MonitorSmartphone, X, Edit
 } from 'lucide-react';
+import { initializeApp, getApps, getApp } from "firebase/app";
+import { getFirestore, collection, onSnapshot, doc, updateDoc, addDoc, deleteDoc } from "firebase/firestore";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyATKKSrUm6NKATdZdJeDxhQ5Dj2Q32ujh0",
+  authDomain: "q-base-dev.firebaseapp.com",
+  projectId: "q-base-dev",
+  storageBucket: "q-base-dev.firebasestorage.app",
+  messagingSenderId: "756427289812",
+  appId: "1:756427289812:web:217c6ebb1bfbd1d931f741"
+};
+
+const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+const db = getFirestore(app);
 
 const AppLogo = ({ className }) => {
   const [imgError, setImgError] = useState(false);
@@ -114,17 +128,41 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
   const [activeSpace, setActiveSpace] = useState(null);
   const [activeEpic, setActiveEpic] = useState(null);
   
-  // API Fetch를 위한 State 업데이트 (더미 데이터 제거)
   const [issues, setIssues] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // JIRA 데이터 패칭 useEffect 추가
+  const [spaces, setSpaces] = useState([]);
+  const [spaceModal, setSpaceModal] = useState({ isOpen: false, isEdit: false });
+  const [spaceFormData, setSpaceFormData] = useState({ id: '', name: '', epicKey: '', department: '' });
+
+  const [epics, setEpics] = useState([]);
+  const [epicModal, setEpicModal] = useState({ isOpen: false, isEdit: false });
+  const [epicFormData, setEpicFormData] = useState({ id: '', spaceKey: '', name: '', epicKey: '', status: '예정', progress: 0 });
+
+  // Firebase 데이터 동기화 (스페이스, 에픽)
+  useEffect(() => {
+    const spacesRef = collection(db, 'jira_spaces');
+    const unsubscribeSpaces = onSnapshot(spacesRef, (snapshot) => {
+      setSpaces(snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id })));
+    });
+
+    const epicsRef = collection(db, 'jira_epics');
+    const unsubscribeEpics = onSnapshot(epicsRef, (snapshot) => {
+      setEpics(snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id })));
+    });
+
+    return () => {
+      unsubscribeSpaces();
+      unsubscribeEpics();
+    };
+  }, []);
+
+  // JIRA 데이터 패칭 useEffect
   useEffect(() => {
     if (view === 'issues' && activeEpic) {
       const fetchJiraIssues = async () => {
         setLoading(true);
         try {
-          // Vercel Serverless Function 호출
           const res = await fetch(`/api/jira?epicKey=${activeEpic}`);
           const data = await res.json();
           
@@ -146,46 +184,46 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
     }
   }, [view, activeEpic]);
 
-  // Spaces State
-  const [spaces, setSpaces] = useState([
-    { id: '1', name: 'v1.5 메인화면 개편 QA', epicKey: 'EPIC-1204', department: 'QA 1팀' }
-  ]);
-  const [spaceModal, setSpaceModal] = useState({ isOpen: false, isEdit: false });
-  const [spaceFormData, setSpaceFormData] = useState({ id: '', name: '', epicKey: '', department: '' });
-
-  // Epics State
-  const [epics, setEpics] = useState([
-    { id: '1', spaceKey: 'EPIC-1204', name: 'v1.5 메인화면 개편 QA', epicKey: 'EPIC-1204', status: '진행중', progress: 45 }
-  ]);
-  const [epicModal, setEpicModal] = useState({ isOpen: false, isEdit: false });
-  const [epicFormData, setEpicFormData] = useState({ id: '', spaceKey: '', name: '', epicKey: '', status: '예정', progress: 0 });
-
-  // Space Handlers
-  const handleSpaceSubmit = (data) => {
-    if (spaceModal.isEdit) {
-      setSpaces(spaces.map(s => s.id === data.id ? data : s));
-    } else {
-      setSpaces([...spaces, { ...data, id: Date.now().toString() }]);
-    }
-    setSpaceModal({ isOpen: false, isEdit: false });
+  // Space Handlers (Firebase 연동)
+  const handleSpaceSubmit = async (data) => {
+    try {
+      const { id, ...saveData } = data;
+      if (spaceModal.isEdit) {
+        await updateDoc(doc(db, 'jira_spaces', id), saveData);
+      } else {
+        await addDoc(collection(db, 'jira_spaces'), saveData);
+      }
+      setSpaceModal({ isOpen: false, isEdit: false });
+    } catch(err) { console.error("Error saving space", err); }
   };
-  const handleSpaceDelete = (id) => {
-    setSpaces(spaces.filter(s => s.id !== id));
-    setSpaceModal({ isOpen: false, isEdit: false });
+  
+  const handleSpaceDelete = async (id) => {
+    try {
+      await deleteDoc(doc(db, 'jira_spaces', id));
+      setSpaceModal({ isOpen: false, isEdit: false });
+    } catch(err) { console.error("Error deleting space", err); }
   };
 
-  // Epic Handlers
-  const handleEpicSubmit = (data) => {
-    if (epicModal.isEdit) {
-      setEpics(epics.map(e => e.id === data.id ? data : e));
-    } else {
-      setEpics([...epics, { ...data, id: Date.now().toString(), spaceKey: activeSpace, progress: 0 }]);
-    }
-    setEpicModal({ isOpen: false, isEdit: false });
+  // Epic Handlers (Firebase 연동)
+  const handleEpicSubmit = async (data) => {
+    try {
+      const { id, ...saveData } = data;
+      if (epicModal.isEdit) {
+        await updateDoc(doc(db, 'jira_epics', id), saveData);
+      } else {
+        saveData.spaceKey = activeSpace;
+        saveData.progress = 0;
+        await addDoc(collection(db, 'jira_epics'), saveData);
+      }
+      setEpicModal({ isOpen: false, isEdit: false });
+    } catch(err) { console.error("Error saving epic", err); }
   };
-  const handleEpicDelete = (id) => {
-    setEpics(epics.filter(e => e.id !== id));
-    setEpicModal({ isOpen: false, isEdit: false });
+  
+  const handleEpicDelete = async (id) => {
+    try {
+      await deleteDoc(doc(db, 'jira_epics', id));
+      setEpicModal({ isOpen: false, isEdit: false });
+    } catch(err) { console.error("Error deleting epic", err); }
   };
 
   const filteredEpics = epics.filter(e => e.spaceKey === activeSpace);
@@ -267,7 +305,7 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 overflow-y-auto no-scrollbar pb-6">
-                {spaces.map(space => (
+                {spaces.length > 0 ? spaces.map(space => (
                   <div key={space.id} onClick={() => { setActiveSpace(space.epicKey); setView('epics'); setActiveMenu('epic'); }} className="bg-white rounded-3xl p-6 border border-gray-200 shadow-md cursor-pointer hover-breath group relative">
                     <div className="absolute top-5 right-5 flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
                       <button onClick={(e) => { e.stopPropagation(); setSpaceFormData(space); setSpaceModal({isOpen: true, isEdit: true}); }} className="p-1.5 bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-200 transition-colors border border-gray-200 shadow-sm"><Edit className="w-4 h-4"/></button>
@@ -281,7 +319,9 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
                     </div>
                     <h3 className="text-xl font-bold text-gray-800 group-hover:text-blue-600 transition-colors pr-8 truncate" title={space.name}>{space.name}</h3>
                   </div>
-                ))}
+                )) : (
+                  <div className="col-span-3 text-center py-16 text-gray-400 font-medium bg-white rounded-2xl border border-dashed border-gray-200 shadow-sm">등록된 스페이스가 없습니다.</div>
+                )}
               </div>
             </div>
           )}
@@ -318,7 +358,7 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
                     </div>
                   </div>
                 )) : (
-                  <div className="col-span-3 text-center py-16 text-gray-400 font-medium bg-gray-50 rounded-2xl border border-dashed border-gray-200">등록된 프로젝트(에픽)가 없습니다.</div>
+                  <div className="col-span-3 text-center py-16 text-gray-400 font-medium bg-white rounded-2xl border border-dashed border-gray-200 shadow-sm">등록된 프로젝트(에픽)가 없습니다.</div>
                 )}
               </div>
             </div>
