@@ -7,7 +7,13 @@ export default async function handler(req, res) {
 
   const email = process.env.JIRA_EMAIL;
   const token = process.env.JIRA_API_TOKEN;
-  const domain = process.env.JIRA_DOMAIN;
+  let domain = process.env.JIRA_DOMAIN;
+
+  // [수정 핵심] url.parse() 에러 방지: 
+  // 환경변수에 'https://' 나 끝에 '/'가 포함되어 있다면 자동으로 제거하여 주소 중복을 막습니다.
+  if (domain) {
+    domain = domain.replace(/^https?:\/\//, '').replace(/\/$/, '');
+  }
 
   // JIRA 인증용 Base64 인코딩
   const authBuffer = Buffer.from(`${email}:${token}`).toString('base64');
@@ -16,7 +22,7 @@ export default async function handler(req, res) {
   const jql = `parent = "${epicKey}" AND issuetype = "개발결함" ORDER BY created DESC`;
 
   try {
-    // Vercel 에러 로그(CHANGE-2046) 권고사항에 맞춰 GET -> POST 및 최신 엔드포인트로 변경
+    // Vercel 에러 로그(CHANGE-2046) 권고사항에 맞춰 POST 및 최신 엔드포인트 사용
     const response = await fetch(`https://${domain}/rest/api/3/search/jql`, {
       method: 'POST',
       headers: {
