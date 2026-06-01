@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Bug, Activity, CheckCircle2, AlertCircle, 
   ChevronUp, Equal, ChevronDown as ChevronDownIcon,
@@ -114,8 +114,37 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
   const [activeSpace, setActiveSpace] = useState(null);
   const [activeEpic, setActiveEpic] = useState(null);
   
-  // Mock Data for Issues
-  const [issues, setIssues] = useState(INITIAL_JIRA_ISSUES);
+  // API Fetch를 위한 State 업데이트 (더미 데이터 제거)
+  const [issues, setIssues] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  // JIRA 데이터 패칭 useEffect 추가
+  useEffect(() => {
+    if (view === 'issues' && activeEpic) {
+      const fetchJiraIssues = async () => {
+        setLoading(true);
+        try {
+          // Vercel Serverless Function 호출
+          const res = await fetch(`/api/jira?epicKey=${activeEpic}`);
+          const data = await res.json();
+          
+          if (res.ok) {
+            setIssues(data);
+          } else {
+            console.error("JIRA API 에러:", data.error);
+            setIssues([]);
+          }
+        } catch (error) {
+          console.error("JIRA 서버 통신 에러:", error);
+          setIssues([]);
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      fetchJiraIssues();
+    }
+  }, [view, activeEpic]);
 
   // Spaces State
   const [spaces, setSpaces] = useState([
@@ -361,9 +390,23 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
                           <tr key={issue.id} className="hover:bg-blue-50/30 transition-colors group cursor-pointer">
                             <td className="px-5 py-4 text-xs font-bold text-blue-600 underline-offset-2 group-hover:underline">{issue.key}</td>
                             <td className="px-5 py-4"><JiraBadge className={getStatusBadgeClass(issue.status)}>{issue.status}</JiraBadge></td>
-                            <div className="flex flex-col space-y-1">
-                              <span className="text-xs font-medium text-gray-700 flex items-center"><User className="w-3 h-3 mr-1 text-gray-400"/> {issue.assignee}</span>
-                            </div>
+                            <td className="px-5 py-4 text-xs font-medium text-gray-700 flex items-center mt-1">
+                              {getPriorityIcon(issue.priority)} {issue.priority}
+                            </td>
+                            <td className="px-5 py-4 text-sm font-bold text-gray-800">
+                              <div className="truncate max-w-sm" title={issue.summary}>{issue.summary}</div>
+                            </td>
+                            <td className="px-5 py-4">
+                              <div className="flex space-x-1">
+                                <span className={`text-[10px] px-1.5 py-0.5 rounded border font-bold ${issue.platform === 'iOS' ? 'bg-gray-100 text-gray-700 border-gray-200' : issue.platform === 'Android' ? 'bg-blue-50 text-blue-600 border-blue-200' : 'bg-orange-50 text-orange-600 border-orange-200'}`}>{issue.component}</span>
+                                <span className="text-[10px] px-1.5 py-0.5 rounded border bg-gray-50 text-gray-500 border-gray-200 font-medium">{issue.type}</span>
+                              </div>
+                            </td>
+                            <td className="px-5 py-4">
+                              <div className="flex flex-col space-y-1">
+                                <span className="text-xs font-medium text-gray-700 flex items-center"><User className="w-3 h-3 mr-1 text-gray-400"/> {issue.assignee}</span>
+                              </div>
+                            </td>
                             <td className="px-5 py-4 text-xs text-gray-400 font-medium whitespace-nowrap">{issue.date}</td>
                           </tr>
                         ))
