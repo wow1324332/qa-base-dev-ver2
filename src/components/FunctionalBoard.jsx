@@ -1,8 +1,7 @@
-import React, { useState } from 'react';
-import { Users, Settings, User, LogOut, Server, Calendar } from 'lucide-react';
-import { AppLogo } from './SharedUI';
-
-export const FunctionalBoard = ({ user, onNavigate, onLogout, onShowProfileModal, onShowAdminModal }) => {
+// ==========================================
+// [구역 5] 메인 메뉴 모듈 (FunctionalBoard)
+// ==========================================
+const FunctionalBoard = ({ user, onNavigate, onLogout, onShowProfileModal, onShowAdminModal }) => {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const onlineUsersCount = 1;
 
@@ -21,7 +20,7 @@ export const FunctionalBoard = ({ user, onNavigate, onLogout, onShowProfileModal
             <span className="text-xs font-medium text-gray-700">{onlineUsersCount}명 접속중</span>
           </div>
 
-          {user.role === 'admin' && (
+          {user?.role === 'admin' && (
             <button 
               onClick={onShowAdminModal}
               className="p-2 text-gray-400 hover:text-gray-800 transition-colors hover-breath rounded-full bg-white shadow-sm border border-gray-100"
@@ -36,9 +35,9 @@ export const FunctionalBoard = ({ user, onNavigate, onLogout, onShowProfileModal
               onClick={() => setShowProfileMenu(!showProfileMenu)}
             >
               <div className="w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center text-white text-xs font-medium overflow-hidden">
-                {user.profileImage ? <img src={user.profileImage} alt="profile" className="w-full h-full object-cover" /> : user.name.charAt(0)}
+                {user?.profileImage ? <img src={user.profileImage} alt="profile" className="w-full h-full object-cover" /> : user?.name?.charAt(0) || 'U'}
               </div>
-              <span className="text-sm font-medium text-gray-700">{user.name}</span>
+              <span className="text-sm font-medium text-gray-700">{user?.name || 'User'}</span>
             </div>
 
             {showProfileMenu && (
