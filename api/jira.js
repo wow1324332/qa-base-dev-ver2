@@ -18,16 +18,40 @@ export default async function handler(req, res) {
   try {
     // [1단계 탐색] 에픽에 속한 중간 징검다리 작업(Task 등)을 모두 찾습니다.
     const parentJql = `parent = "${epicKey}" OR "Epic Link" = "${epicKey}"`;
-    const parentResponse = await fetch(`https://${domain}/rest/api/3/search/jql`, {
-      method: 'POST',
-      headers: { 'Authorization': `Basic ${authBuffer}`, 'Accept': 'application/json', 'Content-Type': 'application/json' },
-      body: JSON.stringify({ jql: parentJql, maxResults: 1000, fields: ["id", "key"] })
-    });
+    let parentKeys = [];
+    let parentNextPageToken = null;
+    let isParentLast = false;
 
-    const parentData = await parentResponse.json();
-    if (!parentResponse.ok) throw new Error(parentData.errorMessages?.[0] || '1단계 JIRA API 에러');
+    // 1단계도 혹시 모를 100개 초과를 대비해 최신 페이징 방식 적용
+    while (!isParentLast) {
+      const parentPayload = {
+        jql: parentJql,
+        maxResults: 100,
+        fields: ["id", "key"]
+      };
+      
+      if (parentNextPageToken) {
+        parentPayload.nextPageToken = parentNextPageToken;
+      }
 
-    const parentKeys = (parentData.issues || []).map(issue => issue.key);
+      const parentResponse = await fetch(`https://${domain}/rest/api/3/search/jql`, {
+        method: 'POST',
+        headers: { 'Authorization': `Basic ${authBuffer}`, 'Accept': 'application/json', 'Content-Type': 'application/json' },
+        body: JSON.stringify(parentPayload)
+      });
+
+      const parentData = await parentResponse.json();
+      if (!parentResponse.ok) throw new Error(parentData.errorMessages?.[0] || '1단계 JIRA API 에러');
+
+      parentKeys = parentKeys.concat((parentData.issues || []).map(issue => issue.key));
+
+      if (parentData.nextPageToken) {
+        parentNextPageToken = parentData.nextPageToken;
+      } else {
+        isParentLast = true;
+      }
+    }
+
     const searchKeys = [epicKey, ...parentKeys];
 
     // [수정 핵심] JQL 문법 오류 방지
@@ -37,21 +61,26 @@ export default async function handler(req, res) {
     // [2단계 탐색] 찾아낸 모든 부모(Task 및 에픽)에 속한 "개발결함"을 찾습니다.
     const jql = `parent in (${searchKeysString}) AND issuetype = "개발결함" ORDER BY created DESC`;
     
-    // [100개 제한 돌파] 페이징(Pagination) 처리 추가
+    // [100개 제한 돌파] 최신 JIRA API에 맞춘 페이징(Pagination) 처리
     let allIssues = [];
-    let startAt = 0;
+    let nextPageToken = null;
     let isLast = false;
 
     while (!isLast) {
+      const payload = {
+        jql: jql,
+        maxResults: 100, // API 1회 최대 호출 제한
+        fields: ["summary", "components", "priority", "issuetype", "status", "reporter", "assignee", "created"]
+      };
+      
+      if (nextPageToken) {
+        payload.nextPageToken = nextPageToken; // JIRA 최신 규격인 nextPageToken 사용
+      }
+
       const response = await fetch(`https://${domain}/rest/api/3/search/jql`, {
         method: 'POST',
         headers: { 'Authorization': `Basic ${authBuffer}`, 'Accept': 'application/json', 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          jql: jql,
-          maxResults: 100, // API 1회 최대 호출 제한 (100개씩 나눠서 호출)
-          startAt: startAt, // 몇 번째부터 가져올지 지정
-          fields: ["summary", "components", "priority", "issuetype", "status", "reporter", "assignee", "created"]
-        })
+        body: JSON.stringify(payload)
       });
 
       const data = await response.json();
@@ -60,11 +89,11 @@ export default async function handler(req, res) {
       // 새로 가져온 데이터를 기존 배열에 누적
       allIssues = allIssues.concat(data.issues || []);
       
-      // 모두 가져왔는지 확인 (현재까지 가져온 수 >= JIRA 전체 수)
-      if (startAt + (data.issues || []).length >= data.total) {
-        isLast = true;
+      // JIRA의 최신 페이징 방식(nextPageToken) 확인
+      if (data.nextPageToken) {
+        nextPageToken = data.nextPageToken;
       } else {
-        startAt += 100; // 다음 100개 가져오기 위해 카운트 증가
+        isLast = true; // nextPageToken이 없으면 마지막 페이지
       }
     }
 
