@@ -54,8 +54,7 @@ export default async function handler(req, res) {
 
     const searchKeys = [epicKey, ...parentKeys];
 
-    // [수정 핵심] JQL 문법 오류 방지
-    // 배열 안의 키값(EPIC-1204 등)을 큰따옴표(" ")로 감싸서 문자열로 만들어줍니다.
+    // JQL 문법 오류 방지: 배열 안의 키값을 큰따옴표(" ")로 감싸서 문자열로 만들어줍니다.
     const searchKeysString = searchKeys.map(k => `"${k}"`).join(',');
 
     // [2단계 탐색] 찾아낸 모든 부모(Task 및 에픽)에 속한 "개발결함"을 찾습니다.
@@ -70,7 +69,8 @@ export default async function handler(req, res) {
       const payload = {
         jql: jql,
         maxResults: 100, // API 1회 최대 호출 제한
-        fields: ["summary", "components", "priority", "issuetype", "status", "reporter", "assignee", "created"]
+        // [수정] 현상분류(customfield_10694) 항목을 가져오도록 추가
+        fields: ["summary", "components", "priority", "issuetype", "status", "reporter", "assignee", "created", "customfield_10694"]
       };
       
       if (nextPageToken) {
@@ -98,19 +98,30 @@ export default async function handler(req, res) {
     }
 
     // 프론트엔드 UI에 맞게 300+개 전체 데이터 정제
-    const formattedIssues = allIssues.map(issue => ({
-      id: issue.id,
-      key: issue.key,
-      summary: issue.fields?.summary || '제목 없음',
-      component: issue.fields?.components?.[0]?.name || '전체',
-      platform: issue.fields?.components?.[0]?.name || '전체',
-      priority: issue.fields?.priority?.name || 'Medium',
-      type: issue.fields?.issuetype?.name || '개발결함',
-      status: issue.fields?.status?.name || '진행중',
-      reporter: issue.fields?.reporter?.displayName || 'Unknown',
-      assignee: issue.fields?.assignee?.displayName || '미할당',
-      date: new Date(issue.fields?.created).toLocaleDateString('ko-KR')
-    }));
+    const formattedIssues = allIssues.map(issue => {
+      // [수정] 현상분류(customfield_10694) 값 안전하게 추출
+      let phenom = '-';
+      const rawPhenom = issue.fields?.customfield_10694;
+      if (rawPhenom) {
+        phenom = rawPhenom.value || rawPhenom;
+        if (typeof phenom !== 'string') phenom = String(phenom);
+      }
+
+      return {
+        id: issue.id,
+        key: issue.key,
+        summary: issue.fields?.summary || '제목 없음',
+        component: issue.fields?.components?.[0]?.name || '전체',
+        platform: issue.fields?.components?.[0]?.name || '전체',
+        priority: issue.fields?.priority?.name || 'Medium',
+        type: issue.fields?.issuetype?.name || '개발결함',
+        phenomenon: phenom, // [추가] 현상분류 
+        status: issue.fields?.status?.name || '진행중',
+        reporter: issue.fields?.reporter?.displayName || 'Unknown',
+        assignee: issue.fields?.assignee?.displayName || '미할당',
+        date: new Date(issue.fields?.created).toLocaleDateString('ko-KR')
+      };
+    });
 
     return res.status(200).json(formattedIssues);
 
