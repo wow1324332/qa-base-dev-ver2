@@ -1,3 +1,21 @@
+import React, { useState } from 'react';
+import { 
+  Bug, Activity, CheckCircle2, AlertCircle, 
+  ChevronUp, Equal, ChevronDown as ChevronDownIcon,
+  ChevronLeft, ChevronRight, LayoutDashboard, Server, Kanban, LogOut, Power, User
+} from 'lucide-react';
+import { AppLogo } from './SharedUI';
+
+const INITIAL_JIRA_ISSUES = [
+  { id: '1', key: 'DEVSCRUM-13600', summary: '원패스 모의기간 이용 상태에서 사용자 목록 진입 시 이용가능 기간 정렬 오류', component: 'iOS', priority: 'Medium', type: 'UI/UX', status: '작업 예정', reporter: '김정근', assignee: '홍길동', date: '2026-05-29 16:28', platform: 'iOS' },
+  { id: '2', key: 'DEVSCRUM-13595', summary: '원패스 앱 사용 권한 안내 팝업에 "기능" 문구가 보여짐', component: 'Android', priority: 'Low', type: 'UI/UX', status: 'QA 완료', reporter: '김정근', assignee: '김철수', date: '2026-05-29 16:07', platform: 'Android' },
+  { id: '3', key: 'DEVSCRUM-13593', summary: '원패스 모의기간이 이용 상태에서 해지 시 원패스 해지 안내 팝업이 발생함', component: 'Backend', priority: 'High', type: 'Function', status: 'REOPEN', reporter: '이영희', assignee: '박개발', date: '2026-05-29 15:50', platform: 'Backend' },
+  { id: '4', key: 'DEVSCRUM-13588', summary: '원패스 관리비 결제완료 화면에서 이용 시작일에 년도 표시가 [YYYY]로 노출됨', component: 'iOS', priority: 'Critical', type: 'Function', status: '수정중', reporter: '김정근', assignee: '홍길동', date: '2026-05-29 14:59', platform: 'iOS' },
+  { id: '5', key: 'DEVSCRUM-13586', summary: '원패스 관리비 결제 진행 시 "신청중입니다" 텍스트가 발생됨', component: 'Android', priority: 'Medium', type: 'UI/UX', status: 'QA 대기', reporter: '최테스트', assignee: '김철수', date: '2026-05-29 14:47', platform: 'Android' },
+  { id: '6', key: 'DEVSCRUM-13580', summary: '로그인 화면에서 비밀번호 찾기 진입 시 500 에러 발생', component: 'Backend', priority: 'Critical', type: 'Crash', status: '작업 예정', reporter: '김정근', assignee: '박개발', date: '2026-05-29 11:20', platform: 'Backend' },
+  { id: '7', key: 'DEVSCRUM-13575', summary: '푸시 알림 터치 시 해당 화면으로 이동하지 않고 메인으로 이동됨', component: 'Android', priority: 'High', type: 'Function', status: '진행중', reporter: '이영희', assignee: '김철수', date: '2026-05-28 17:15', platform: 'Android' },
+];
+
 const JiraStatsCard = ({ title, count, colorClass, icon: Icon }) => (
   <div className="bg-white rounded-2xl p-5 border border-gray-200 shadow-md flex items-center justify-between hover-breath">
     <div>
