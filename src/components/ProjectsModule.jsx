@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { 
   Bug, Activity, CheckCircle2, AlertCircle, 
   ChevronUp, Equal, ChevronDown as ChevronDownIcon,
-  ChevronLeft, ChevronRight, LayoutDashboard, Server, Kanban, LogOut, Power, User, Plus, MonitorSmartphone, X, Edit, Filter, Search
+  ChevronLeft, ChevronRight, LayoutDashboard, Server, Kanban, LogOut, Power, User, Plus, MonitorSmartphone, X, Edit, Filter, Search, ExternalLink
 } from 'lucide-react';
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getFirestore, collection, onSnapshot, doc, updateDoc, addDoc, deleteDoc } from "firebase/firestore";
@@ -20,14 +20,12 @@ const firebaseConfig = {
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 const db = getFirestore(app);
 
-// 내부에서 직접 렌더링하는 안전한 로고 컴포넌트
 const AppLogo = ({ className }) => {
   const [imgError, setImgError] = useState(false);
   if (imgError) return <MonitorSmartphone className={`text-gray-800 ${className}`} strokeWidth={1.5} />;
   return <img src="/icon-192x192.png" alt="QA Base" className={`object-contain ${className}`} onError={() => setImgError(true)} />;
 };
 
-// 4. 앱 컨셉에 완벽히 맞는 아름다운 커스텀 셀렉트 컴포넌트
 const CustomSelect = ({ value, onChange, options, className }) => {
   const [isOpen, setIsOpen] = useState(false);
   return (
@@ -49,7 +47,6 @@ const CustomSelect = ({ value, onChange, options, className }) => {
   );
 };
 
-// 1. 스크롤을 방지하고 폴딩 기능을 추가한 디테일 통계 카드
 const DetailedStatCard = ({ title, icon: Icon, total, data, colorMap, defaultColor }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const entries = Object.entries(data).sort((a,b)=>b[1]-a[1]);
@@ -148,7 +145,6 @@ const EpicModal = ({ isOpen, onClose, formData, setFormData, onSubmit, isEdit, o
           </div>
           <div>
             <label className="text-xs font-medium text-gray-500 mb-1 block">상태</label>
-            {/* 기본 select 대신 새로 제작한 CustomSelect 적용 */}
             <CustomSelect 
               value={formData.status} 
               onChange={val=>setFormData({...formData, status: val})} 
@@ -180,14 +176,13 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
   
   const [issues, setIssues] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [jiraDomain, setJiraDomain] = useState(''); // JIRA 도메인 저장을 위한 state 추가
 
-  // 필터링 및 검색 상태
   const [filterStatus, setFilterStatus] = useState('All');
   const [filterPlatform, setFilterPlatform] = useState('All');
   const [filterPriority, setFilterPriority] = useState('All');
   const [searchSummary, setSearchSummary] = useState('');
 
-  // 시네마틱 툴팁 상태
   const [tooltipInfo, setTooltipInfo] = useState({ visible: false, x: 0, y: 0, text: '' });
 
   const [spaces, setSpaces] = useState([]);
@@ -222,8 +217,13 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
         try {
           const res = await fetch(`/api/jira?epicKey=${activeEpic}`);
           const data = await res.json();
-          if (res.ok) setIssues(data);
-          else { console.error("JIRA API 에러:", data.error); setIssues([]); }
+          if (res.ok) {
+            setIssues(data.issues);
+            setJiraDomain(data.domain); // 백엔드에서 전달받은 도메인 저장
+          } else { 
+            console.error("JIRA API 에러:", data.error); 
+            setIssues([]); 
+          }
         } catch (error) {
           console.error("JIRA 서버 통신 에러:", error);
           setIssues([]);
@@ -234,6 +234,13 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
       fetchJiraIssues();
     }
   }, [view, activeEpic]);
+
+  // JIRA 이슈 새 창으로 열기 핸들러 추가
+  const handleOpenJiraIssue = (issueKey) => {
+    if (jiraDomain && issueKey) {
+      window.open(`https://${jiraDomain}/browse/${issueKey}`, '_blank');
+    }
+  };
 
   const handleSpaceSubmit = async (data) => {
     try {
@@ -308,7 +315,6 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
     return 'bg-gray-100 text-gray-600 border-gray-200';
   };
 
-  // 이슈 필터링 데이터
   const filteredIssues = issues.filter(issue => {
     if (filterStatus !== 'All' && issue.status !== filterStatus) return false;
     if (filterPlatform !== 'All' && issue.component !== filterPlatform) return false;
@@ -321,7 +327,6 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
   const platformOptions = [{value: 'All', label: '플랫폼 전체'}, ...Array.from(new Set(issues.map(i => i.component))).filter(Boolean).map(p => ({value: p, label: p}))];
   const priorityOptions = [{value: 'All', label: '우선순위 전체'}, ...Array.from(new Set(issues.map(i => i.priority))).filter(Boolean).map(p => ({value: p, label: p}))];
 
-  // 시네마틱 말풍선 핸들러
   const handleTooltip = (e, text) => {
     const textSpan = e.currentTarget.querySelector('.truncate-summary');
     let isTruncated = false;
@@ -488,7 +493,6 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
                 </div>
               </div>
 
-              {/* 통계 대시보드 영역: 폴딩 기능 추가 (자식 컨테이너 위치 지정) */}
               <div className="relative mb-6 shrink-0">
                 <div className="flex space-x-6">
                   <div className="flex-1">
@@ -501,11 +505,9 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
                     <DetailedStatCard title="우선순위별 통계" icon={AlertCircle} total={totalIssues} data={priorityCounts} colorMap={priorityColorMap} defaultColor="bg-gray-400" />
                   </div>
                 </div>
-                {/* 폼 및 카드의 높이를 띄워주기 위한 보이지 않는 플레이스홀더 */}
                 <div className="h-48 invisible pointer-events-none absolute top-0"></div>
               </div>
 
-              {/* 필터 및 검색 바 */}
               <div className="flex items-center space-x-3 bg-white p-3 px-5 rounded-t-2xl shadow-sm border border-gray-200 border-b-0 shrink-0 relative z-20">
                 <Filter className="w-4 h-4 text-gray-400" />
                 <div className="w-px h-4 bg-gray-200 mx-1"></div>
@@ -524,7 +526,6 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
                 )}
               </div>
 
-              {/* 아름다운 리스트 뷰 */}
               <div className="flex-1 bg-white rounded-b-2xl border border-gray-200 shadow-md overflow-hidden flex flex-col relative z-0">
                 <div className="overflow-y-auto no-scrollbar flex-1 relative">
                   <table className="w-full text-left border-collapse relative">
@@ -555,8 +556,10 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
                         </tr>
                       ) : (
                         filteredIssues.map(issue => (
-                          <tr key={issue.id} className="hover:bg-blue-50/30 transition-colors group cursor-pointer">
-                            <td className="px-5 py-4 text-xs font-bold text-blue-600 underline-offset-2 group-hover:underline">{issue.key}</td>
+                          <tr key={issue.id} className="hover:bg-blue-50/30 transition-colors group cursor-pointer" onClick={() => handleOpenJiraIssue(issue.key)}>
+                            <td className="px-5 py-4 text-xs font-bold text-blue-600 underline-offset-2 group-hover:underline flex items-center">
+                              {issue.key} <ExternalLink className="w-3 h-3 ml-1 text-gray-400 group-hover:text-blue-500" />
+                            </td>
                             <td className="px-5 py-4"><JiraBadge className={getStatusBadgeClass(issue.status)}>{issue.status}</JiraBadge></td>
                             <td className="px-5 py-4 text-xs font-medium text-gray-700 flex items-center mt-1">
                               {getPriorityIcon(issue.priority)} {issue.priority}
