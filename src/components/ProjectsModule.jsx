@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { 
   Bug, Activity, CheckCircle2, AlertCircle, 
   ChevronUp, Equal, ChevronDown as ChevronDownIcon,
-  ChevronLeft, ChevronRight, LayoutDashboard, Server, Kanban, LogOut, Power, User, Plus, MonitorSmartphone, X
+  ChevronLeft, ChevronRight, LayoutDashboard, Server, Kanban, LogOut, Power, User, Plus, MonitorSmartphone, X, Edit
 } from 'lucide-react';
 
 const AppLogo = ({ className }) => {
@@ -39,14 +39,14 @@ const JiraBadge = ({ children, className }) => (
   </span>
 );
 
-const SpaceAddModal = ({ isOpen, onClose, formData, setFormData, onSubmit }) => {
+const SpaceModal = ({ isOpen, onClose, formData, setFormData, onSubmit, isEdit, onDelete }) => {
   if (!isOpen) return null;
   return (
     <div className="fixed inset-0 bg-gray-900/30 backdrop-blur-sm z-50 flex items-center justify-center animate-fast-fade">
       <div className="bg-white rounded-2xl shadow-2xl p-6 w-[400px] border border-gray-100 relative">
         <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"><X className="w-5 h-5"/></button>
-        <h3 className="text-lg font-medium text-gray-800 mb-4 flex items-center shrink-0"><Plus className="w-5 h-5 mr-2 text-gray-600"/> 스페이스 생성</h3>
-        <form id="spaceAddForm" onSubmit={(e) => { e.preventDefault(); onSubmit(formData); }} className="space-y-4">
+        <h3 className="text-lg font-medium text-gray-800 mb-4 flex items-center shrink-0"><Server className="w-5 h-5 mr-2 text-gray-600"/> 스페이스 {isEdit ? '수정' : '생성'}</h3>
+        <form id="spaceForm" onSubmit={(e) => { e.preventDefault(); onSubmit(formData); }} className="space-y-4">
           <div>
             <label className="text-xs font-medium text-gray-500 mb-1 block">스페이스 명</label>
             <input required value={formData.name} onChange={e=>setFormData({...formData, name: e.target.value})} className="w-full bg-gray-50 border border-gray-200 text-sm rounded-lg px-3 py-2 outline-none focus:border-gray-400 shadow-sm transition-colors" placeholder="예: v1.5 메인화면 개편" />
@@ -61,8 +61,45 @@ const SpaceAddModal = ({ isOpen, onClose, formData, setFormData, onSubmit }) => 
           </div>
         </form>
         <div className="flex space-x-2 pt-4 border-t border-gray-100 mt-4">
-          <button type="button" onClick={onClose} className="flex-1 bg-gray-100 text-gray-600 text-sm font-medium py-2.5 rounded-xl hover:bg-gray-200 transition-colors">취소</button>
-          <button type="submit" form="spaceAddForm" className="flex-1 bg-gray-800 text-white text-sm font-medium py-2.5 rounded-xl hover:bg-gray-900 transition-colors shadow-md">생성</button>
+          <button type="button" onClick={onClose} className="flex-1 bg-gray-100 text-gray-600 text-sm font-medium py-2.5 rounded-xl hover:bg-gray-200 transition-colors border border-gray-200 shadow-sm">취소</button>
+          {isEdit && <button type="button" onClick={() => onDelete(formData.id)} className="flex-1 bg-red-50 text-red-600 text-sm font-medium py-2.5 rounded-xl hover:bg-red-100 transition-colors border border-red-100 shadow-sm">삭제</button>}
+          <button type="submit" form="spaceForm" className="flex-1 bg-gray-800 text-white text-sm font-medium py-2.5 rounded-xl hover:bg-gray-900 transition-colors shadow-md">{isEdit ? '수정' : '생성'}</button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const EpicModal = ({ isOpen, onClose, formData, setFormData, onSubmit, isEdit, onDelete }) => {
+  if (!isOpen) return null;
+  return (
+    <div className="fixed inset-0 bg-gray-900/30 backdrop-blur-sm z-50 flex items-center justify-center animate-fast-fade">
+      <div className="bg-white rounded-2xl shadow-2xl p-6 w-[400px] border border-gray-100 relative">
+        <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"><X className="w-5 h-5"/></button>
+        <h3 className="text-lg font-medium text-gray-800 mb-4 flex items-center shrink-0"><Kanban className="w-5 h-5 mr-2 text-gray-600"/> 프로젝트 {isEdit ? '수정' : '추가'}</h3>
+        <form id="epicForm" onSubmit={(e) => { e.preventDefault(); onSubmit(formData); }} className="space-y-4">
+          <div>
+            <label className="text-xs font-medium text-gray-500 mb-1 block">프로젝트 명</label>
+            <input required value={formData.name} onChange={e=>setFormData({...formData, name: e.target.value})} className="w-full bg-gray-50 border border-gray-200 text-sm rounded-lg px-3 py-2 outline-none focus:border-gray-400 shadow-sm transition-colors" placeholder="예: 결제 모듈 개편" />
+          </div>
+          <div>
+            <label className="text-xs font-medium text-gray-500 mb-1 block">에픽 키 (JIRA)</label>
+            <input required value={formData.epicKey} onChange={e=>setFormData({...formData, epicKey: e.target.value})} className="w-full bg-gray-50 border border-gray-200 text-sm rounded-lg px-3 py-2 outline-none focus:border-gray-400 shadow-sm transition-colors" placeholder="예: EPIC-1205" />
+          </div>
+          <div>
+            <label className="text-xs font-medium text-gray-500 mb-1 block">상태</label>
+            <select required value={formData.status} onChange={e=>setFormData({...formData, status: e.target.value})} className="w-full bg-gray-50 border border-gray-200 text-sm rounded-lg px-3 py-2 outline-none focus:border-gray-400 shadow-sm transition-colors appearance-none">
+              <option value="예정">예정</option>
+              <option value="진행중">진행중</option>
+              <option value="HOLD">HOLD</option>
+              <option value="완료">완료</option>
+            </select>
+          </div>
+        </form>
+        <div className="flex space-x-2 pt-4 border-t border-gray-100 mt-4">
+          <button type="button" onClick={onClose} className="flex-1 bg-gray-100 text-gray-600 text-sm font-medium py-2.5 rounded-xl hover:bg-gray-200 transition-colors border border-gray-200 shadow-sm">취소</button>
+          {isEdit && <button type="button" onClick={() => onDelete(formData.id)} className="flex-1 bg-red-50 text-red-600 text-sm font-medium py-2.5 rounded-xl hover:bg-red-100 transition-colors border border-red-100 shadow-sm">삭제</button>}
+          <button type="submit" form="epicForm" className="flex-1 bg-gray-800 text-white text-sm font-medium py-2.5 rounded-xl hover:bg-gray-900 transition-colors shadow-md">{isEdit ? '수정' : '추가'}</button>
         </div>
       </div>
     </div>
@@ -75,16 +112,54 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
   const [view, setView] = useState('spaces'); // 'spaces', 'epics', 'issues'
   
   const [activeSpace, setActiveSpace] = useState(null);
+  const [activeEpic, setActiveEpic] = useState(null);
   
-  // Mock Data
+  // Mock Data for Issues
   const [issues, setIssues] = useState(INITIAL_JIRA_ISSUES);
 
-  // 스페이스 관련 State 추가
+  // Spaces State
   const [spaces, setSpaces] = useState([
     { id: '1', name: 'v1.5 메인화면 개편 QA', epicKey: 'EPIC-1204', department: 'QA 1팀' }
   ]);
-  const [showSpaceModal, setShowSpaceModal] = useState(false);
-  const [spaceFormData, setSpaceFormData] = useState({ name: '', epicKey: '', department: '' });
+  const [spaceModal, setSpaceModal] = useState({ isOpen: false, isEdit: false });
+  const [spaceFormData, setSpaceFormData] = useState({ id: '', name: '', epicKey: '', department: '' });
+
+  // Epics State
+  const [epics, setEpics] = useState([
+    { id: '1', spaceKey: 'EPIC-1204', name: 'v1.5 메인화면 개편 QA', epicKey: 'EPIC-1204', status: '진행중', progress: 45 }
+  ]);
+  const [epicModal, setEpicModal] = useState({ isOpen: false, isEdit: false });
+  const [epicFormData, setEpicFormData] = useState({ id: '', spaceKey: '', name: '', epicKey: '', status: '예정', progress: 0 });
+
+  // Space Handlers
+  const handleSpaceSubmit = (data) => {
+    if (spaceModal.isEdit) {
+      setSpaces(spaces.map(s => s.id === data.id ? data : s));
+    } else {
+      setSpaces([...spaces, { ...data, id: Date.now().toString() }]);
+    }
+    setSpaceModal({ isOpen: false, isEdit: false });
+  };
+  const handleSpaceDelete = (id) => {
+    setSpaces(spaces.filter(s => s.id !== id));
+    setSpaceModal({ isOpen: false, isEdit: false });
+  };
+
+  // Epic Handlers
+  const handleEpicSubmit = (data) => {
+    if (epicModal.isEdit) {
+      setEpics(epics.map(e => e.id === data.id ? data : e));
+    } else {
+      setEpics([...epics, { ...data, id: Date.now().toString(), spaceKey: activeSpace, progress: 0 }]);
+    }
+    setEpicModal({ isOpen: false, isEdit: false });
+  };
+  const handleEpicDelete = (id) => {
+    setEpics(epics.filter(e => e.id !== id));
+    setEpicModal({ isOpen: false, isEdit: false });
+  };
+
+  const filteredEpics = epics.filter(e => e.spaceKey === activeSpace);
 
   // 통계 계산
   const totalIssues = issues.length;
@@ -135,7 +210,7 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
             <div className="text-xs font-semibold text-gray-400 tracking-wider mb-4 px-3 mt-2">MENU</div>
             <button onClick={() => onNavigate('board')} className="w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-gray-500 hover:bg-gray-50 hover:text-gray-900 transition-colors"><LayoutDashboard className="w-4 h-4" /><span className="text-sm font-medium">기능 보드 이동</span></button>
             <div className="h-px bg-gray-100 my-2 mx-3"></div>
-            <button onClick={() => { setActiveMenu('space'); setView('spaces'); }} className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl transition-colors ${activeMenu === 'space' ? 'bg-blue-50/50 text-blue-700 font-medium border border-blue-100 shadow-sm' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`}><Server className={`w-4 h-4 ${activeMenu === 'space' ? 'text-blue-600' : ''}`} /><span className="text-sm">스페이스 보드</span></button>
+            <button onClick={() => { setActiveMenu('space'); setView('spaces'); setActiveSpace(null); setActiveEpic(null); }} className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl transition-colors ${activeMenu === 'space' ? 'bg-blue-50/50 text-blue-700 font-medium border border-blue-100 shadow-sm' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`}><Server className={`w-4 h-4 ${activeMenu === 'space' ? 'text-blue-600' : ''}`} /><span className="text-sm">스페이스 보드</span></button>
             {activeSpace && (
               <button onClick={() => { setActiveMenu('epic'); setView('epics'); }} className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl transition-colors ml-2 w-[calc(100%-8px)] ${activeMenu === 'epic' ? 'bg-gray-50 text-gray-900 font-medium border border-gray-200 shadow-sm' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`}><Kanban className="w-4 h-4" /><span className="text-sm">프로젝트(에픽) 메인보드</span></button>
             )}
@@ -157,36 +232,28 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
                   </div>
                   <p className="text-sm text-gray-500 font-medium">결함을 추적할 스페이스를 선택하거나 새로 생성하세요.</p>
                 </div>
-                <button onClick={() => { setSpaceFormData({ name: '', epicKey: '', department: '' }); setShowSpaceModal(true); }} className="bg-gray-800 text-white text-sm font-semibold px-4 py-2 rounded-lg hover:bg-gray-900 transition-colors shadow-md flex items-center">
+                <button onClick={() => { setSpaceFormData({ id: '', name: '', epicKey: '', department: '' }); setSpaceModal({isOpen: true, isEdit: false}); }} className="bg-gray-800 text-white text-sm font-semibold px-4 py-2 rounded-lg hover:bg-gray-900 transition-colors shadow-md flex items-center">
                   <Plus className="w-4 h-4 mr-1.5" /> 스페이스 생성
                 </button>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 overflow-y-auto no-scrollbar pb-6">
                 {spaces.map(space => (
-                  <div key={space.id} onClick={() => { setActiveSpace(space.epicKey); setView('epics'); setActiveMenu('epic'); }} className="bg-white rounded-3xl p-6 border border-gray-200 shadow-md cursor-pointer hover-breath group">
+                  <div key={space.id} onClick={() => { setActiveSpace(space.epicKey); setView('epics'); setActiveMenu('epic'); }} className="bg-white rounded-3xl p-6 border border-gray-200 shadow-md cursor-pointer hover-breath group relative">
+                    <div className="absolute top-5 right-5 flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                      <button onClick={(e) => { e.stopPropagation(); setSpaceFormData(space); setSpaceModal({isOpen: true, isEdit: true}); }} className="p-1.5 bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-200 transition-colors border border-gray-200 shadow-sm"><Edit className="w-4 h-4"/></button>
+                    </div>
                     <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center mb-5 group-hover:bg-blue-600 transition-colors duration-500 shadow-sm border border-blue-100">
                       <Server className="w-5 h-5 text-blue-600 group-hover:text-white transition-colors duration-500" strokeWidth={2} />
                     </div>
-                    <div className="flex justify-between items-start mb-2">
+                    <div className="flex justify-between items-start mb-2 pr-8">
                       <span className="text-[10px] bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full border border-gray-200 font-bold">{space.epicKey}</span>
                       <span className="text-xs font-bold text-gray-400">{space.department}</span>
                     </div>
-                    <h3 className="text-xl font-bold text-gray-800 group-hover:text-blue-600 transition-colors">{space.name}</h3>
+                    <h3 className="text-xl font-bold text-gray-800 group-hover:text-blue-600 transition-colors pr-8 truncate" title={space.name}>{space.name}</h3>
                   </div>
                 ))}
               </div>
-
-              <SpaceAddModal 
-                isOpen={showSpaceModal} 
-                onClose={() => setShowSpaceModal(false)} 
-                formData={spaceFormData} 
-                setFormData={setSpaceFormData} 
-                onSubmit={(data) => {
-                  setSpaces([...spaces, { id: Date.now().toString(), ...data }]);
-                  setShowSpaceModal(false);
-                }} 
-              />
             </div>
           )}
 
@@ -198,26 +265,32 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
                     <span className="bg-blue-100 text-blue-700 text-xs font-bold px-2 py-0.5 rounded border border-blue-200">{activeSpace}</span>
                     <h1 className="text-2xl font-bold text-gray-800">프로젝트(에픽) 보드</h1>
                   </div>
-                  <p className="text-sm text-gray-500 font-medium">추적할 에픽(프로젝트)을 선택하거나 새로 등록하세요.</p>
+                  <p className="text-sm text-gray-500 font-medium">추적할 프로젝트(에픽)를 선택하거나 새로 등록하세요.</p>
                 </div>
-                <button className="bg-gray-800 text-white text-sm font-semibold px-4 py-2 rounded-lg hover:bg-gray-900 transition-colors shadow-md flex items-center">
-                  <Plus className="w-4 h-4 mr-1.5" /> 에픽 연동
+                <button onClick={() => { setEpicFormData({ id: '', spaceKey: activeSpace, name: '', epicKey: '', status: '예정', progress: 0 }); setEpicModal({isOpen: true, isEdit: false}); }} className="bg-gray-800 text-white text-sm font-semibold px-4 py-2 rounded-lg hover:bg-gray-900 transition-colors shadow-md flex items-center">
+                  <Plus className="w-4 h-4 mr-1.5" /> 프로젝트 추가
                 </button>
               </div>
 
-              {/* 임시 에픽 카드 */}
-              <div className="grid grid-cols-3 gap-6">
-                <div onClick={() => setView('issues')} className="bg-white rounded-2xl p-6 border border-gray-200 shadow-md cursor-pointer hover-breath group">
-                  <div className="flex justify-between items-start mb-4">
-                    <span className="text-[10px] bg-blue-50 text-blue-600 px-2 py-1 rounded-md border border-blue-100 font-bold">진행중</span>
-                    <span className="text-xs font-bold text-gray-400">{activeSpace || 'EPIC-1204'}</span>
+              <div className="grid grid-cols-3 gap-6 overflow-y-auto no-scrollbar pb-6">
+                {filteredEpics.length > 0 ? filteredEpics.map(epic => (
+                  <div key={epic.id} onClick={() => { setActiveEpic(epic.epicKey); setView('issues'); }} className="bg-white rounded-2xl p-6 border border-gray-200 shadow-md cursor-pointer hover-breath group relative">
+                    <div className="absolute top-5 right-5 flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                      <button onClick={(e) => { e.stopPropagation(); setEpicFormData(epic); setEpicModal({isOpen: true, isEdit: true}); }} className="p-1.5 bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-200 transition-colors border border-gray-200 shadow-sm"><Edit className="w-4 h-4"/></button>
+                    </div>
+                    <div className="flex justify-between items-start mb-4 pr-10">
+                      <span className={`text-[10px] px-2 py-1 rounded-md border font-bold ${epic.status === '완료' ? 'bg-green-50 text-green-600 border-green-100' : epic.status === '진행중' ? 'bg-blue-50 text-blue-600 border-blue-100' : epic.status === 'HOLD' ? 'bg-orange-50 text-orange-600 border-orange-100' : 'bg-gray-50 text-gray-600 border-gray-100'}`}>{epic.status}</span>
+                      <span className="text-xs font-bold text-gray-400">{epic.epicKey}</span>
+                    </div>
+                    <h3 className="text-lg font-bold text-gray-800 mb-2 group-hover:text-blue-600 transition-colors truncate" title={epic.name}>{epic.name}</h3>
+                    <div className="w-full bg-gray-100 rounded-full h-1.5 mb-2 mt-4"><div className="bg-blue-500 h-1.5 rounded-full transition-all" style={{width: `${epic.progress || 0}%`}}></div></div>
+                    <div className="flex justify-between text-xs font-medium text-gray-500">
+                      <span>결함 추적 중</span><span>{epic.progress || 0}% 완료</span>
+                    </div>
                   </div>
-                  <h3 className="text-lg font-bold text-gray-800 mb-2 group-hover:text-blue-600 transition-colors">v1.5 메인화면 개편 QA</h3>
-                  <div className="w-full bg-gray-100 rounded-full h-1.5 mb-2 mt-4"><div className="bg-blue-500 h-1.5 rounded-full w-[45%]"></div></div>
-                  <div className="flex justify-between text-xs font-medium text-gray-500">
-                    <span>결함 추적 중</span><span>45% 완료</span>
-                  </div>
-                </div>
+                )) : (
+                  <div className="col-span-3 text-center py-16 text-gray-400 font-medium bg-gray-50 rounded-2xl border border-dashed border-gray-200">등록된 프로젝트(에픽)가 없습니다.</div>
+                )}
               </div>
             </div>
           )}
@@ -228,7 +301,7 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
                 <div>
                   <div className="flex items-center space-x-3 mb-2">
                     <button onClick={() => setView('epics')} className="p-1 hover:bg-gray-200 rounded-md text-gray-500 transition-colors bg-white border border-gray-200 shadow-sm"><ChevronLeft className="w-4 h-4"/></button>
-                    <span className="bg-blue-100 text-blue-700 text-xs font-bold px-2 py-0.5 rounded border border-blue-200">{activeSpace || 'EPIC-1204'}</span>
+                    <span className="bg-blue-100 text-blue-700 text-xs font-bold px-2 py-0.5 rounded border border-blue-200">{activeEpic || activeSpace}</span>
                     <h1 className="text-2xl font-bold text-gray-800">개발결함 추적 보드</h1>
                   </div>
                   <div className="flex items-center space-x-2">
@@ -304,6 +377,25 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
 
         </main>
       </div>
+
+      <SpaceModal 
+        isOpen={spaceModal.isOpen} 
+        onClose={() => setSpaceModal({ ...spaceModal, isOpen: false })} 
+        formData={spaceFormData} 
+        setFormData={setSpaceFormData} 
+        onSubmit={handleSpaceSubmit} 
+        isEdit={spaceModal.isEdit}
+        onDelete={handleSpaceDelete}
+      />
+      <EpicModal 
+        isOpen={epicModal.isOpen} 
+        onClose={() => setEpicModal({ ...epicModal, isOpen: false })} 
+        formData={epicFormData} 
+        setFormData={setEpicFormData} 
+        onSubmit={handleEpicSubmit} 
+        isEdit={epicModal.isEdit}
+        onDelete={handleEpicDelete}
+      />
     </div>
   );
 };
