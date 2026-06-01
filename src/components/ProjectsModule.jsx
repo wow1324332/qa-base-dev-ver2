@@ -26,23 +26,41 @@ const AppLogo = ({ className }) => {
 };
 
 const INITIAL_JIRA_ISSUES = [
-  { id: '1', key: 'DEVSCRUM-13600', summary: '원패스 모의기간 이용 상태에서 사용자 목록 진입 시 이용가능 기간 정렬 오류', component: 'iOS', priority: 'Medium', type: 'UI/UX', status: '작업 예정', reporter: '김정근', assignee: '홍길동', date: '2026-05-29 16:28', platform: 'iOS' },
-  { id: '2', key: 'DEVSCRUM-13595', summary: '원패스 앱 사용 권한 안내 팝업에 "기능" 문구가 보여짐', component: 'Android', priority: 'Low', type: 'UI/UX', status: 'QA 완료', reporter: '김정근', assignee: '김철수', date: '2026-05-29 16:07', platform: 'Android' },
-  { id: '3', key: 'DEVSCRUM-13593', summary: '원패스 모의기간이 이용 상태에서 해지 시 원패스 해지 안내 팝업이 발생함', component: 'Backend', priority: 'High', type: 'Function', status: 'REOPEN', reporter: '이영희', assignee: '박개발', date: '2026-05-29 15:50', platform: 'Backend' },
-  { id: '4', key: 'DEVSCRUM-13588', summary: '원패스 관리비 결제완료 화면에서 이용 시작일에 년도 표시가 [YYYY]로 노출됨', component: 'iOS', priority: 'Critical', type: 'Function', status: '수정중', reporter: '김정근', assignee: '홍길동', date: '2026-05-29 14:59', platform: 'iOS' },
-  { id: '5', key: 'DEVSCRUM-13586', summary: '원패스 관리비 결제 진행 시 "신청중입니다" 텍스트가 발생됨', component: 'Android', priority: 'Medium', type: 'UI/UX', status: 'QA 대기', reporter: '최테스트', assignee: '김철수', date: '2026-05-29 14:47', platform: 'Android' },
-  { id: '6', key: 'DEVSCRUM-13580', summary: '로그인 화면에서 비밀번호 찾기 진입 시 500 에러 발생', component: 'Backend', priority: 'Critical', type: 'Crash', status: '작업 예정', reporter: '김정근', assignee: '박개발', date: '2026-05-29 11:20', platform: 'Backend' },
-  { id: '7', key: 'DEVSCRUM-13575', summary: '푸시 알림 터치 시 해당 화면으로 이동하지 않고 메인으로 이동됨', component: 'Android', priority: 'High', type: 'Function', status: '진행중', reporter: '이영희', assignee: '김철수', date: '2026-05-28 17:15', platform: 'Android' },
+  { id: '1', key: 'DEVSCRUM-13600', summary: '원패스 모의기간 이용 상태에서 사용자 목록 진입 시 이용가능 기간 정렬 오류', component: 'iOS', priority: 'Medium', type: '개발결함', phenomenon: 'UI/UX', status: '작업 예정', reporter: '김정근', assignee: '홍길동', date: '2026-05-29 16:28', platform: 'iOS' },
+  { id: '2', key: 'DEVSCRUM-13595', summary: '원패스 앱 사용 권한 안내 팝업에 "기능" 문구가 보여짐', component: 'Android', priority: 'Low', type: '개발결함', phenomenon: 'UI/UX', status: 'QA 완료', reporter: '김정근', assignee: '김철수', date: '2026-05-29 16:07', platform: 'Android' },
+  { id: '3', key: 'DEVSCRUM-13593', summary: '원패스 모의기간이 이용 상태에서 해지 시 원패스 해지 안내 팝업이 발생함', component: 'Backend', priority: 'High', type: '개발결함', phenomenon: 'Function', status: 'REOPEN', reporter: '이영희', assignee: '박개발', date: '2026-05-29 15:50', platform: 'Backend' },
+  { id: '4', key: 'DEVSCRUM-13588', summary: '원패스 관리비 결제완료 화면에서 이용 시작일에 년도 표시가 [YYYY]로 노출됨', component: 'iOS', priority: 'Critical', type: '개발결함', phenomenon: 'Function', status: '수정중', reporter: '김정근', assignee: '홍길동', date: '2026-05-29 14:59', platform: 'iOS' },
+  { id: '5', key: 'DEVSCRUM-13586', summary: '원패스 관리비 결제 진행 시 "신청중입니다" 텍스트가 발생됨', component: 'Android', priority: 'Medium', type: '개발결함', phenomenon: 'UI/UX', status: 'QA 대기', reporter: '최테스트', assignee: '김철수', date: '2026-05-29 14:47', platform: 'Android' },
+  { id: '6', key: 'DEVSCRUM-13580', summary: '로그인 화면에서 비밀번호 찾기 진입 시 500 에러 발생', component: 'Backend', priority: 'Critical', type: '개발결함', phenomenon: 'Crash', status: '작업 예정', reporter: '김정근', assignee: '박개발', date: '2026-05-29 11:20', platform: 'Backend' },
+  { id: '7', key: 'DEVSCRUM-13575', summary: '푸시 알림 터치 시 해당 화면으로 이동하지 않고 메인으로 이동됨', component: 'Android', priority: 'High', type: '개발결함', phenomenon: 'Function', status: '진행중', reporter: '이영희', assignee: '김철수', date: '2026-05-28 17:15', platform: 'Android' },
 ];
 
-const JiraStatsCard = ({ title, count, colorClass, icon: Icon }) => (
-  <div className="bg-white rounded-2xl p-5 border border-gray-200 shadow-md flex items-center justify-between hover-breath">
-    <div>
-      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">{title}</p>
-      <p className={`text-3xl font-bold ${colorClass}`}>{count}</p>
+// 디테일 통계 카드 컴포넌트 추가
+const DetailedStatCard = ({ title, icon: Icon, total, data, colorMap, defaultColor }) => (
+  <div className="bg-white rounded-2xl p-4 border border-gray-200 shadow-md flex flex-col hover-breath h-48">
+    <div className="flex justify-between items-center mb-3 shrink-0 border-b border-gray-50 pb-2">
+      <div className="flex items-center space-x-2">
+        <div className="p-1.5 bg-gray-50 rounded-lg border border-gray-100">
+          <Icon className="w-4 h-4 text-gray-600" />
+        </div>
+        <span className="text-sm font-bold text-gray-800">{title}</span>
+      </div>
+      <span className="text-[10px] font-bold text-gray-500 bg-gray-50 px-2 py-0.5 rounded-full border border-gray-100">{total} Issues</span>
     </div>
-    <div className={`p-3 rounded-2xl ${colorClass.replace('text-', 'bg-').replace('600', '50')} border ${colorClass.replace('text-', 'border-').replace('600', '100')}`}>
-      <Icon className={`w-6 h-6 ${colorClass}`} strokeWidth={2} />
+    <div className="flex-1 overflow-y-auto no-scrollbar space-y-2 pr-1">
+      {Object.entries(data).sort((a,b)=>b[1]-a[1]).map(([label, count]) => {
+        const colorClass = colorMap[label] || defaultColor;
+        return (
+          <div key={label} className="flex items-center justify-between group">
+            <span className="text-[11px] font-medium text-gray-600 w-16 truncate group-hover:text-gray-900 transition-colors" title={label}>{label}</span>
+            <div className="flex-1 mx-3 bg-gray-100 rounded-full h-1.5 overflow-hidden">
+              <div className={`h-full rounded-full transition-all duration-1000 ${colorClass}`} style={{ width: `${total > 0 ? (count / total) * 100 : 0}%` }}></div>
+            </div>
+            <span className="text-[11px] font-bold text-gray-800 w-6 text-right">{count}</span>
+          </div>
+        );
+      })}
+      {Object.keys(data).length === 0 && <div className="text-xs text-gray-400 text-center py-4">데이터 없음</div>}
     </div>
   </div>
 );
@@ -228,12 +246,28 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
 
   const filteredEpics = epics.filter(e => e.spaceKey === activeSpace);
 
-  // 통계 계산
+  // 통계 계산 및 컬러 맵핑
   const totalIssues = issues.length;
-  const resolvedIssues = issues.filter(i => i.status.includes('완료') || i.status.includes('Closed')).length;
-  const openIssues = issues.filter(i => i.status.includes('진행중') || i.status.includes('예정') || i.status.includes('수정중')).length;
-  const criticalIssues = issues.filter(i => i.priority === 'Critical' || i.priority === 'High').length;
+  const statusCounts = issues.reduce((acc, cur) => { acc[cur.status] = (acc[cur.status] || 0) + 1; return acc; }, {});
+  const platformCounts = issues.reduce((acc, cur) => { acc[cur.component] = (acc[cur.component] || 0) + 1; return acc; }, {});
+  const priorityCounts = issues.reduce((acc, cur) => { acc[cur.priority] = (acc[cur.priority] || 0) + 1; return acc; }, {});
+
+  const statusColorMap = {
+    'QA 완료': 'bg-green-500', 'Closed': 'bg-green-500', '완료': 'bg-green-500', 'Resolved': 'bg-green-500',
+    '진행중': 'bg-blue-500', '수정중': 'bg-blue-500', 'In Progress': 'bg-blue-500',
+    'REOPEN': 'bg-red-500', '정지': 'bg-red-500', 'Block': 'bg-red-500',
+    '작업 예정': 'bg-gray-400', 'QA 대기': 'bg-gray-400', 'Open': 'bg-gray-400'
+  };
   
+  const platformColorMap = {
+    'Android': 'bg-green-400', 'iOS': 'bg-gray-800', 'Backend': 'bg-orange-500', 'Web': 'bg-blue-400'
+  };
+  
+  const priorityColorMap = {
+    'Critical': 'bg-red-600', 'High': 'bg-orange-500', 'Medium': 'bg-yellow-500', 'Low': 'bg-blue-400'
+  };
+
+  const resolvedIssues = issues.filter(i => i.status.includes('완료') || i.status.includes('Closed')).length;
   const progressPercent = totalIssues === 0 ? 0 : Math.round((resolvedIssues / totalIssues) * 100);
 
   const getPriorityIcon = (priority) => {
@@ -371,7 +405,6 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
                   <div className="flex items-center space-x-3 mb-2">
                     <button onClick={() => setView('epics')} className="p-1 hover:bg-gray-200 rounded-md text-gray-500 transition-colors bg-white border border-gray-200 shadow-sm"><ChevronLeft className="w-4 h-4"/></button>
                     <span className="bg-blue-100 text-blue-700 text-xs font-bold px-2 py-0.5 rounded border border-blue-200">{activeEpic || activeSpace}</span>
-                    {/* [수정 포인트] 선택된 에픽의 실제 프로젝트명으로 제목 변경 */}
                     <h1 className="text-2xl font-bold text-gray-800">{epics.find(e => e.epicKey === activeEpic)?.name || '개발결함 추적 보드'}</h1>
                   </div>
                   <div className="flex items-center space-x-2">
@@ -390,12 +423,11 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
                 </div>
               </div>
 
-              {/* 통계 대시보드 카드 */}
-              <div className="grid grid-cols-4 gap-4 mb-6 shrink-0">
-                <JiraStatsCard title="전체 결함" count={totalIssues} colorClass="text-gray-800" icon={Bug} />
-                <JiraStatsCard title="진행/대기 중" count={openIssues} colorClass="text-blue-600" icon={Activity} />
-                <JiraStatsCard title="QA 완료" count={resolvedIssues} colorClass="text-green-600" icon={CheckCircle2} />
-                <JiraStatsCard title="치명적 결함" count={criticalIssues} colorClass="text-red-600" icon={AlertCircle} />
+              {/* 디테일 통계 대시보드 */}
+              <div className="grid grid-cols-3 gap-6 mb-6 shrink-0 h-44">
+                <DetailedStatCard title="상태별 통계" icon={Activity} total={totalIssues} data={statusCounts} colorMap={statusColorMap} defaultColor="bg-blue-400" />
+                <DetailedStatCard title="플랫폼별 통계" icon={Server} total={totalIssues} data={platformCounts} colorMap={platformColorMap} defaultColor="bg-purple-400" />
+                <DetailedStatCard title="우선순위별 통계" icon={AlertCircle} total={totalIssues} data={priorityCounts} colorMap={priorityColorMap} defaultColor="bg-gray-400" />
               </div>
 
               {/* 아름다운 리스트 뷰 */}
@@ -407,8 +439,9 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
                         <th className="px-5 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider">Key</th>
                         <th className="px-5 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider">상태</th>
                         <th className="px-5 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider">우선순위</th>
+                        <th className="px-5 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider">현상분류</th>
                         <th className="px-5 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider w-1/3">요약 (Summary)</th>
-                        <th className="px-5 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider">플랫폼/분류</th>
+                        <th className="px-5 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider">플랫폼</th>
                         <th className="px-5 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider">담당/보고</th>
                         <th className="px-5 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider">생성일</th>
                       </tr>
@@ -416,13 +449,13 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
                     <tbody className="divide-y divide-gray-100">
                       {loading ? (
                         <tr>
-                          <td colSpan="7" className="px-5 py-10 text-center text-sm text-gray-500 font-medium animate-pulse">
+                          <td colSpan="8" className="px-5 py-10 text-center text-sm text-gray-500 font-medium animate-pulse">
                             JIRA 데이터를 실시간으로 불러오는 중입니다...
                           </td>
                         </tr>
                       ) : issues.length === 0 ? (
                         <tr>
-                          <td colSpan="7" className="px-5 py-10 text-center text-sm text-gray-500 font-medium">
+                          <td colSpan="8" className="px-5 py-10 text-center text-sm text-gray-500 font-medium">
                             등록된 개발결함 내역이 없습니다.
                           </td>
                         </tr>
@@ -434,14 +467,14 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
                             <td className="px-5 py-4 text-xs font-medium text-gray-700 flex items-center mt-1">
                               {getPriorityIcon(issue.priority)} {issue.priority}
                             </td>
+                            <td className="px-5 py-4">
+                              <span className="text-[10px] px-1.5 py-0.5 rounded border bg-purple-50 text-purple-600 border-purple-200 font-bold whitespace-nowrap">{issue.phenomenon || '-'}</span>
+                            </td>
                             <td className="px-5 py-4 text-sm font-bold text-gray-800">
-                              <div className="truncate max-w-sm" title={issue.summary}>{issue.summary}</div>
+                              <div className="truncate max-w-[200px] xl:max-w-sm" title={issue.summary}>{issue.summary}</div>
                             </td>
                             <td className="px-5 py-4">
-                              <div className="flex space-x-1">
-                                <span className={`text-[10px] px-1.5 py-0.5 rounded border font-bold ${issue.platform === 'iOS' ? 'bg-gray-100 text-gray-700 border-gray-200' : issue.platform === 'Android' ? 'bg-blue-50 text-blue-600 border-blue-200' : 'bg-orange-50 text-orange-600 border-orange-200'}`}>{issue.component}</span>
-                                <span className="text-[10px] px-1.5 py-0.5 rounded border bg-gray-50 text-gray-500 border-gray-200 font-medium">{issue.type}</span>
-                              </div>
+                              <span className={`text-[10px] px-1.5 py-0.5 rounded border font-bold ${issue.platform === 'iOS' ? 'bg-gray-100 text-gray-700 border-gray-200' : issue.platform === 'Android' ? 'bg-blue-50 text-blue-600 border-blue-200' : 'bg-orange-50 text-orange-600 border-orange-200'}`}>{issue.component}</span>
                             </td>
                             <td className="px-5 py-4">
                               <div className="flex flex-col space-y-1">
