@@ -30,10 +30,14 @@ export default async function handler(req, res) {
     const parentKeys = (parentData.issues || []).map(issue => issue.key);
     const searchKeys = [epicKey, ...parentKeys];
 
+    // [수정 핵심] JQL 문법 오류 방지
+    // 배열 안의 키값(EPIC-1204 등)을 큰따옴표(" ")로 감싸서 문자열로 만들어줍니다.
+    const searchKeysString = searchKeys.map(k => `"${k}"`).join(',');
+
     // [2단계 탐색] 찾아낸 모든 부모(Task 및 에픽)에 속한 "개발결함"을 찾습니다.
-    const jql = `parent in (${searchKeys.join(',')}) AND issuetype = "개발결함" ORDER BY created DESC`;
+    const jql = `parent in (${searchKeysString}) AND issuetype = "개발결함" ORDER BY created DESC`;
     
-    // [수정 핵심] 100개 제한 돌파를 위한 페이징(Pagination) 처리 추가
+    // [100개 제한 돌파] 페이징(Pagination) 처리 추가
     let allIssues = [];
     let startAt = 0;
     let isLast = false;
