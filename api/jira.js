@@ -18,11 +18,37 @@ export default async function handler(req, res) {
   // JIRA 인증용 Base64 인코딩
   const authBuffer = Buffer.from(`${email}:${token}`).toString('base64');
   
-  // JQL 검색어 세팅
-  const jql = `parent = "${epicKey}" AND issuetype = "개발결함" ORDER BY created DESC`;
-
   try {
-    // Vercel 에러 로그(CHANGE-2046) 권고사항에 맞춰 POST 및 최신 엔드포인트 사용
+    // [1단계 탐색] 에픽의 바로 아래 하위 작업(Task, Story 등)을 모두 찾습니다.
+    const parentJql = `parent = "${epicKey}" OR "Epic Link" = "${epicKey}"`;
+    
+    const parentResponse = await fetch(`https://${domain}/rest/api/3/search/jql`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Basic ${authBuffer}`,
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        jql: parentJql,
+        maxResults: 100,
+        fields: ["id", "key"] // 키값만 빠르게 추출
+      })
+    });
+
+    const parentData = await parentResponse.json();
+
+    if (!parentResponse.ok) {
+      throw new Error(parentData.errorMessages?.[0] || '1단계 JIRA API 서버 통신 에러');
+    }
+
+    // 찾아낸 Task들의 키값과, 본래 에픽 키값을 하나의 배열로 합칩니다.
+    const parentKeys = (parentData.issues || []).map(issue => issue.key);
+    const searchKeys = [epicKey, ...parentKeys]; // 에픽 직속 하위 + Task 하위 모두 포함
+
+    // [2단계 탐색] 찾아낸 모든 부모(Task 및 에픽)에 속한 "개발결함"을 찾습니다.
+    const jql = `parent in (${searchKeys.join(',')}) AND issuetype = "개발결함" ORDER BY created DESC`;
+
     const response = await fetch(`https://${domain}/rest/api/3/search/jql`, {
       method: 'POST',
       headers: {
@@ -43,7 +69,7 @@ export default async function handler(req, res) {
     const data = await response.json();
 
     if (!response.ok) {
-      throw new Error(data.errorMessages?.[0] || 'JIRA API 서버 통신 에러');
+      throw new Error(data.errorMessages?.[0] || '2단계 JIRA API 서버 통신 에러');
     }
 
     // 프론트엔드 UI에 맞게 데이터 정제
