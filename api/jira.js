@@ -123,7 +123,8 @@ export default async function handler(req, res) {
       };
     });
 
-    return res.status(200).json(formattedIssues);
+    // 도메인 정보를 함께 응답에 포함하여 프론트엔드에서 새 창 열기 URL로 사용하도록 지원
+    return res.status(200).json({ issues: formattedIssues, domain: domain });
 
   } catch (error) {
     console.error("JIRA Fetch Error:", error);
