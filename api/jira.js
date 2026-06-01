@@ -9,71 +9,63 @@ export default async function handler(req, res) {
   const token = process.env.JIRA_API_TOKEN;
   let domain = process.env.JIRA_DOMAIN;
 
-  // [수정 핵심] url.parse() 에러 방지: 
-  // 환경변수에 'https://' 나 끝에 '/'가 포함되어 있다면 자동으로 제거하여 주소 중복을 막습니다.
   if (domain) {
     domain = domain.replace(/^https?:\/\//, '').replace(/\/$/, '');
   }
 
-  // JIRA 인증용 Base64 인코딩
   const authBuffer = Buffer.from(`${email}:${token}`).toString('base64');
   
   try {
-    // [1단계 탐색] 에픽의 바로 아래 하위 작업(Task, Story 등)을 모두 찾습니다.
+    // [1단계 탐색] 에픽에 속한 중간 징검다리 작업(Task 등)을 모두 찾습니다.
     const parentJql = `parent = "${epicKey}" OR "Epic Link" = "${epicKey}"`;
-    
     const parentResponse = await fetch(`https://${domain}/rest/api/3/search/jql`, {
       method: 'POST',
-      headers: {
-        'Authorization': `Basic ${authBuffer}`,
-        'Accept': 'application/json',
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        jql: parentJql,
-        maxResults: 100,
-        fields: ["id", "key"] // 키값만 빠르게 추출
-      })
+      headers: { 'Authorization': `Basic ${authBuffer}`, 'Accept': 'application/json', 'Content-Type': 'application/json' },
+      body: JSON.stringify({ jql: parentJql, maxResults: 1000, fields: ["id", "key"] })
     });
 
     const parentData = await parentResponse.json();
+    if (!parentResponse.ok) throw new Error(parentData.errorMessages?.[0] || '1단계 JIRA API 에러');
 
-    if (!parentResponse.ok) {
-      throw new Error(parentData.errorMessages?.[0] || '1단계 JIRA API 서버 통신 에러');
-    }
-
-    // 찾아낸 Task들의 키값과, 본래 에픽 키값을 하나의 배열로 합칩니다.
     const parentKeys = (parentData.issues || []).map(issue => issue.key);
-    const searchKeys = [epicKey, ...parentKeys]; // 에픽 직속 하위 + Task 하위 모두 포함
+    const searchKeys = [epicKey, ...parentKeys];
 
     // [2단계 탐색] 찾아낸 모든 부모(Task 및 에픽)에 속한 "개발결함"을 찾습니다.
     const jql = `parent in (${searchKeys.join(',')}) AND issuetype = "개발결함" ORDER BY created DESC`;
+    
+    // [수정 핵심] 100개 제한 돌파를 위한 페이징(Pagination) 처리 추가
+    let allIssues = [];
+    let startAt = 0;
+    let isLast = false;
 
-    const response = await fetch(`https://${domain}/rest/api/3/search/jql`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Basic ${authBuffer}`,
-        'Accept': 'application/json',
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        jql: jql,
-        maxResults: 100,
-        fields: [
-          "summary", "components", "priority", "issuetype", 
-          "status", "reporter", "assignee", "created"
-        ]
-      })
-    });
+    while (!isLast) {
+      const response = await fetch(`https://${domain}/rest/api/3/search/jql`, {
+        method: 'POST',
+        headers: { 'Authorization': `Basic ${authBuffer}`, 'Accept': 'application/json', 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          jql: jql,
+          maxResults: 100, // API 1회 최대 호출 제한 (100개씩 나눠서 호출)
+          startAt: startAt, // 몇 번째부터 가져올지 지정
+          fields: ["summary", "components", "priority", "issuetype", "status", "reporter", "assignee", "created"]
+        })
+      });
 
-    const data = await response.json();
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.errorMessages?.[0] || '2단계 JIRA API 에러');
 
-    if (!response.ok) {
-      throw new Error(data.errorMessages?.[0] || '2단계 JIRA API 서버 통신 에러');
+      // 새로 가져온 데이터를 기존 배열에 누적
+      allIssues = allIssues.concat(data.issues || []);
+      
+      // 모두 가져왔는지 확인 (현재까지 가져온 수 >= JIRA 전체 수)
+      if (startAt + (data.issues || []).length >= data.total) {
+        isLast = true;
+      } else {
+        startAt += 100; // 다음 100개 가져오기 위해 카운트 증가
+      }
     }
 
-    // 프론트엔드 UI에 맞게 데이터 정제
-    const formattedIssues = (data.issues || []).map(issue => ({
+    // 프론트엔드 UI에 맞게 300+개 전체 데이터 정제
+    const formattedIssues = allIssues.map(issue => ({
       id: issue.id,
       key: issue.key,
       summary: issue.fields?.summary || '제목 없음',
