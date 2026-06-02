@@ -123,6 +123,19 @@ const SpaceModal = ({ isOpen, onClose, formData, setFormData, onSubmit, isEdit, 
         <h3 className="text-lg font-medium text-gray-800 mb-4 flex items-center shrink-0"><Server className="w-5 h-5 mr-2 text-gray-600"/> 스페이스 {isEdit ? '수정' : '생성'}</h3>
         <form id="spaceForm" onSubmit={(e) => { e.preventDefault(); onSubmit(formData); }} className="space-y-4">
           <div>
+            {/* [추가] 스페이스 타입(Type1 / Type2) 선택 기능 */}
+            <label className="text-xs font-medium text-gray-500 mb-1 block">스페이스 타입</label>
+            <CustomSelect 
+              value={formData.spaceType || 'Type 1'} 
+              onChange={val=>setFormData({...formData, spaceType: val})} 
+              options={[
+                {value:'Type 1', label:'타입1 (에픽 + 개발결함)'}, 
+                {value:'Type 2', label:'타입2 (에픽 + 버그)'}
+              ]}
+              className="w-full bg-gray-50 border border-gray-200 text-sm rounded-lg shadow-sm transition-colors focus-within:border-gray-400"
+            />
+          </div>
+          <div>
             <label className="text-xs font-medium text-gray-500 mb-1 block">스페이스 명</label>
             <input required value={formData.name} onChange={e=>setFormData({...formData, name: e.target.value})} className="w-full bg-gray-50 border border-gray-200 text-sm rounded-lg px-3 py-2 outline-none focus:border-gray-400 shadow-sm transition-colors" placeholder="예: v1.5 메인화면 개편" />
           </div>
@@ -198,24 +211,28 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
 
   const [filterStatus, setFilterStatus] = useState('All');
   const [filterPlatform, setFilterPlatform] = useState('All');
+  const [filterReporter, setFilterReporter] = useState('All');
   const [filterPriority, setFilterPriority] = useState('All');
   
-  // [수정] 검색어 버벅임 최적화를 위한 상태 분리
-  const [searchInput, setSearchInput] = useState(''); // 즉시 반영되는 입력 상태
-  const [searchSummary, setSearchSummary] = useState(''); // 필터링에 반영되는 디바운스 상태
+  const [searchInput, setSearchInput] = useState(''); 
+  const [searchSummary, setSearchSummary] = useState(''); 
 
   const [tooltipInfo, setTooltipInfo] = useState({ visible: false, x: 0, y: 0, text: '' });
   const [selectedIssue, setSelectedIssue] = useState(null);
 
   const [spaces, setSpaces] = useState([]);
   const [spaceModal, setSpaceModal] = useState({ isOpen: false, isEdit: false });
-  const [spaceFormData, setSpaceFormData] = useState({ id: '', name: '', epicKey: '', department: '' });
+  // [수정] 스페이스 폼 데이터에 초기 spaceType 주입
+  const [spaceFormData, setSpaceFormData] = useState({ id: '', name: '', epicKey: '', department: '', spaceType: 'Type 1' });
 
   const [epics, setEpics] = useState([]);
   const [epicModal, setEpicModal] = useState({ isOpen: false, isEdit: false });
   const [epicFormData, setEpicFormData] = useState({ id: '', spaceKey: '', name: '', epicKey: '', status: '예정', progress: 0 });
 
-  // 검색어 버벅임 방지용 디바운스 (입력 멈추고 0.3초 뒤에 필터링 반영)
+  // [수정] 선택된 스페이스의 타입 정보 추적 (Type 1 or Type 2)
+  const currentSpaceData = spaces.find(s => s.epicKey === activeSpace);
+  const isType2 = currentSpaceData?.spaceType === 'Type 2';
+
   useEffect(() => {
     const timer = setTimeout(() => {
       setSearchSummary(searchInput);
@@ -247,7 +264,9 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
         setIssues([]); 
         setLoading(true);
         try {
-          const res = await fetch(`/api/jira?epicKey=${activeEpic}`);
+          // [수정] 스페이스 타입에 따라 JIRA에서 조회할 이슈타입 지정 전달
+          const issueTypeParam = isType2 ? encodeURIComponent('솔루션 버그') : encodeURIComponent('개발결함');
+          const res = await fetch(`/api/jira?epicKey=${activeEpic}&issueType=${issueTypeParam}`);
           const data = await res.json();
           if (res.ok) {
             setIssues(data.issues || data); 
@@ -265,7 +284,7 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
       };
       fetchJiraIssues();
     }
-  }, [view, activeEpic]);
+  }, [view, activeEpic, isType2]); // [수정] isType2 의존성 추가
 
   useEffect(() => {
     if (view === 'issues' && activeEpic && !loading && issues.length > 0) {
@@ -290,6 +309,8 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
   const handleSpaceSubmit = async (data) => {
     try {
       const { id, ...saveData } = data;
+      // 기본값 방어 코드
+      if (!saveData.spaceType) saveData.spaceType = 'Type 1'; 
       if (spaceModal.isEdit) await updateDoc(doc(db, 'jira_spaces', id), saveData);
       else await addDoc(collection(db, 'jira_spaces'), saveData);
       setSpaceModal({ isOpen: false, isEdit: false });
@@ -328,6 +349,7 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
   const totalIssues = issues.length;
   const statusCounts = issues.reduce((acc, cur) => { acc[cur.status] = (acc[cur.status] || 0) + 1; return acc; }, {});
   const platformCounts = issues.reduce((acc, cur) => { acc[cur.component] = (acc[cur.component] || 0) + 1; return acc; }, {});
+  const reporterCounts = issues.reduce((acc, cur) => { acc[cur.reporter] = (acc[cur.reporter] || 0) + 1; return acc; }, {});
   const priorityCounts = issues.reduce((acc, cur) => { acc[cur.priority] = (acc[cur.priority] || 0) + 1; return acc; }, {});
 
   const statusColorMap = {
@@ -363,10 +385,16 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
     return 'bg-gray-100 text-gray-600 border-gray-200';
   };
 
+  // [수정] 타입별 필터링 분기
   const filteredIssues = issues.filter(issue => {
     if (filterStatus !== 'All' && issue.status !== filterStatus) return false;
-    if (filterPlatform !== 'All' && issue.component !== filterPlatform) return false;
     if (filterPriority !== 'All' && issue.priority !== filterPriority) return false;
+    
+    if (isType2) {
+      if (filterReporter !== 'All' && issue.reporter !== filterReporter) return false;
+    } else {
+      if (filterPlatform !== 'All' && issue.component !== filterPlatform) return false;
+    }
     
     if (searchSummary) {
       const term = searchSummary.toLowerCase();
@@ -379,6 +407,7 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
 
   const statusOptions = [{value: 'All', label: '상태 전체'}, ...Array.from(new Set(issues.map(i => i.status))).filter(Boolean).map(s => ({value: s, label: s}))];
   const platformOptions = [{value: 'All', label: '플랫폼 전체'}, ...Array.from(new Set(issues.map(i => i.component))).filter(Boolean).map(p => ({value: p, label: p}))];
+  const reporterOptions = [{value: 'All', label: '보고자 전체'}, ...Array.from(new Set(issues.map(i => i.reporter))).filter(Boolean).map(p => ({value: p, label: p}))];
   const priorityOptions = [{value: 'All', label: '우선순위 전체'}, ...Array.from(new Set(issues.map(i => i.priority))).filter(Boolean).map(p => ({value: p, label: p}))];
 
   const handleTooltip = (e, text) => {
@@ -397,6 +426,7 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
     if (!tooltipInfo.visible) return null;
     let x = tooltipInfo.x + 15;
     let y = tooltipInfo.y + 15;
+    
     if (x + 350 > window.innerWidth) x = tooltipInfo.x - 350;
     if (y + 80 > window.innerHeight) y = tooltipInfo.y - 80;
     
@@ -410,6 +440,8 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
       document.body
     );
   };
+
+  const hasFilters = filterStatus !== 'All' || filterPriority !== 'All' || searchInput || (isType2 ? filterReporter !== 'All' : filterPlatform !== 'All');
 
   return (
     <div className="w-screen h-screen bg-[#f8f9fa] flex flex-col overflow-hidden animate-simple-fade">
@@ -457,7 +489,7 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
                   </div>
                   <p className="text-sm text-gray-500 font-medium">결함을 추적할 스페이스를 선택하거나 새로 생성하세요.</p>
                 </div>
-                <button onClick={() => { setSpaceFormData({ id: '', name: '', epicKey: '', department: '' }); setSpaceModal({isOpen: true, isEdit: false}); }} className="bg-gray-800 text-white text-sm font-semibold px-4 py-2 rounded-lg hover:bg-gray-900 transition-colors shadow-md flex items-center">
+                <button onClick={() => { setSpaceFormData({ id: '', name: '', epicKey: '', department: '', spaceType: 'Type 1' }); setSpaceModal({isOpen: true, isEdit: false}); }} className="bg-gray-800 text-white text-sm font-semibold px-4 py-2 rounded-lg hover:bg-gray-900 transition-colors shadow-md flex items-center">
                   <Plus className="w-4 h-4 mr-1.5" /> 스페이스 생성
                 </button>
               </div>
@@ -472,7 +504,13 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
                       <Server className="w-5 h-5 text-blue-600 group-hover:text-white transition-colors duration-500" strokeWidth={2} />
                     </div>
                     <div className="flex justify-between items-start mb-2 pr-8">
-                      <span className="text-[10px] bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full border border-gray-200 font-bold">{space.epicKey}</span>
+                      <div className="flex items-center space-x-1">
+                        <span className="text-[10px] bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full border border-gray-200 font-bold">{space.epicKey}</span>
+                        {/* [수정] 스페이스 타입 배지 노출 */}
+                        <span className={`text-[10px] px-2 py-0.5 rounded-full border font-bold ${space.spaceType === 'Type 2' ? 'bg-indigo-50 text-indigo-600 border-indigo-200' : 'bg-teal-50 text-teal-600 border-teal-200'}`}>
+                          {space.spaceType === 'Type 2' ? '타입2' : '타입1'}
+                        </span>
+                      </div>
                       <span className="text-xs font-bold text-gray-400">{space.department}</span>
                     </div>
                     <h3 className="text-xl font-bold text-gray-800 group-hover:text-blue-600 transition-colors pr-8 truncate" title={space.name}>{space.name}</h3>
@@ -529,7 +567,10 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
                   <div className="flex items-center space-x-3 mb-2">
                     <button onClick={() => setView('epics')} className="p-1 hover:bg-gray-200 rounded-md text-gray-500 transition-colors bg-white border border-gray-200 shadow-sm"><ChevronLeft className="w-4 h-4"/></button>
                     <span className="bg-blue-100 text-blue-700 text-xs font-bold px-2 py-0.5 rounded border border-blue-200">{activeEpic || activeSpace}</span>
-                    <h1 className="text-2xl font-bold text-gray-800">{epics.find(e => e.epicKey === activeEpic)?.name || '개발결함 추적 보드'}</h1>
+                    <h1 className="text-2xl font-bold text-gray-800">
+                      {/* [수정] 타입에 따른 동적 타이틀 표시 */}
+                      {epics.find(e => e.epicKey === activeEpic)?.name || (isType2 ? '솔루션 버그 추적 보드' : '개발결함 추적 보드')}
+                    </h1>
                   </div>
                   <div className="flex items-center space-x-2">
                     <div className="w-64 bg-white rounded-full h-2 shadow-inner border border-gray-100 overflow-hidden relative">
@@ -538,13 +579,15 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
                     <span className="text-xs font-bold text-gray-500">QA 완료율 {displayProgress}%</span>
                   </div>
                 </div>
-                <div className="flex space-x-2">
-                  <div className="bg-white border border-gray-200 rounded-lg p-1.5 flex shadow-sm items-center px-3 space-x-2">
-                    <span className="flex items-center text-[10px] font-bold text-gray-600"><div className="w-2 h-2 rounded-full bg-blue-500 mr-1.5"></div>Android ({issues.filter(i=>i.platform==='Android').length})</span>
-                    <span className="flex items-center text-[10px] font-bold text-gray-600 ml-2"><div className="w-2 h-2 rounded-full bg-gray-800 mr-1.5"></div>iOS ({issues.filter(i=>i.platform==='iOS').length})</span>
-                    <span className="flex items-center text-[10px] font-bold text-gray-600 ml-2"><div className="w-2 h-2 rounded-full bg-orange-500 mr-1.5"></div>Backend ({issues.filter(i=>i.platform==='Backend').length})</span>
+                {!isType2 && (
+                  <div className="flex space-x-2">
+                    <div className="bg-white border border-gray-200 rounded-lg p-1.5 flex shadow-sm items-center px-3 space-x-2">
+                      <span className="flex items-center text-[10px] font-bold text-gray-600"><div className="w-2 h-2 rounded-full bg-blue-500 mr-1.5"></div>Android ({issues.filter(i=>i.platform==='Android').length})</span>
+                      <span className="flex items-center text-[10px] font-bold text-gray-600 ml-2"><div className="w-2 h-2 rounded-full bg-gray-800 mr-1.5"></div>iOS ({issues.filter(i=>i.platform==='iOS').length})</span>
+                      <span className="flex items-center text-[10px] font-bold text-gray-600 ml-2"><div className="w-2 h-2 rounded-full bg-orange-500 mr-1.5"></div>Backend ({issues.filter(i=>i.platform==='Backend').length})</span>
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
 
               {loading ? (
@@ -571,7 +614,12 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
                         <DetailedStatCard title="상태별 통계" icon={Activity} total={totalIssues} data={statusCounts} colorMap={statusColorMap} defaultColor="bg-blue-400" />
                       </div>
                       <div className="flex-1">
-                        <DetailedStatCard title="플랫폼별 통계" icon={Server} total={totalIssues} data={platformCounts} colorMap={platformColorMap} defaultColor="bg-purple-400" />
+                        {/* [수정] 타입에 따른 동적 통계 카드 (Type 2: 보고자, Type 1: 플랫폼) */}
+                        {isType2 ? (
+                          <DetailedStatCard title="보고자별 통계" icon={User} total={totalIssues} data={reporterCounts} colorMap={{}} defaultColor="bg-indigo-400" />
+                        ) : (
+                          <DetailedStatCard title="플랫폼별 통계" icon={Server} total={totalIssues} data={platformCounts} colorMap={platformColorMap} defaultColor="bg-purple-400" />
+                        )}
                       </div>
                       <div className="flex-1">
                         <DetailedStatCard title="우선순위별 통계" icon={AlertCircle} total={totalIssues} data={priorityCounts} colorMap={priorityColorMap} defaultColor="bg-gray-400" />
@@ -585,13 +633,17 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
                     <div className="w-px h-4 bg-gray-200 mx-1"></div>
                     <CustomSelect value={filterStatus} onChange={setFilterStatus} options={statusOptions} className="bg-transparent text-xs font-medium text-gray-700 outline-none w-32 hover:bg-gray-50 rounded-md transition-colors" />
                     <div className="w-px h-4 bg-gray-200 mx-1"></div>
-                    <CustomSelect value={filterPlatform} onChange={setFilterPlatform} options={platformOptions} className="bg-transparent text-xs font-medium text-gray-700 outline-none w-32 hover:bg-gray-50 rounded-md transition-colors" />
+                    {/* [수정] 타입에 따른 동적 셀렉트 박스 */}
+                    {isType2 ? (
+                      <CustomSelect value={filterReporter} onChange={setFilterReporter} options={reporterOptions} className="bg-transparent text-xs font-medium text-gray-700 outline-none w-32 hover:bg-gray-50 rounded-md transition-colors" />
+                    ) : (
+                      <CustomSelect value={filterPlatform} onChange={setFilterPlatform} options={platformOptions} className="bg-transparent text-xs font-medium text-gray-700 outline-none w-32 hover:bg-gray-50 rounded-md transition-colors" />
+                    )}
                     <div className="w-px h-4 bg-gray-200 mx-1"></div>
                     <CustomSelect value={filterPriority} onChange={setFilterPriority} options={priorityOptions} className="bg-transparent text-xs font-medium text-gray-700 outline-none w-32 hover:bg-gray-50 rounded-md transition-colors" />
                     <div className="w-px h-4 bg-gray-200 mx-1"></div>
                     <div className="flex items-center bg-gray-50 border border-gray-200 rounded-md px-3 py-1.5 transition-colors focus-within:border-gray-400 relative">
                       <Search className="w-3.5 h-3.5 text-gray-400 mr-2" />
-                      {/* [수정] value, onChange 속성을 버벅임 방지용 searchInput으로 교체 */}
                       <input type="text" placeholder="요약/설명 검색..." value={searchInput} onChange={e=>setSearchInput(e.target.value)} className="text-xs bg-transparent outline-none w-48 placeholder:text-gray-400 text-gray-700 pr-6" />
                       {searchInput && (
                         <button onClick={() => { setSearchInput(''); setSearchSummary(''); }} className="absolute right-2 p-0.5 text-gray-400 hover:text-gray-600 hover:bg-gray-200 rounded-full transition-colors flex items-center justify-center">
@@ -599,8 +651,8 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
                         </button>
                       )}
                     </div>
-                    {(filterStatus !== 'All' || filterPlatform !== 'All' || filterPriority !== 'All' || searchInput) && (
-                      <button onClick={() => { setFilterStatus('All'); setFilterPlatform('All'); setFilterPriority('All'); setSearchInput(''); setSearchSummary(''); }} className="text-[10px] text-gray-500 hover:text-gray-800 underline ml-2 font-medium">초기화</button>
+                    {(hasFilters) && (
+                      <button onClick={() => { setFilterStatus('All'); setFilterPlatform('All'); setFilterReporter('All'); setFilterPriority('All'); setSearchInput(''); setSearchSummary(''); }} className="text-[10px] text-gray-500 hover:text-gray-800 underline ml-2 font-medium">초기화</button>
                     )}
                   </div>
 
@@ -609,20 +661,34 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
                       <table className="w-full text-left border-collapse relative">
                         <thead className="sticky top-0 bg-gray-50/95 backdrop-blur z-10 shadow-sm">
                           <tr>
-                            <th className="px-5 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider">Key</th>
-                            <th className="px-5 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider">상태</th>
-                            <th className="px-5 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider">우선순위</th>
-                            <th className="px-5 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider">현상분류</th>
-                            <th className="px-5 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider w-1/3">요약 (Summary)</th>
-                            <th className="px-5 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider">플랫폼</th>
-                            <th className="px-5 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider">담당/보고</th>
-                            <th className="px-5 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider">생성일</th>
+                            {/* [수정] 타입에 따른 동적 헤더 */}
+                            {isType2 ? (
+                              <>
+                                <th className="px-5 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider">Key</th>
+                                <th className="px-5 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider">생성일</th>
+                                <th className="px-5 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider w-1/3">요약 (Summary)</th>
+                                <th className="px-5 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider">우선순위</th>
+                                <th className="px-5 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider">상태</th>
+                                <th className="px-5 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider">보고자</th>
+                              </>
+                            ) : (
+                              <>
+                                <th className="px-5 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider">Key</th>
+                                <th className="px-5 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider">상태</th>
+                                <th className="px-5 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider">우선순위</th>
+                                <th className="px-5 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider">현상분류</th>
+                                <th className="px-5 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider w-1/3">요약 (Summary)</th>
+                                <th className="px-5 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider">플랫폼</th>
+                                <th className="px-5 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider">담당/보고</th>
+                                <th className="px-5 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider">생성일</th>
+                              </>
+                            )}
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100">
                           {filteredIssues.length === 0 ? (
                             <tr>
-                              <td colSpan="8" className="px-5 py-10 text-center text-sm text-gray-500 font-medium">
+                              <td colSpan={isType2 ? "6" : "8"} className="px-5 py-10 text-center text-sm text-gray-500 font-medium">
                                 등록/검색된 개발결함 내역이 없습니다.
                               </td>
                             </tr>
@@ -633,39 +699,72 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
                                 className="hover:bg-blue-50/30 transition-colors group cursor-pointer" 
                                 onClick={() => setSelectedIssue(issue)}
                               >
-                                {/* [수정] 빈 여백을 클릭해도 이동되지 않게 이벤트 타겟을 text(span) 내부로 축소 */}
-                                <td className="px-5 py-4">
-                                  <span 
-                                    className="text-xs font-bold text-blue-600 hover:underline underline-offset-2 flex items-center cursor-pointer w-max"
-                                    onClick={(e) => { e.stopPropagation(); handleOpenJiraIssue(issue.key); }}
-                                  >
-                                    {issue.key} <ExternalLink className="w-3 h-3 ml-1 text-gray-400 group-hover:text-blue-500 transition-colors" />
-                                  </span>
-                                </td>
-                                <td className="px-5 py-4"><JiraBadge className={getStatusBadgeClass(issue.status)}>{issue.status}</JiraBadge></td>
-                                <td className="px-5 py-4 text-xs font-medium text-gray-700 mt-1">
-                                  <div className="flex items-center">{getPriorityIcon(issue.priority)} {issue.priority}</div>
-                                </td>
-                                <td className="px-5 py-4">
-                                  <span className="text-[10px] px-1.5 py-0.5 rounded border bg-purple-50 text-purple-600 border-purple-200 font-bold whitespace-nowrap">{issue.phenomenon || '-'}</span>
-                                </td>
-                                <td 
-                                  className="px-5 py-4 text-sm font-bold text-gray-800"
-                                  onMouseEnter={(e) => handleTooltip(e, issue.summary)}
-                                  onMouseMove={(e) => handleTooltip(e, issue.summary)}
-                                  onMouseLeave={() => setTooltipInfo({ visible: false, x: 0, y: 0, text: '' })}
-                                >
-                                  <div className="truncate-summary truncate max-w-[200px] xl:max-w-sm"><HighlightText text={issue.summary} highlight={searchSummary} /></div>
-                                </td>
-                                <td className="px-5 py-4">
-                                  <span className={`text-[10px] px-1.5 py-0.5 rounded border font-bold ${issue.platform === 'iOS' ? 'bg-gray-100 text-gray-700 border-gray-200' : issue.platform === 'Android' ? 'bg-blue-50 text-blue-600 border-blue-200' : 'bg-orange-50 text-orange-600 border-orange-200'}`}>{issue.component}</span>
-                                </td>
-                                <td className="px-5 py-4">
-                                  <div className="flex flex-col space-y-1">
-                                    <span className="text-xs font-medium text-gray-700 flex items-center"><User className="w-3 h-3 mr-1 text-gray-400"/> {issue.assignee}</span>
-                                  </div>
-                                </td>
-                                <td className="px-5 py-4 text-xs text-gray-400 font-medium whitespace-nowrap">{issue.date}</td>
+                                {/* [수정] 타입에 따른 동적 열(Cell) 표시 */}
+                                {isType2 ? (
+                                  <>
+                                    <td className="px-5 py-4">
+                                      <span 
+                                        className="text-xs font-bold text-blue-600 hover:underline underline-offset-2 flex items-center cursor-pointer w-max"
+                                        onClick={(e) => { e.stopPropagation(); handleOpenJiraIssue(issue.key); }}
+                                      >
+                                        {issue.key} <ExternalLink className="w-3 h-3 ml-1 text-gray-400 group-hover:text-blue-500 transition-colors" />
+                                      </span>
+                                    </td>
+                                    <td className="px-5 py-4 text-xs text-gray-400 font-medium whitespace-nowrap">{issue.date}</td>
+                                    <td 
+                                      className="px-5 py-4 text-sm font-bold text-gray-800"
+                                      onMouseEnter={(e) => handleTooltip(e, issue.summary)}
+                                      onMouseMove={(e) => handleTooltip(e, issue.summary)}
+                                      onMouseLeave={() => setTooltipInfo({ visible: false, x: 0, y: 0, text: '' })}
+                                    >
+                                      <div className="truncate-summary truncate max-w-[200px] xl:max-w-sm"><HighlightText text={issue.summary} highlight={searchSummary} /></div>
+                                    </td>
+                                    <td className="px-5 py-4 text-xs font-medium text-gray-700 mt-1">
+                                      <div className="flex items-center">{getPriorityIcon(issue.priority)} {issue.priority}</div>
+                                    </td>
+                                    <td className="px-5 py-4"><JiraBadge className={getStatusBadgeClass(issue.status)}>{issue.status}</JiraBadge></td>
+                                    <td className="px-5 py-4">
+                                      <div className="flex flex-col space-y-1">
+                                        <span className="text-xs font-medium text-gray-700 flex items-center"><User className="w-3 h-3 mr-1 text-gray-400"/> {issue.reporter}</span>
+                                      </div>
+                                    </td>
+                                  </>
+                                ) : (
+                                  <>
+                                    <td className="px-5 py-4">
+                                      <span 
+                                        className="text-xs font-bold text-blue-600 hover:underline underline-offset-2 flex items-center cursor-pointer w-max"
+                                        onClick={(e) => { e.stopPropagation(); handleOpenJiraIssue(issue.key); }}
+                                      >
+                                        {issue.key} <ExternalLink className="w-3 h-3 ml-1 text-gray-400 group-hover:text-blue-500 transition-colors" />
+                                      </span>
+                                    </td>
+                                    <td className="px-5 py-4"><JiraBadge className={getStatusBadgeClass(issue.status)}>{issue.status}</JiraBadge></td>
+                                    <td className="px-5 py-4 text-xs font-medium text-gray-700 mt-1">
+                                      <div className="flex items-center">{getPriorityIcon(issue.priority)} {issue.priority}</div>
+                                    </td>
+                                    <td className="px-5 py-4">
+                                      <span className="text-[10px] px-1.5 py-0.5 rounded border bg-purple-50 text-purple-600 border-purple-200 font-bold whitespace-nowrap">{issue.phenomenon || '-'}</span>
+                                    </td>
+                                    <td 
+                                      className="px-5 py-4 text-sm font-bold text-gray-800"
+                                      onMouseEnter={(e) => handleTooltip(e, issue.summary)}
+                                      onMouseMove={(e) => handleTooltip(e, issue.summary)}
+                                      onMouseLeave={() => setTooltipInfo({ visible: false, x: 0, y: 0, text: '' })}
+                                    >
+                                      <div className="truncate-summary truncate max-w-[200px] xl:max-w-sm"><HighlightText text={issue.summary} highlight={searchSummary} /></div>
+                                    </td>
+                                    <td className="px-5 py-4">
+                                      <span className={`text-[10px] px-1.5 py-0.5 rounded border font-bold ${issue.platform === 'iOS' ? 'bg-gray-100 text-gray-700 border-gray-200' : issue.platform === 'Android' ? 'bg-blue-50 text-blue-600 border-blue-200' : 'bg-orange-50 text-orange-600 border-orange-200'}`}>{issue.component}</span>
+                                    </td>
+                                    <td className="px-5 py-4">
+                                      <div className="flex flex-col space-y-1">
+                                        <span className="text-xs font-medium text-gray-700 flex items-center"><User className="w-3 h-3 mr-1 text-gray-400"/> {issue.assignee}</span>
+                                      </div>
+                                    </td>
+                                    <td className="px-5 py-4 text-xs text-gray-400 font-medium whitespace-nowrap">{issue.date}</td>
+                                  </>
+                                )}
                               </tr>
                             ))
                           )}
@@ -707,22 +806,31 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
                                 {getPriorityIcon(selectedIssue.priority)} {selectedIssue.priority}
                               </div>
                             </div>
+                            {/* [수정] 타입에 상관없이 모든 정보가 있다면 모두 보여주어 상세 모달 활용도 극대화 */}
                             <div>
-                              <span className="text-[10px] font-bold text-gray-400 mb-1.5 block uppercase tracking-wider">Platform</span>
-                              <div className="text-sm font-medium text-gray-700 mt-1">
-                                <span className={`text-[10px] px-1.5 py-0.5 rounded border font-bold ${selectedIssue.platform === 'iOS' ? 'bg-gray-100 text-gray-700 border-gray-200' : selectedIssue.platform === 'Android' ? 'bg-blue-50 text-blue-600 border-blue-200' : 'bg-orange-50 text-orange-600 border-orange-200'}`}>{selectedIssue.component}</span>
-                              </div>
+                              <span className="text-[10px] font-bold text-gray-400 mb-1.5 block uppercase tracking-wider">Reporter</span>
+                              <div className="text-sm font-medium text-gray-700 flex items-center mt-1"><User className="w-3 h-3 mr-1 text-gray-400"/>{selectedIssue.reporter}</div>
                             </div>
-                            <div>
-                              <span className="text-[10px] font-bold text-gray-400 mb-1.5 block uppercase tracking-wider">Phenomenon</span>
-                              <div className="text-sm font-medium text-gray-700 mt-1">
-                                <span className="text-[10px] px-1.5 py-0.5 rounded border bg-purple-50 text-purple-600 border-purple-200 font-bold whitespace-nowrap">{selectedIssue.phenomenon || '-'}</span>
-                              </div>
-                            </div>
-                            <div>
-                              <span className="text-[10px] font-bold text-gray-400 mb-1.5 block uppercase tracking-wider">Assignee</span>
-                              <div className="text-sm font-medium text-gray-700 flex items-center mt-1"><User className="w-3 h-3 mr-1 text-gray-400"/>{selectedIssue.assignee}</div>
-                            </div>
+                            {!isType2 && (
+                              <>
+                                <div>
+                                  <span className="text-[10px] font-bold text-gray-400 mb-1.5 block uppercase tracking-wider">Platform</span>
+                                  <div className="text-sm font-medium text-gray-700 mt-1">
+                                    <span className={`text-[10px] px-1.5 py-0.5 rounded border font-bold ${selectedIssue.platform === 'iOS' ? 'bg-gray-100 text-gray-700 border-gray-200' : selectedIssue.platform === 'Android' ? 'bg-blue-50 text-blue-600 border-blue-200' : 'bg-orange-50 text-orange-600 border-orange-200'}`}>{selectedIssue.component}</span>
+                                  </div>
+                                </div>
+                                <div>
+                                  <span className="text-[10px] font-bold text-gray-400 mb-1.5 block uppercase tracking-wider">Phenomenon</span>
+                                  <div className="text-sm font-medium text-gray-700 mt-1">
+                                    <span className="text-[10px] px-1.5 py-0.5 rounded border bg-purple-50 text-purple-600 border-purple-200 font-bold whitespace-nowrap">{selectedIssue.phenomenon || '-'}</span>
+                                  </div>
+                                </div>
+                                <div>
+                                  <span className="text-[10px] font-bold text-gray-400 mb-1.5 block uppercase tracking-wider">Assignee</span>
+                                  <div className="text-sm font-medium text-gray-700 flex items-center mt-1"><User className="w-3 h-3 mr-1 text-gray-400"/>{selectedIssue.assignee}</div>
+                                </div>
+                              </>
+                            )}
                           </div>
                           <div className="border-t border-gray-100 pt-6">
                             <span className="text-[10px] font-bold text-gray-400 mb-3 block uppercase tracking-wider">Description</span>
