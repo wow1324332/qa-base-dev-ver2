@@ -47,12 +47,13 @@ const CustomSelect = ({ value, onChange, options, className }) => {
   );
 };
 
-const DetailedStatCard = ({ title, icon: Icon, total, data, colorMap, defaultColor, isExpanded }) => {
+const DetailedStatCard = ({ title, icon: Icon, total, data, colorMap, defaultColor }) => {
   const entries = Object.entries(data).sort((a,b)=>b[1]-a[1]);
-  const displayEntries = isExpanded ? entries : entries.slice(0, 5);
+  // 개별 카드의 확장을 제거하고 최대 5개까지만 노출합니다.
+  const displayEntries = entries.slice(0, 5);
 
   return (
-    <div className={`bg-white rounded-2xl p-4 border border-gray-200 shadow-md flex flex-col hover-breath transition-all duration-300 relative ${isExpanded ? 'h-auto' : 'h-48'}`}>
+    <div className="bg-white rounded-2xl p-4 border border-gray-200 shadow-md flex flex-col hover-breath transition-all duration-300 h-48">
       <div className="flex justify-between items-center mb-3 shrink-0 border-b border-gray-50 pb-2">
         <div className="flex items-center space-x-2">
           <div className="p-1.5 bg-gray-50 rounded-lg border border-gray-100">
@@ -78,7 +79,7 @@ const DetailedStatCard = ({ title, icon: Icon, total, data, colorMap, defaultCol
           );
         })}
         {entries.length === 0 && <div className="text-xs text-gray-400 text-center py-4">데이터 없음</div>}
-        {!isExpanded && entries.length > 5 && (
+        {entries.length > 5 && (
           <div className="text-[10px] text-gray-400 text-center pt-1 animate-fade-in font-medium">
             + {entries.length - 5}개 항목 더보기
           </div>
@@ -121,7 +122,6 @@ const SpaceModal = ({ isOpen, onClose, formData, setFormData, onSubmit, isEdit, 
         <h3 className="text-lg font-medium text-gray-800 mb-4 flex items-center shrink-0"><Server className="w-5 h-5 mr-2 text-gray-600"/> 스페이스 {isEdit ? '수정' : '생성'}</h3>
         <form id="spaceForm" onSubmit={(e) => { e.preventDefault(); onSubmit(formData); }} className="space-y-4">
           <div>
-            {/* [추가] 스페이스 타입(Type1 / Type2) 선택 기능 */}
             <label className="text-xs font-medium text-gray-500 mb-1 block">스페이스 타입</label>
             <CustomSelect 
               value={formData.spaceType || 'Type 1'} 
@@ -215,21 +215,20 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
   const [searchInput, setSearchInput] = useState(''); 
   const [searchSummary, setSearchSummary] = useState(''); 
   
-  const [isStatsExpanded, setIsStatsExpanded] = useState(false);
+  // 통계 영역이 기본으로 열려 있도록 true로 설정합니다.
+  const [isStatsExpanded, setIsStatsExpanded] = useState(true);
 
   const [tooltipInfo, setTooltipInfo] = useState({ visible: false, x: 0, y: 0, text: '' });
   const [selectedIssue, setSelectedIssue] = useState(null);
 
   const [spaces, setSpaces] = useState([]);
   const [spaceModal, setSpaceModal] = useState({ isOpen: false, isEdit: false });
-  // [수정] 스페이스 폼 데이터에 초기 spaceType 주입
   const [spaceFormData, setSpaceFormData] = useState({ id: '', name: '', epicKey: '', department: '', spaceType: 'Type 1' });
 
   const [epics, setEpics] = useState([]);
   const [epicModal, setEpicModal] = useState({ isOpen: false, isEdit: false });
   const [epicFormData, setEpicFormData] = useState({ id: '', spaceKey: '', name: '', epicKey: '', status: '예정', progress: 0 });
 
-  // [수정] 선택된 스페이스의 타입 정보 추적 (Type 1 or Type 2)
   const currentSpaceData = spaces.find(s => s.epicKey === activeSpace);
   const isType2 = currentSpaceData?.spaceType === 'Type 2';
 
@@ -264,7 +263,6 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
         setIssues([]); 
         setLoading(true);
         try {
-          // [수정] 스페이스 타입에 따라 JIRA에서 조회할 이슈타입 지정 전달
           const issueTypeParam = isType2 ? encodeURIComponent('솔루션 버그') : encodeURIComponent('개발결함');
           const res = await fetch(`/api/jira?epicKey=${activeEpic}&issueType=${issueTypeParam}`);
           const data = await res.json();
@@ -284,12 +282,11 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
       };
       fetchJiraIssues();
     }
-  }, [view, activeEpic, isType2]); // [수정] isType2 의존성 추가
+  }, [view, activeEpic, isType2]);
 
   useEffect(() => {
     if (view === 'issues' && activeEpic && !loading && issues.length > 0) {
       const total = issues.length;
-      // [수정] 타입별(Type1: 완료, Type2: 종료) 완료율 계산 분기 처리
       const resolved = issues.filter(i => {
         if (isType2) return i.status.includes('종료') || i.status.includes('Closed');
         return i.status.includes('완료') || i.status.includes('Closed');
@@ -313,7 +310,6 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
   const handleSpaceSubmit = async (data) => {
     try {
       const { id, ...saveData } = data;
-      // 기본값 방어 코드
       if (!saveData.spaceType) saveData.spaceType = 'Type 1'; 
       if (spaceModal.isEdit) await updateDoc(doc(db, 'jira_spaces', id), saveData);
       else await addDoc(collection(db, 'jira_spaces'), saveData);
@@ -366,7 +362,6 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
   const platformColorMap = { 'Android': 'bg-green-400', 'iOS': 'bg-gray-800', 'Backend': 'bg-orange-500', 'Web': 'bg-blue-400' };
   const priorityColorMap = { 'Critical': 'bg-red-600', 'High': 'bg-orange-500', 'Medium': 'bg-yellow-500', 'Low': 'bg-blue-400' };
 
-  // [수정] 타입별(Type1: 완료, Type2: 종료) 완료율 계산 분기 처리
   const resolvedIssues = issues.filter(i => {
     if (isType2) return i.status.includes('종료') || i.status.includes('Closed');
     return i.status.includes('완료') || i.status.includes('Closed');
@@ -393,7 +388,6 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
     return 'bg-gray-100 text-gray-600 border-gray-200';
   };
 
-  // [수정] 타입별 필터링 분기
   const filteredIssues = issues.filter(issue => {
     if (filterStatus !== 'All' && issue.status !== filterStatus) return false;
     if (filterPriority !== 'All' && issue.priority !== filterPriority) return false;
@@ -407,7 +401,6 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
     if (searchSummary) {
       const term = searchSummary.toLowerCase();
       const inSummary = issue.summary?.toLowerCase().includes(term);
-      // [수정] 검색 시 타입에 따라 '이슈 내용'과 '설명' 중 맞는 타겟을 함께 검색
       const targetDesc = isType2 ? issue.issueContent : issue.description;
       const inDesc = targetDesc?.toLowerCase().includes(term);
       if (!inSummary && !inDesc) return false;
@@ -516,7 +509,6 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
                     <div className="flex justify-between items-start mb-2 pr-8">
                       <div className="flex items-center space-x-1">
                         <span className="text-[10px] bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full border border-gray-200 font-bold">{space.epicKey}</span>
-                        {/* [수정] 스페이스 타입 배지 노출 */}
                         <span className={`text-[10px] px-2 py-0.5 rounded-full border font-bold ${space.spaceType === 'Type 2' ? 'bg-indigo-50 text-indigo-600 border-indigo-200' : 'bg-teal-50 text-teal-600 border-teal-200'}`}>
                           {space.spaceType === 'Type 2' ? '타입2' : '타입1'}
                         </span>
@@ -578,7 +570,6 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
                     <button onClick={() => setView('epics')} className="p-1 hover:bg-gray-200 rounded-md text-gray-500 transition-colors bg-white border border-gray-200 shadow-sm"><ChevronLeft className="w-4 h-4"/></button>
                     <span className="bg-blue-100 text-blue-700 text-xs font-bold px-2 py-0.5 rounded border border-blue-200">{activeEpic || activeSpace}</span>
                     <h1 className="text-2xl font-bold text-gray-800">
-                      {/* [수정] 타입에 따른 동적 타이틀 표시 */}
                       {epics.find(e => e.epicKey === activeEpic)?.name || (isType2 ? '솔루션 버그 추적 보드' : '개발결함 추적 보드')}
                     </h1>
                   </div>
@@ -618,27 +609,28 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
                 </div>
               ) : (
                 <>
-                  <div className="mb-6 shrink-0 flex flex-col">
-                    <div className="flex justify-between items-end mb-2 px-1">
+                  <div className="shrink-0 flex flex-col">
+                    <div className={`flex justify-between items-end px-1 ${isStatsExpanded ? 'mb-2' : 'mb-6'}`}>
                       <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Dashboard Statistics</span>
-                      <button onClick={() => setIsStatsExpanded(!isStatsExpanded)} className="flex items-center text-[10px] font-bold text-gray-500 hover:text-gray-800 transition-colors bg-white px-2 py-1.5 rounded-lg shadow-sm border border-gray-200">
-                        {isStatsExpanded ? '통계 접기' : '통계 전체 펼치기'}
-                        {isStatsExpanded ? <ChevronUp className="w-3 h-3 ml-1" /> : <ChevronDownIcon className="w-3 h-3 ml-1" />}
+                      <button onClick={() => setIsStatsExpanded(!isStatsExpanded)} className="flex items-center justify-center text-gray-500 hover:text-gray-800 transition-colors bg-white p-1.5 rounded-lg shadow-sm border border-gray-200">
+                        {isStatsExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDownIcon className="w-4 h-4" />}
                       </button>
                     </div>
-                    <div className="flex space-x-6 items-start transition-all duration-300">
-                      <div className="flex-1">
-                        <DetailedStatCard title="상태별 통계" icon={Activity} total={totalIssues} data={statusCounts} colorMap={statusColorMap} defaultColor="bg-blue-400" isExpanded={isStatsExpanded} />
-                      </div>
-                      <div className="flex-1">
-                        {isType2 ? (
-                          <DetailedStatCard title="보고자별 통계" icon={User} total={totalIssues} data={reporterCounts} colorMap={{}} defaultColor="bg-indigo-400" isExpanded={isStatsExpanded} />
-                        ) : (
-                          <DetailedStatCard title="플랫폼별 통계" icon={Server} total={totalIssues} data={platformCounts} colorMap={platformColorMap} defaultColor="bg-purple-400" isExpanded={isStatsExpanded} />
-                        )}
-                      </div>
-                      <div className="flex-1">
-                        <DetailedStatCard title="우선순위별 통계" icon={AlertCircle} total={totalIssues} data={priorityCounts} colorMap={priorityColorMap} defaultColor="bg-gray-400" isExpanded={isStatsExpanded} />
+                    <div className={`transition-all duration-500 ease-in-out overflow-hidden ${isStatsExpanded ? 'max-h-[500px] opacity-100 mb-6' : 'max-h-0 opacity-0 mb-0'}`}>
+                      <div className="flex space-x-6 items-start pb-1">
+                        <div className="flex-1">
+                          <DetailedStatCard title="상태별 통계" icon={Activity} total={totalIssues} data={statusCounts} colorMap={statusColorMap} defaultColor="bg-blue-400" />
+                        </div>
+                        <div className="flex-1">
+                          {isType2 ? (
+                            <DetailedStatCard title="보고자별 통계" icon={User} total={totalIssues} data={reporterCounts} colorMap={{}} defaultColor="bg-indigo-400" />
+                          ) : (
+                            <DetailedStatCard title="플랫폼별 통계" icon={Server} total={totalIssues} data={platformCounts} colorMap={platformColorMap} defaultColor="bg-purple-400" />
+                          )}
+                        </div>
+                        <div className="flex-1">
+                          <DetailedStatCard title="우선순위별 통계" icon={AlertCircle} total={totalIssues} data={priorityCounts} colorMap={priorityColorMap} defaultColor="bg-gray-400" />
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -648,7 +640,6 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
                     <div className="w-px h-4 bg-gray-200 mx-1"></div>
                     <CustomSelect value={filterStatus} onChange={setFilterStatus} options={statusOptions} className="bg-transparent text-xs font-medium text-gray-700 outline-none w-32 hover:bg-gray-50 rounded-md transition-colors" />
                     <div className="w-px h-4 bg-gray-200 mx-1"></div>
-                    {/* [수정] 타입에 따른 동적 셀렉트 박스 */}
                     {isType2 ? (
                       <CustomSelect value={filterReporter} onChange={setFilterReporter} options={reporterOptions} className="bg-transparent text-xs font-medium text-gray-700 outline-none w-32 hover:bg-gray-50 rounded-md transition-colors" />
                     ) : (
@@ -676,7 +667,6 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
                       <table className="w-full text-left border-collapse relative">
                         <thead className="sticky top-0 bg-gray-50/95 backdrop-blur z-10 shadow-sm">
                           <tr>
-                            {/* [수정] 타입에 따른 동적 헤더 */}
                             {isType2 ? (
                               <>
                                 <th className="px-5 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider">Key</th>
@@ -714,7 +704,6 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
                                 className="hover:bg-blue-50/30 transition-colors group cursor-pointer" 
                                 onClick={() => setSelectedIssue(issue)}
                               >
-                                {/* [수정] 타입에 따른 동적 열(Cell) 표시 */}
                                 {isType2 ? (
                                   <>
                                     <td className="px-5 py-4">
@@ -816,9 +805,35 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
                           </div>
                           <div className="grid grid-cols-2 gap-5">
                             <div>
-                              <span className="text-[10px] font-bold text-gray-400 mb-1.5 block uppercase tracking-wider">Assignee</span>
-                              <div className="text-sm font-medium text-gray-700 flex items-center mt-1"><User className="w-3 h-3 mr-1 text-gray-400"/>{selectedIssue.assignee}</div>
+                              <span className="text-[10px] font-bold text-gray-400 mb-1.5 block uppercase tracking-wider">Priority</span>
+                              <div className="text-sm font-medium text-gray-700 flex items-center mt-1">
+                                {getPriorityIcon(selectedIssue.priority)} {selectedIssue.priority}
+                              </div>
                             </div>
+                            <div>
+                              <span className="text-[10px] font-bold text-gray-400 mb-1.5 block uppercase tracking-wider">Reporter</span>
+                              <div className="text-sm font-medium text-gray-700 flex items-center mt-1"><User className="w-3 h-3 mr-1 text-gray-400"/>{selectedIssue.reporter}</div>
+                            </div>
+                            {!isType2 && (
+                              <>
+                                <div>
+                                  <span className="text-[10px] font-bold text-gray-400 mb-1.5 block uppercase tracking-wider">Platform</span>
+                                  <div className="text-sm font-medium text-gray-700 mt-1">
+                                    <span className={`text-[10px] px-1.5 py-0.5 rounded border font-bold ${selectedIssue.platform === 'iOS' ? 'bg-gray-100 text-gray-700 border-gray-200' : selectedIssue.platform === 'Android' ? 'bg-blue-50 text-blue-600 border-blue-200' : 'bg-orange-50 text-orange-600 border-orange-200'}`}>{selectedIssue.component}</span>
+                                  </div>
+                                </div>
+                                <div>
+                                  <span className="text-[10px] font-bold text-gray-400 mb-1.5 block uppercase tracking-wider">Phenomenon</span>
+                                  <div className="text-sm font-medium text-gray-700 mt-1">
+                                    <span className="text-[10px] px-1.5 py-0.5 rounded border bg-purple-50 text-purple-600 border-purple-200 font-bold whitespace-nowrap">{selectedIssue.phenomenon || '-'}</span>
+                                  </div>
+                                </div>
+                                <div>
+                                  <span className="text-[10px] font-bold text-gray-400 mb-1.5 block uppercase tracking-wider">Assignee</span>
+                                  <div className="text-sm font-medium text-gray-700 flex items-center mt-1"><User className="w-3 h-3 mr-1 text-gray-400"/>{selectedIssue.assignee}</div>
+                                </div>
+                              </>
+                            )}
                           </div>
                           <div className="border-t border-gray-100 pt-6">
                             <span className="text-[10px] font-bold text-gray-400 mb-3 block uppercase tracking-wider">
