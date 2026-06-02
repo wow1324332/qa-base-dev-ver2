@@ -47,14 +47,12 @@ const CustomSelect = ({ value, onChange, options, className }) => {
   );
 };
 
-const DetailedStatCard = ({ title, icon: Icon, total, data, colorMap, defaultColor }) => {
-  const [isExpanded, setIsExpanded] = useState(false);
+const DetailedStatCard = ({ title, icon: Icon, total, data, colorMap, defaultColor, isExpanded }) => {
   const entries = Object.entries(data).sort((a,b)=>b[1]-a[1]);
-  const hasMany = entries.length > 5;
   const displayEntries = isExpanded ? entries : entries.slice(0, 5);
 
   return (
-    <div className={`bg-white rounded-2xl p-4 border border-gray-200 shadow-md flex flex-col hover-breath transition-all duration-300 relative ${isExpanded ? 'h-auto z-10 absolute w-[calc(33.333%-16px)] shadow-xl' : 'h-48'}`}>
+    <div className={`bg-white rounded-2xl p-4 border border-gray-200 shadow-md flex flex-col hover-breath transition-all duration-300 relative ${isExpanded ? 'h-auto' : 'h-48'}`}>
       <div className="flex justify-between items-center mb-3 shrink-0 border-b border-gray-50 pb-2">
         <div className="flex items-center space-x-2">
           <div className="p-1.5 bg-gray-50 rounded-lg border border-gray-100">
@@ -64,14 +62,9 @@ const DetailedStatCard = ({ title, icon: Icon, total, data, colorMap, defaultCol
         </div>
         <div className="flex items-center space-x-2">
           <span className="text-[10px] font-bold text-gray-500 bg-gray-50 px-2 py-0.5 rounded-full border border-gray-100">{total} Issues</span>
-          {hasMany && (
-            <button onClick={() => setIsExpanded(!isExpanded)} className="p-1 bg-gray-50 hover:bg-gray-100 rounded-md text-gray-400 transition-colors shadow-sm border border-gray-100">
-              {isExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDownIcon className="w-3 h-3" />}
-            </button>
-          )}
         </div>
       </div>
-      <div className="flex flex-col space-y-2 pr-1">
+      <div className="flex flex-col space-y-2 pr-1 overflow-hidden">
         {displayEntries.map(([label, count]) => {
           const colorClass = colorMap[label] || defaultColor;
           return (
@@ -85,6 +78,11 @@ const DetailedStatCard = ({ title, icon: Icon, total, data, colorMap, defaultCol
           );
         })}
         {entries.length === 0 && <div className="text-xs text-gray-400 text-center py-4">데이터 없음</div>}
+        {!isExpanded && entries.length > 5 && (
+          <div className="text-[10px] text-gray-400 text-center pt-1 animate-fade-in font-medium">
+            + {entries.length - 5}개 항목 더보기
+          </div>
+        )}
       </div>
     </div>
   );
@@ -216,6 +214,8 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
   
   const [searchInput, setSearchInput] = useState(''); 
   const [searchSummary, setSearchSummary] = useState(''); 
+  
+  const [isStatsExpanded, setIsStatsExpanded] = useState(false);
 
   const [tooltipInfo, setTooltipInfo] = useState({ visible: false, x: 0, y: 0, text: '' });
   const [selectedIssue, setSelectedIssue] = useState(null);
@@ -618,24 +618,29 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
                 </div>
               ) : (
                 <>
-                  <div className="relative mb-6 shrink-0">
-                    <div className="flex space-x-6">
+                  <div className="mb-6 shrink-0 flex flex-col">
+                    <div className="flex justify-between items-end mb-2 px-1">
+                      <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Dashboard Statistics</span>
+                      <button onClick={() => setIsStatsExpanded(!isStatsExpanded)} className="flex items-center text-[10px] font-bold text-gray-500 hover:text-gray-800 transition-colors bg-white px-2 py-1.5 rounded-lg shadow-sm border border-gray-200">
+                        {isStatsExpanded ? '통계 접기' : '통계 전체 펼치기'}
+                        {isStatsExpanded ? <ChevronUp className="w-3 h-3 ml-1" /> : <ChevronDownIcon className="w-3 h-3 ml-1" />}
+                      </button>
+                    </div>
+                    <div className="flex space-x-6 items-start transition-all duration-300">
                       <div className="flex-1">
-                        <DetailedStatCard title="상태별 통계" icon={Activity} total={totalIssues} data={statusCounts} colorMap={statusColorMap} defaultColor="bg-blue-400" />
+                        <DetailedStatCard title="상태별 통계" icon={Activity} total={totalIssues} data={statusCounts} colorMap={statusColorMap} defaultColor="bg-blue-400" isExpanded={isStatsExpanded} />
                       </div>
                       <div className="flex-1">
-                        {/* [수정] 타입에 따른 동적 통계 카드 (Type 2: 보고자, Type 1: 플랫폼) */}
                         {isType2 ? (
-                          <DetailedStatCard title="보고자별 통계" icon={User} total={totalIssues} data={reporterCounts} colorMap={{}} defaultColor="bg-indigo-400" />
+                          <DetailedStatCard title="보고자별 통계" icon={User} total={totalIssues} data={reporterCounts} colorMap={{}} defaultColor="bg-indigo-400" isExpanded={isStatsExpanded} />
                         ) : (
-                          <DetailedStatCard title="플랫폼별 통계" icon={Server} total={totalIssues} data={platformCounts} colorMap={platformColorMap} defaultColor="bg-purple-400" />
+                          <DetailedStatCard title="플랫폼별 통계" icon={Server} total={totalIssues} data={platformCounts} colorMap={platformColorMap} defaultColor="bg-purple-400" isExpanded={isStatsExpanded} />
                         )}
                       </div>
                       <div className="flex-1">
-                        <DetailedStatCard title="우선순위별 통계" icon={AlertCircle} total={totalIssues} data={priorityCounts} colorMap={priorityColorMap} defaultColor="bg-gray-400" />
+                        <DetailedStatCard title="우선순위별 통계" icon={AlertCircle} total={totalIssues} data={priorityCounts} colorMap={priorityColorMap} defaultColor="bg-gray-400" isExpanded={isStatsExpanded} />
                       </div>
                     </div>
-                    <div className="h-48 invisible pointer-events-none absolute top-0"></div>
                   </div>
 
                   <div className="flex items-center space-x-3 bg-white p-3 px-5 rounded-t-2xl shadow-sm border border-gray-200 border-b-0 shrink-0 relative z-20">
