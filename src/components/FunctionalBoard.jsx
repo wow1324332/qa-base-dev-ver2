@@ -10,7 +10,7 @@ export const FunctionalBoard = ({ user, onNavigate, onLogout, onShowProfileModal
     // [수정 핵심] 배경 이미지를 적용하기 위한 클래스(bg-cover 등)와 인라인 스타일 추가
     <div 
       className="w-screen h-screen bg-[#f8f9fa] flex flex-col animate-simple-fade bg-cover bg-center bg-no-repeat"
-      style={{ backgroundImage: "url('/bg-functional.jpg')" }}
+      style={{ backgroundImage: "url('/bg-functional.png')" }}
     >
       <header className="h-20 px-8 flex justify-between items-center bg-white/50 backdrop-blur-md border-b border-gray-100 shadow-sm">
         <div className="flex items-center space-x-3">
