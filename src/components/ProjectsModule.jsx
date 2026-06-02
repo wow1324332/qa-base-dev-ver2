@@ -96,7 +96,6 @@ const JiraBadge = ({ children, className }) => (
   </span>
 );
 
-// 검색어 하이라이트를 위한 컴포넌트 추가
 const HighlightText = ({ text, highlight }) => {
   if (!highlight || !highlight.trim() || !text) return <>{text}</>;
   const escapedHighlight = highlight.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -203,6 +202,9 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
   const [searchSummary, setSearchSummary] = useState('');
 
   const [tooltipInfo, setTooltipInfo] = useState({ visible: false, x: 0, y: 0, text: '' });
+  
+  // [추가] 상세 사이드 패널에 띄울 이슈 객체 보관용 상태
+  const [selectedIssue, setSelectedIssue] = useState(null);
 
   const [spaces, setSpaces] = useState([]);
   const [spaceModal, setSpaceModal] = useState({ isOpen: false, isEdit: false });
@@ -231,6 +233,7 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
 
   useEffect(() => {
     if (view === 'issues' && activeEpic) {
+      setSelectedIssue(null); // 에픽 진입 시 열려있던 패널 초기화
       const fetchJiraIssues = async () => {
         setIssues([]); 
         setLoading(true);
@@ -351,11 +354,18 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
     return 'bg-gray-100 text-gray-600 border-gray-200';
   };
 
+  // [수정] 요약 및 설명(description) 두 곳 모두에서 필터링 되도록 로직 보강
   const filteredIssues = issues.filter(issue => {
     if (filterStatus !== 'All' && issue.status !== filterStatus) return false;
     if (filterPlatform !== 'All' && issue.component !== filterPlatform) return false;
     if (filterPriority !== 'All' && issue.priority !== filterPriority) return false;
-    if (searchSummary && !issue.summary.toLowerCase().includes(searchSummary.toLowerCase())) return false;
+    
+    if (searchSummary) {
+      const term = searchSummary.toLowerCase();
+      const inSummary = issue.summary?.toLowerCase().includes(term);
+      const inDesc = issue.description?.toLowerCase().includes(term);
+      if (!inSummary && !inDesc) return false;
+    }
     return true;
   });
 
@@ -573,7 +583,7 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
                     <div className="w-px h-4 bg-gray-200 mx-1"></div>
                     <div className="flex items-center bg-gray-50 border border-gray-200 rounded-md px-3 py-1.5 transition-colors focus-within:border-gray-400 relative">
                       <Search className="w-3.5 h-3.5 text-gray-400 mr-2" />
-                      <input type="text" placeholder="요약 검색..." value={searchSummary} onChange={e=>setSearchSummary(e.target.value)} className="text-xs bg-transparent outline-none w-48 placeholder:text-gray-400 text-gray-700 pr-6" />
+                      <input type="text" placeholder="요약/설명 검색..." value={searchSummary} onChange={e=>setSearchSummary(e.target.value)} className="text-xs bg-transparent outline-none w-48 placeholder:text-gray-400 text-gray-700 pr-6" />
                       {searchSummary && (
                         <button onClick={() => setSearchSummary('')} className="absolute right-2 p-0.5 text-gray-400 hover:text-gray-600 hover:bg-gray-200 rounded-full transition-colors flex items-center justify-center">
                           <X className="w-3 h-3" />
@@ -609,13 +619,22 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
                             </tr>
                           ) : (
                             filteredIssues.map(issue => (
-                              <tr key={issue.id} className="hover:bg-blue-50/30 transition-colors group cursor-pointer" onClick={() => handleOpenJiraIssue(issue.key)}>
-                                <td className="px-5 py-4 text-xs font-bold text-blue-600 underline-offset-2 group-hover:underline flex items-center">
-                                  {issue.key} <ExternalLink className="w-3 h-3 ml-1 text-gray-400 group-hover:text-blue-500" />
+                              <tr 
+                                key={issue.id} 
+                                className="hover:bg-blue-50/30 transition-colors group cursor-pointer" 
+                                onClick={() => setSelectedIssue(issue)}
+                              >
+                                <td 
+                                  className="px-5 py-4 text-xs font-bold text-blue-600 underline-offset-2 hover:bg-blue-50 transition-colors flex items-center h-full"
+                                  onClick={(e) => { e.stopPropagation(); handleOpenJiraIssue(issue.key); }}
+                                >
+                                  <span className="hover:underline flex items-center cursor-pointer">
+                                    {issue.key} <ExternalLink className="w-3 h-3 ml-1 text-gray-400 group-hover:text-blue-500" />
+                                  </span>
                                 </td>
                                 <td className="px-5 py-4"><JiraBadge className={getStatusBadgeClass(issue.status)}>{issue.status}</JiraBadge></td>
-                                <td className="px-5 py-4 text-xs font-medium text-gray-700 flex items-center mt-1">
-                                  {getPriorityIcon(issue.priority)} {issue.priority}
+                                <td className="px-5 py-4 text-xs font-medium text-gray-700 mt-1">
+                                  <div className="flex items-center">{getPriorityIcon(issue.priority)} {issue.priority}</div>
                                 </td>
                                 <td className="px-5 py-4">
                                   <span className="text-[10px] px-1.5 py-0.5 rounded border bg-purple-50 text-purple-600 border-purple-200 font-bold whitespace-nowrap">{issue.phenomenon || '-'}</span>
@@ -643,6 +662,68 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
                         </tbody>
                       </table>
                     </div>
+
+                    {/* [추가] 이슈 상세 사이드 패널 (행 클릭 시 호출) */}
+                    {selectedIssue && (
+                      <div className="absolute inset-y-0 right-0 w-[420px] bg-white shadow-[-20px_0_40px_rgba(0,0,0,0.08)] border-l border-gray-200 z-50 flex flex-col animate-fast-fade">
+                        <div className="flex justify-between items-center px-6 py-5 border-b border-gray-100 bg-gray-50/50 shrink-0">
+                          <h3 className="text-lg font-bold text-gray-800 flex items-center">
+                            이슈 상세 정보
+                          </h3>
+                          <button onClick={() => setSelectedIssue(null)} className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-200 rounded-md transition-colors"><X className="w-5 h-5"/></button>
+                        </div>
+                        <div className="flex-1 overflow-y-auto p-6 space-y-6 no-scrollbar">
+                          <div>
+                            <span className="text-[10px] font-bold text-gray-400 mb-1.5 block uppercase tracking-wider">Key & Status</span>
+                            <div className="flex items-center space-x-3">
+                              <span 
+                                className="text-sm font-bold text-blue-600 flex items-center cursor-pointer hover:underline" 
+                                onClick={() => handleOpenJiraIssue(selectedIssue.key)}
+                              >
+                                {selectedIssue.key} <ExternalLink className="w-3 h-3 ml-1" />
+                              </span>
+                              <JiraBadge className={getStatusBadgeClass(selectedIssue.status)}>{selectedIssue.status}</JiraBadge>
+                            </div>
+                          </div>
+                          <div>
+                            <span className="text-[10px] font-bold text-gray-400 mb-1.5 block uppercase tracking-wider">Summary</span>
+                            <div className="text-sm font-bold text-gray-800 leading-relaxed">
+                              <HighlightText text={selectedIssue.summary} highlight={searchSummary} />
+                            </div>
+                          </div>
+                          <div className="grid grid-cols-2 gap-5">
+                            <div>
+                              <span className="text-[10px] font-bold text-gray-400 mb-1.5 block uppercase tracking-wider">Priority</span>
+                              <div className="text-sm font-medium text-gray-700 flex items-center mt-1">
+                                {getPriorityIcon(selectedIssue.priority)} {selectedIssue.priority}
+                              </div>
+                            </div>
+                            <div>
+                              <span className="text-[10px] font-bold text-gray-400 mb-1.5 block uppercase tracking-wider">Platform</span>
+                              <div className="text-sm font-medium text-gray-700 mt-1">
+                                <span className={`text-[10px] px-1.5 py-0.5 rounded border font-bold ${selectedIssue.platform === 'iOS' ? 'bg-gray-100 text-gray-700 border-gray-200' : selectedIssue.platform === 'Android' ? 'bg-blue-50 text-blue-600 border-blue-200' : 'bg-orange-50 text-orange-600 border-orange-200'}`}>{selectedIssue.component}</span>
+                              </div>
+                            </div>
+                            <div>
+                              <span className="text-[10px] font-bold text-gray-400 mb-1.5 block uppercase tracking-wider">Phenomenon</span>
+                              <div className="text-sm font-medium text-gray-700 mt-1">
+                                <span className="text-[10px] px-1.5 py-0.5 rounded border bg-purple-50 text-purple-600 border-purple-200 font-bold whitespace-nowrap">{selectedIssue.phenomenon || '-'}</span>
+                              </div>
+                            </div>
+                            <div>
+                              <span className="text-[10px] font-bold text-gray-400 mb-1.5 block uppercase tracking-wider">Assignee</span>
+                              <div className="text-sm font-medium text-gray-700 flex items-center mt-1"><User className="w-3 h-3 mr-1 text-gray-400"/>{selectedIssue.assignee}</div>
+                            </div>
+                          </div>
+                          <div className="border-t border-gray-100 pt-6">
+                            <span className="text-[10px] font-bold text-gray-400 mb-3 block uppercase tracking-wider">Description</span>
+                            <div className="text-xs text-gray-700 whitespace-pre-wrap leading-relaxed bg-gray-50 p-4 rounded-xl border border-gray-100 min-h-[150px]">
+                              <HighlightText text={selectedIssue.description} highlight={searchSummary} />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </>
               )}
