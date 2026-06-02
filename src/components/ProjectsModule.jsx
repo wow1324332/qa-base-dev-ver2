@@ -53,7 +53,7 @@ const DetailedStatCard = ({ title, icon: Icon, total, data, colorMap, defaultCol
   const displayEntries = entries.slice(0, 5);
 
   return (
-    <div className="bg-white rounded-2xl p-4 border border-gray-200 shadow-md flex flex-col hover-breath transition-all duration-300 h-48">
+    <div className="bg-white rounded-2xl p-4 border border-gray-200 shadow-md flex flex-col hover-breath transition-all duration-300 h-full min-h-[12rem]">
       <div className="flex justify-between items-center mb-3 shrink-0 border-b border-gray-50 pb-2">
         <div className="flex items-center space-x-2">
           <div className="p-1.5 bg-gray-50 rounded-lg border border-gray-100">
@@ -65,7 +65,7 @@ const DetailedStatCard = ({ title, icon: Icon, total, data, colorMap, defaultCol
           <span className="text-[10px] font-bold text-gray-500 bg-gray-50 px-2 py-0.5 rounded-full border border-gray-100">{total} Issues</span>
         </div>
       </div>
-      <div className="flex flex-col space-y-2 pr-1 overflow-hidden">
+      <div className="flex flex-col space-y-2 pr-1 overflow-visible">
         {displayEntries.map(([label, count]) => {
           const colorClass = colorMap[label] || defaultColor;
           return (
@@ -610,26 +610,28 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
               ) : (
                 <>
                   <div className="shrink-0 flex flex-col">
-                    <div className={`flex justify-between items-end px-1 ${isStatsExpanded ? 'mb-2' : 'mb-6'}`}>
+                    <div className={`flex justify-between items-end px-1 ${isStatsExpanded ? 'mb-2' : 'mb-6'} transition-all duration-500`}>
                       <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Dashboard Statistics</span>
                       <button onClick={() => setIsStatsExpanded(!isStatsExpanded)} className="flex items-center justify-center text-gray-500 hover:text-gray-800 transition-colors bg-white p-1.5 rounded-lg shadow-sm border border-gray-200">
                         {isStatsExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDownIcon className="w-4 h-4" />}
                       </button>
                     </div>
-                    <div className={`transition-all duration-500 ease-in-out overflow-hidden ${isStatsExpanded ? 'max-h-[500px] opacity-100 mb-6' : 'max-h-0 opacity-0 mb-0'}`}>
-                      <div className="flex space-x-6 items-start pb-1">
-                        <div className="flex-1">
-                          <DetailedStatCard title="상태별 통계" icon={Activity} total={totalIssues} data={statusCounts} colorMap={statusColorMap} defaultColor="bg-blue-400" />
-                        </div>
-                        <div className="flex-1">
-                          {isType2 ? (
-                            <DetailedStatCard title="보고자별 통계" icon={User} total={totalIssues} data={reporterCounts} colorMap={{}} defaultColor="bg-indigo-400" />
-                          ) : (
-                            <DetailedStatCard title="플랫폼별 통계" icon={Server} total={totalIssues} data={platformCounts} colorMap={platformColorMap} defaultColor="bg-purple-400" />
-                          )}
-                        </div>
-                        <div className="flex-1">
-                          <DetailedStatCard title="우선순위별 통계" icon={AlertCircle} total={totalIssues} data={priorityCounts} colorMap={priorityColorMap} defaultColor="bg-gray-400" />
+                    <div className={`grid transition-all duration-500 ease-in-out ${isStatsExpanded ? 'grid-rows-[1fr] opacity-100 mb-6' : 'grid-rows-[0fr] opacity-0 mb-0'}`}>
+                      <div className="overflow-hidden">
+                        <div className="flex space-x-6 items-stretch pb-1">
+                          <div className="flex-1">
+                            <DetailedStatCard title="상태별 통계" icon={Activity} total={totalIssues} data={statusCounts} colorMap={statusColorMap} defaultColor="bg-blue-400" />
+                          </div>
+                          <div className="flex-1">
+                            {isType2 ? (
+                              <DetailedStatCard title="보고자별 통계" icon={User} total={totalIssues} data={reporterCounts} colorMap={{}} defaultColor="bg-indigo-400" />
+                            ) : (
+                              <DetailedStatCard title="플랫폼별 통계" icon={Server} total={totalIssues} data={platformCounts} colorMap={platformColorMap} defaultColor="bg-purple-400" />
+                            )}
+                          </div>
+                          <div className="flex-1">
+                            <DetailedStatCard title="우선순위별 통계" icon={AlertCircle} total={totalIssues} data={priorityCounts} colorMap={priorityColorMap} defaultColor="bg-gray-400" />
+                          </div>
                         </div>
                       </div>
                     </div>
