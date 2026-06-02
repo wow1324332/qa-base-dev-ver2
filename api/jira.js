@@ -1,5 +1,7 @@
 export default async function handler(req, res) {
-  const { epicKey } = req.query;
+  // [수정] 프론트엔드에서 넘어온 issueType을 받습니다. (기본값: 개발결함)
+  const { epicKey, issueType } = req.query;
+  const targetIssueType = issueType || '개발결함';
   
   if (!epicKey) {
     return res.status(400).json({ error: '에픽 키가 필요합니다.' });
@@ -52,7 +54,9 @@ export default async function handler(req, res) {
 
     const searchKeys = [epicKey, ...parentKeys];
     const searchKeysString = searchKeys.map(k => `"${k}"`).join(',');
-    const jql = `parent in (${searchKeysString}) AND issuetype = "개발결함" ORDER BY created DESC`;
+    
+    // [수정] 하드코딩된 '개발결함' 대신 선택된 스페이스의 targetIssueType을 넣습니다.
+    const jql = `parent in (${searchKeysString}) AND issuetype = "${targetIssueType}" ORDER BY created DESC`;
     
     let allIssues = [];
     let nextPageToken = null;
@@ -62,7 +66,6 @@ export default async function handler(req, res) {
       const payload = {
         jql: jql,
         maxResults: 100, 
-        // [수정] description (설명) 항목 추가
         fields: ["summary", "components", "priority", "issuetype", "status", "reporter", "assignee", "created", "customfield_10694", "description"]
       };
       
@@ -94,7 +97,6 @@ export default async function handler(req, res) {
         if (typeof phenom !== 'string') phenom = String(phenom);
       }
 
-      // [수정] 설명(Description) 필드를 문자열로 안전하게 추출
       let desc = '설명 내용이 없습니다.';
       if (issue.fields?.description) {
         if (typeof issue.fields.description === 'string') {
@@ -115,11 +117,11 @@ export default async function handler(req, res) {
         id: issue.id,
         key: issue.key,
         summary: issue.fields?.summary || '제목 없음',
-        description: desc || '설명 내용이 없습니다.', // [추가] 설명 매핑
+        description: desc || '설명 내용이 없습니다.',
         component: issue.fields?.components?.[0]?.name || '전체',
         platform: issue.fields?.components?.[0]?.name || '전체',
         priority: issue.fields?.priority?.name || 'Medium',
-        type: issue.fields?.issuetype?.name || '개발결함',
+        type: issue.fields?.issuetype?.name || targetIssueType,
         phenomenon: phenom,
         status: issue.fields?.status?.name || '진행중',
         reporter: issue.fields?.reporter?.displayName || 'Unknown',
