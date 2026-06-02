@@ -289,7 +289,11 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
   useEffect(() => {
     if (view === 'issues' && activeEpic && !loading && issues.length > 0) {
       const total = issues.length;
-      const resolved = issues.filter(i => i.status.includes('완료') || i.status.includes('Closed')).length;
+      // [수정] 타입별(Type1: 완료, Type2: 종료) 완료율 계산 분기 처리
+      const resolved = issues.filter(i => {
+        if (isType2) return i.status.includes('종료') || i.status.includes('Closed');
+        return i.status.includes('완료') || i.status.includes('Closed');
+      }).length;
       const calcProgress = Math.round((resolved / total) * 100);
 
       const currentEpic = epics.find(e => e.epicKey === activeEpic);
@@ -298,7 +302,7 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
           .catch(err => console.error("Error updating epic progress:", err));
       }
     }
-  }, [issues, activeEpic, loading, epics]);
+  }, [issues, activeEpic, loading, epics, isType2]);
 
   const handleOpenJiraIssue = (issueKey) => {
     if (jiraDomain && issueKey) {
@@ -362,7 +366,11 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
   const platformColorMap = { 'Android': 'bg-green-400', 'iOS': 'bg-gray-800', 'Backend': 'bg-orange-500', 'Web': 'bg-blue-400' };
   const priorityColorMap = { 'Critical': 'bg-red-600', 'High': 'bg-orange-500', 'Medium': 'bg-yellow-500', 'Low': 'bg-blue-400' };
 
-  const resolvedIssues = issues.filter(i => i.status.includes('완료') || i.status.includes('Closed')).length;
+  // [수정] 타입별(Type1: 완료, Type2: 종료) 완료율 계산 분기 처리
+  const resolvedIssues = issues.filter(i => {
+    if (isType2) return i.status.includes('종료') || i.status.includes('Closed');
+    return i.status.includes('완료') || i.status.includes('Closed');
+  }).length;
   const progressPercent = totalIssues === 0 ? 0 : Math.round((resolvedIssues / totalIssues) * 100);
 
   const currentEpicData = epics.find(e => e.epicKey === activeEpic);
@@ -399,7 +407,9 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
     if (searchSummary) {
       const term = searchSummary.toLowerCase();
       const inSummary = issue.summary?.toLowerCase().includes(term);
-      const inDesc = issue.description?.toLowerCase().includes(term);
+      // [수정] 검색 시 타입에 따라 '이슈 내용'과 '설명' 중 맞는 타겟을 함께 검색
+      const targetDesc = isType2 ? issue.issueContent : issue.description;
+      const inDesc = targetDesc?.toLowerCase().includes(term);
       if (!inSummary && !inDesc) return false;
     }
     return true;
@@ -801,41 +811,16 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
                           </div>
                           <div className="grid grid-cols-2 gap-5">
                             <div>
-                              <span className="text-[10px] font-bold text-gray-400 mb-1.5 block uppercase tracking-wider">Priority</span>
-                              <div className="text-sm font-medium text-gray-700 flex items-center mt-1">
-                                {getPriorityIcon(selectedIssue.priority)} {selectedIssue.priority}
-                              </div>
+                              <span className="text-[10px] font-bold text-gray-400 mb-1.5 block uppercase tracking-wider">Assignee</span>
+                              <div className="text-sm font-medium text-gray-700 flex items-center mt-1"><User className="w-3 h-3 mr-1 text-gray-400"/>{selectedIssue.assignee}</div>
                             </div>
-                            {/* [수정] 타입에 상관없이 모든 정보가 있다면 모두 보여주어 상세 모달 활용도 극대화 */}
-                            <div>
-                              <span className="text-[10px] font-bold text-gray-400 mb-1.5 block uppercase tracking-wider">Reporter</span>
-                              <div className="text-sm font-medium text-gray-700 flex items-center mt-1"><User className="w-3 h-3 mr-1 text-gray-400"/>{selectedIssue.reporter}</div>
-                            </div>
-                            {!isType2 && (
-                              <>
-                                <div>
-                                  <span className="text-[10px] font-bold text-gray-400 mb-1.5 block uppercase tracking-wider">Platform</span>
-                                  <div className="text-sm font-medium text-gray-700 mt-1">
-                                    <span className={`text-[10px] px-1.5 py-0.5 rounded border font-bold ${selectedIssue.platform === 'iOS' ? 'bg-gray-100 text-gray-700 border-gray-200' : selectedIssue.platform === 'Android' ? 'bg-blue-50 text-blue-600 border-blue-200' : 'bg-orange-50 text-orange-600 border-orange-200'}`}>{selectedIssue.component}</span>
-                                  </div>
-                                </div>
-                                <div>
-                                  <span className="text-[10px] font-bold text-gray-400 mb-1.5 block uppercase tracking-wider">Phenomenon</span>
-                                  <div className="text-sm font-medium text-gray-700 mt-1">
-                                    <span className="text-[10px] px-1.5 py-0.5 rounded border bg-purple-50 text-purple-600 border-purple-200 font-bold whitespace-nowrap">{selectedIssue.phenomenon || '-'}</span>
-                                  </div>
-                                </div>
-                                <div>
-                                  <span className="text-[10px] font-bold text-gray-400 mb-1.5 block uppercase tracking-wider">Assignee</span>
-                                  <div className="text-sm font-medium text-gray-700 flex items-center mt-1"><User className="w-3 h-3 mr-1 text-gray-400"/>{selectedIssue.assignee}</div>
-                                </div>
-                              </>
-                            )}
                           </div>
                           <div className="border-t border-gray-100 pt-6">
-                            <span className="text-[10px] font-bold text-gray-400 mb-3 block uppercase tracking-wider">Description</span>
+                            <span className="text-[10px] font-bold text-gray-400 mb-3 block uppercase tracking-wider">
+                              {isType2 ? '이슈 내용' : 'Description'}
+                            </span>
                             <div className="text-xs text-gray-700 whitespace-pre-wrap leading-relaxed bg-gray-50 p-4 rounded-xl border border-gray-100 min-h-[150px]">
-                              <HighlightText text={selectedIssue.description} highlight={searchSummary} />
+                              <HighlightText text={isType2 ? selectedIssue.issueContent : selectedIssue.description} highlight={searchSummary} />
                             </div>
                           </div>
                         </div>
