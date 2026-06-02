@@ -49,7 +49,6 @@ const CustomSelect = ({ value, onChange, options, className }) => {
 
 const DetailedStatCard = ({ title, icon: Icon, total, data, colorMap, defaultColor }) => {
   const entries = Object.entries(data).sort((a,b)=>b[1]-a[1]);
-  // 개별 카드의 확장을 제거하고 최대 6개까지만 노출합니다. 더보기 문구는 제거됩니다.
   const displayEntries = entries.slice(0, 6);
 
   return (
@@ -210,7 +209,6 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
   const [searchInput, setSearchInput] = useState(''); 
   const [searchSummary, setSearchSummary] = useState(''); 
   
-  // 통계 영역이 기본으로 열려 있도록 true로 설정합니다.
   const [isStatsExpanded, setIsStatsExpanded] = useState(true);
 
   const [tooltipInfo, setTooltipInfo] = useState({ visible: false, x: 0, y: 0, text: '' });
@@ -459,7 +457,11 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
         </div>
       </header>
 
-      <div className="flex flex-1 overflow-hidden relative">
+      {/* [수정] 배경 이미지가 들어가는 고정 컨테이너 */}
+      <div 
+        className="flex flex-1 overflow-hidden relative bg-[#f0f2f5] bg-cover bg-center bg-no-repeat"
+        style={{ backgroundImage: "url('/bg-projects.jpg')" }}
+      >
         <aside className={`bg-white border-r border-gray-100 transition-all duration-300 ease-in-out flex flex-col z-10 overflow-hidden whitespace-nowrap ${sidebarOpen ? 'w-64 translate-x-0' : 'w-0 -translate-x-full'}`}>
           <div className="p-4 space-y-1 w-64">
             <div className="text-xs font-semibold text-gray-400 tracking-wider mb-4 px-3 mt-2">MENU</div>
@@ -476,7 +478,8 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
           {sidebarOpen ? <ChevronLeft className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
         </button>
 
-        <main className={`flex-1 overflow-hidden flex flex-col p-8 transition-all duration-300 bg-[#f0f2f5] ${!sidebarOpen ? 'ml-12' : ''}`}>
+        {/* [수정] main 태그에 있던 배경 관련 클래스와 스타일 제거하여 투명하게 만듦 */}
+        <main className={`flex-1 overflow-hidden flex flex-col p-8 transition-all duration-300 ${!sidebarOpen ? 'ml-12' : ''}`}>
           
           {view === 'spaces' && (
             <div className="animate-fade-in h-full flex flex-col">
