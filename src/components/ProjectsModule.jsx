@@ -460,7 +460,7 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
       {/* [수정] 배경 이미지가 들어가는 고정 컨테이너 */}
       <div 
         className="flex flex-1 overflow-hidden relative bg-[#f0f2f5] bg-cover bg-center bg-no-repeat"
-        style={{ backgroundImage: "url('/bg-projects.jpg')" }}
+        style={{ backgroundImage: "url('/bg-projects.png')" }}
       >
         <aside className={`bg-white border-r border-gray-100 transition-all duration-300 ease-in-out flex flex-col z-10 overflow-hidden whitespace-nowrap ${sidebarOpen ? 'w-64 translate-x-0' : 'w-0 -translate-x-full'}`}>
           <div className="p-4 space-y-1 w-64">
