@@ -49,8 +49,8 @@ const CustomSelect = ({ value, onChange, options, className }) => {
 
 const DetailedStatCard = ({ title, icon: Icon, total, data, colorMap, defaultColor }) => {
   const entries = Object.entries(data).sort((a,b)=>b[1]-a[1]);
-  // 개별 카드의 확장을 제거하고 최대 5개까지만 노출합니다.
-  const displayEntries = entries.slice(0, 5);
+  // 개별 카드의 확장을 제거하고 최대 6개까지만 노출합니다. 더보기 문구는 제거됩니다.
+  const displayEntries = entries.slice(0, 6);
 
   return (
     <div className="bg-white rounded-2xl p-4 border border-gray-200 shadow-md flex flex-col hover-breath transition-all duration-300 h-full min-h-[12rem]">
@@ -79,11 +79,6 @@ const DetailedStatCard = ({ title, icon: Icon, total, data, colorMap, defaultCol
           );
         })}
         {entries.length === 0 && <div className="text-xs text-gray-400 text-center py-4">데이터 없음</div>}
-        {entries.length > 5 && (
-          <div className="text-[10px] text-gray-400 text-center pt-1 animate-fade-in font-medium">
-            + {entries.length - 5}개 항목 더보기
-          </div>
-        )}
       </div>
     </div>
   );
