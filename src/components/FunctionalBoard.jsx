@@ -7,7 +7,11 @@ export const FunctionalBoard = ({ user, onNavigate, onLogout, onShowProfileModal
   const onlineUsersCount = 1;
 
   return (
-    <div className="w-screen h-screen bg-[#f8f9fa] flex flex-col animate-simple-fade">
+    // [수정 핵심] 배경 이미지를 적용하기 위한 클래스(bg-cover 등)와 인라인 스타일 추가
+    <div 
+      className="w-screen h-screen bg-[#f8f9fa] flex flex-col animate-simple-fade bg-cover bg-center bg-no-repeat"
+      style={{ backgroundImage: "url('/bg-functional.jpg')" }}
+    >
       <header className="h-20 px-8 flex justify-between items-center bg-white/50 backdrop-blur-md border-b border-gray-100 shadow-sm">
         <div className="flex items-center space-x-3">
           <AppLogo className="w-8 h-8" />
@@ -70,9 +74,9 @@ export const FunctionalBoard = ({ user, onNavigate, onLogout, onShowProfileModal
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <div 
               onClick={() => onNavigate('dashboard')}
-              className="bg-white rounded-3xl p-8 cursor-pointer border border-gray-200 shadow-md hover-breath group"
+              className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 cursor-pointer border border-gray-200 shadow-md hover-breath group"
             >
-              <div className="w-14 h-14 bg-gray-50 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-gray-800 transition-colors duration-500 shadow-sm border border-gray-100">
+              <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center mb-6 group-hover:bg-gray-800 transition-colors duration-500 shadow-sm border border-gray-100">
                 <Server className="w-6 h-6 text-gray-600 group-hover:text-white transition-colors duration-500" strokeWidth={1.5} />
               </div>
               <h3 className="text-xl font-medium text-gray-800 mb-2">Devices</h3>
@@ -83,9 +87,9 @@ export const FunctionalBoard = ({ user, onNavigate, onLogout, onShowProfileModal
             
             <div 
               onClick={() => onNavigate('schedule')}
-              className="bg-white rounded-3xl p-8 cursor-pointer border border-gray-200 shadow-md hover-breath group"
+              className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 cursor-pointer border border-gray-200 shadow-md hover-breath group"
             >
-              <div className="w-14 h-14 bg-gray-50 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-gray-800 transition-colors duration-500 shadow-sm border border-gray-100">
+              <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center mb-6 group-hover:bg-gray-800 transition-colors duration-500 shadow-sm border border-gray-100">
                 <Calendar className="w-6 h-6 text-gray-600 group-hover:text-white transition-colors duration-500" strokeWidth={1.5} />
               </div>
               <h3 className="text-xl font-medium text-gray-800 mb-2">Schedule</h3>
@@ -96,13 +100,13 @@ export const FunctionalBoard = ({ user, onNavigate, onLogout, onShowProfileModal
 
             <div 
               onClick={() => onNavigate('projects')}
-              className="bg-white rounded-3xl p-8 cursor-pointer border border-gray-200 shadow-md hover-breath group"
+              className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 cursor-pointer border border-gray-200 shadow-md hover-breath group"
             >
-              <div className="w-14 h-14 bg-gray-50 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-blue-600 transition-colors duration-500 shadow-sm border border-gray-100">
+              <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center mb-6 group-hover:bg-blue-600 transition-colors duration-500 shadow-sm border border-gray-100">
                 <Bug className="w-6 h-6 text-gray-600 group-hover:text-white transition-colors duration-500" strokeWidth={1.5} />
               </div>
               <h3 className="text-xl font-medium text-gray-800 mb-2 flex items-center">
-                Projects <span className="ml-2 text-[10px] bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full font-bold">JIRA</span>
+                Projects <span className="ml-2 text-[10px] bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full font-bold tracking-wider border border-blue-200 shadow-sm">JIRA</span>
               </h3>
               <p className="text-sm text-gray-500 leading-relaxed">
                 JIRA 스페이스와 에픽을 연동하여<br/>개발결함(버그) 추적 및 통계를 관리합니다.
