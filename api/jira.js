@@ -16,13 +16,11 @@ export default async function handler(req, res) {
   const authBuffer = Buffer.from(`${email}:${token}`).toString('base64');
   
   try {
-    // [1단계 탐색] 에픽에 속한 중간 징검다리 작업(Task 등)을 모두 찾습니다.
     const parentJql = `parent = "${epicKey}" OR "Epic Link" = "${epicKey}"`;
     let parentKeys = [];
     let parentNextPageToken = null;
     let isParentLast = false;
 
-    // 1단계도 혹시 모를 100개 초과를 대비해 최신 페이징 방식 적용
     while (!isParentLast) {
       const parentPayload = {
         jql: parentJql,
@@ -53,14 +51,9 @@ export default async function handler(req, res) {
     }
 
     const searchKeys = [epicKey, ...parentKeys];
-
-    // JQL 문법 오류 방지: 배열 안의 키값을 큰따옴표(" ")로 감싸서 문자열로 만들어줍니다.
     const searchKeysString = searchKeys.map(k => `"${k}"`).join(',');
-
-    // [2단계 탐색] 찾아낸 모든 부모(Task 및 에픽)에 속한 "개발결함"을 찾습니다.
     const jql = `parent in (${searchKeysString}) AND issuetype = "개발결함" ORDER BY created DESC`;
     
-    // [100개 제한 돌파] 최신 JIRA API에 맞춘 페이징(Pagination) 처리
     let allIssues = [];
     let nextPageToken = null;
     let isLast = false;
@@ -68,14 +61,12 @@ export default async function handler(req, res) {
     while (!isLast) {
       const payload = {
         jql: jql,
-        maxResults: 100, // API 1회 최대 호출 제한
-        // [수정] 현상분류(customfield_10694) 항목을 가져오도록 추가
-        fields: ["summary", "components", "priority", "issuetype", "status", "reporter", "assignee", "created", "customfield_10694"]
+        maxResults: 100, 
+        // [수정] description (설명) 항목 추가
+        fields: ["summary", "components", "priority", "issuetype", "status", "reporter", "assignee", "created", "customfield_10694", "description"]
       };
       
-      if (nextPageToken) {
-        payload.nextPageToken = nextPageToken; // JIRA 최신 규격인 nextPageToken 사용
-      }
+      if (nextPageToken) payload.nextPageToken = nextPageToken; 
 
       const response = await fetch(`https://${domain}/rest/api/3/search/jql`, {
         method: 'POST',
@@ -86,20 +77,16 @@ export default async function handler(req, res) {
       const data = await response.json();
       if (!response.ok) throw new Error(data.errorMessages?.[0] || '2단계 JIRA API 에러');
 
-      // 새로 가져온 데이터를 기존 배열에 누적
       allIssues = allIssues.concat(data.issues || []);
       
-      // JIRA의 최신 페이징 방식(nextPageToken) 확인
       if (data.nextPageToken) {
         nextPageToken = data.nextPageToken;
       } else {
-        isLast = true; // nextPageToken이 없으면 마지막 페이지
+        isLast = true; 
       }
     }
 
-    // 프론트엔드 UI에 맞게 300+개 전체 데이터 정제
     const formattedIssues = allIssues.map(issue => {
-      // [수정] 현상분류(customfield_10694) 값 안전하게 추출
       let phenom = '-';
       const rawPhenom = issue.fields?.customfield_10694;
       if (rawPhenom) {
@@ -107,15 +94,33 @@ export default async function handler(req, res) {
         if (typeof phenom !== 'string') phenom = String(phenom);
       }
 
+      // [수정] 설명(Description) 필드를 문자열로 안전하게 추출
+      let desc = '설명 내용이 없습니다.';
+      if (issue.fields?.description) {
+        if (typeof issue.fields.description === 'string') {
+          desc = issue.fields.description;
+        } else if (issue.fields.description.content) {
+          try {
+            desc = issue.fields.description.content.map(block => {
+              if (block.content) return block.content.map(inline => inline.text || '').join('');
+              return '';
+            }).join('\n');
+          } catch(e) {
+            desc = '설명 형식을 변환할 수 없습니다.';
+          }
+        }
+      }
+
       return {
         id: issue.id,
         key: issue.key,
         summary: issue.fields?.summary || '제목 없음',
+        description: desc || '설명 내용이 없습니다.', // [추가] 설명 매핑
         component: issue.fields?.components?.[0]?.name || '전체',
         platform: issue.fields?.components?.[0]?.name || '전체',
         priority: issue.fields?.priority?.name || 'Medium',
         type: issue.fields?.issuetype?.name || '개발결함',
-        phenomenon: phenom, // [추가] 현상분류 
+        phenomenon: phenom,
         status: issue.fields?.status?.name || '진행중',
         reporter: issue.fields?.reporter?.displayName || 'Unknown',
         assignee: issue.fields?.assignee?.displayName || '미할당',
@@ -123,7 +128,6 @@ export default async function handler(req, res) {
       };
     });
 
-    // 도메인 정보를 함께 응답에 포함하여 프론트엔드에서 새 창 열기 URL로 사용하도록 지원
     return res.status(200).json({ issues: formattedIssues, domain: domain });
 
   } catch (error) {
