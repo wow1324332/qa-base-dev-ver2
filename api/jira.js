@@ -66,7 +66,7 @@ export default async function handler(req, res) {
       const payload = {
         jql: jql,
         maxResults: 100, 
-        fields: ["summary", "components", "priority", "issuetype", "status", "reporter", "assignee", "created", "customfield_10694", "description"]
+        fields: ["summary", "components", "priority", "issuetype", "status", "reporter", "assignee", "created", "customfield_10694", "description", "customfield_99999"]
       };
       
       if (nextPageToken) payload.nextPageToken = nextPageToken; 
@@ -113,11 +113,31 @@ export default async function handler(req, res) {
         }
       }
 
+      // [추가] 타입2 전용 커스텀 필드 "이슈 내용" 추출 (customfield_99999는 실제 ID로 변경 필요)
+      let contentStr = '이슈 내용이 없습니다.';
+      if (issue.fields?.customfield_10655) {
+        if (typeof issue.fields.customfield_10655 === 'string') {
+          contentStr = issue.fields.customfield_10655;
+        } else if (issue.fields.customfield_10655.content) {
+          try {
+            contentStr = issue.fields.customfield_10655.content.map(block => {
+              if (block.content) return block.content.map(inline => inline.text || '').join('');
+              return '';
+            }).join('\n');
+          } catch(e) {
+            contentStr = '이슈 내용 형식을 변환할 수 없습니다.';
+          }
+        } else {
+          contentStr = String(issue.fields.customfield_10655);
+        }
+      }
+
       return {
         id: issue.id,
         key: issue.key,
         summary: issue.fields?.summary || '제목 없음',
         description: desc || '설명 내용이 없습니다.',
+        issueContent: contentStr || '이슈 내용이 없습니다.',
         component: issue.fields?.components?.[0]?.name || '전체',
         platform: issue.fields?.components?.[0]?.name || '전체',
         priority: issue.fields?.priority?.name || 'Medium',
