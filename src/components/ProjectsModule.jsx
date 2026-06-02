@@ -199,11 +199,12 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
   const [filterStatus, setFilterStatus] = useState('All');
   const [filterPlatform, setFilterPlatform] = useState('All');
   const [filterPriority, setFilterPriority] = useState('All');
-  const [searchSummary, setSearchSummary] = useState('');
+  
+  // [수정] 검색어 버벅임 최적화를 위한 상태 분리
+  const [searchInput, setSearchInput] = useState(''); // 즉시 반영되는 입력 상태
+  const [searchSummary, setSearchSummary] = useState(''); // 필터링에 반영되는 디바운스 상태
 
   const [tooltipInfo, setTooltipInfo] = useState({ visible: false, x: 0, y: 0, text: '' });
-  
-  // [추가] 상세 사이드 패널에 띄울 이슈 객체 보관용 상태
   const [selectedIssue, setSelectedIssue] = useState(null);
 
   const [spaces, setSpaces] = useState([]);
@@ -213,6 +214,14 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
   const [epics, setEpics] = useState([]);
   const [epicModal, setEpicModal] = useState({ isOpen: false, isEdit: false });
   const [epicFormData, setEpicFormData] = useState({ id: '', spaceKey: '', name: '', epicKey: '', status: '예정', progress: 0 });
+
+  // 검색어 버벅임 방지용 디바운스 (입력 멈추고 0.3초 뒤에 필터링 반영)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setSearchSummary(searchInput);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchInput]);
 
   useEffect(() => {
     const spacesRef = collection(db, 'jira_spaces');
@@ -233,7 +242,7 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
 
   useEffect(() => {
     if (view === 'issues' && activeEpic) {
-      setSelectedIssue(null); // 에픽 진입 시 열려있던 패널 초기화
+      setSelectedIssue(null); 
       const fetchJiraIssues = async () => {
         setIssues([]); 
         setLoading(true);
@@ -354,7 +363,6 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
     return 'bg-gray-100 text-gray-600 border-gray-200';
   };
 
-  // [수정] 요약 및 설명(description) 두 곳 모두에서 필터링 되도록 로직 보강
   const filteredIssues = issues.filter(issue => {
     if (filterStatus !== 'All' && issue.status !== filterStatus) return false;
     if (filterPlatform !== 'All' && issue.component !== filterPlatform) return false;
@@ -583,15 +591,16 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
                     <div className="w-px h-4 bg-gray-200 mx-1"></div>
                     <div className="flex items-center bg-gray-50 border border-gray-200 rounded-md px-3 py-1.5 transition-colors focus-within:border-gray-400 relative">
                       <Search className="w-3.5 h-3.5 text-gray-400 mr-2" />
-                      <input type="text" placeholder="요약/설명 검색..." value={searchSummary} onChange={e=>setSearchSummary(e.target.value)} className="text-xs bg-transparent outline-none w-48 placeholder:text-gray-400 text-gray-700 pr-6" />
-                      {searchSummary && (
-                        <button onClick={() => setSearchSummary('')} className="absolute right-2 p-0.5 text-gray-400 hover:text-gray-600 hover:bg-gray-200 rounded-full transition-colors flex items-center justify-center">
+                      {/* [수정] value, onChange 속성을 버벅임 방지용 searchInput으로 교체 */}
+                      <input type="text" placeholder="요약/설명 검색..." value={searchInput} onChange={e=>setSearchInput(e.target.value)} className="text-xs bg-transparent outline-none w-48 placeholder:text-gray-400 text-gray-700 pr-6" />
+                      {searchInput && (
+                        <button onClick={() => { setSearchInput(''); setSearchSummary(''); }} className="absolute right-2 p-0.5 text-gray-400 hover:text-gray-600 hover:bg-gray-200 rounded-full transition-colors flex items-center justify-center">
                           <X className="w-3 h-3" />
                         </button>
                       )}
                     </div>
-                    {(filterStatus !== 'All' || filterPlatform !== 'All' || filterPriority !== 'All' || searchSummary) && (
-                      <button onClick={() => { setFilterStatus('All'); setFilterPlatform('All'); setFilterPriority('All'); setSearchSummary(''); }} className="text-[10px] text-gray-500 hover:text-gray-800 underline ml-2 font-medium">초기화</button>
+                    {(filterStatus !== 'All' || filterPlatform !== 'All' || filterPriority !== 'All' || searchInput) && (
+                      <button onClick={() => { setFilterStatus('All'); setFilterPlatform('All'); setFilterPriority('All'); setSearchInput(''); setSearchSummary(''); }} className="text-[10px] text-gray-500 hover:text-gray-800 underline ml-2 font-medium">초기화</button>
                     )}
                   </div>
 
@@ -624,12 +633,13 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
                                 className="hover:bg-blue-50/30 transition-colors group cursor-pointer" 
                                 onClick={() => setSelectedIssue(issue)}
                               >
-                                <td 
-                                  className="px-5 py-4 text-xs font-bold text-blue-600 underline-offset-2 hover:bg-blue-50 transition-colors flex items-center h-full"
-                                  onClick={(e) => { e.stopPropagation(); handleOpenJiraIssue(issue.key); }}
-                                >
-                                  <span className="hover:underline flex items-center cursor-pointer">
-                                    {issue.key} <ExternalLink className="w-3 h-3 ml-1 text-gray-400 group-hover:text-blue-500" />
+                                {/* [수정] 빈 여백을 클릭해도 이동되지 않게 이벤트 타겟을 text(span) 내부로 축소 */}
+                                <td className="px-5 py-4">
+                                  <span 
+                                    className="text-xs font-bold text-blue-600 hover:underline underline-offset-2 flex items-center cursor-pointer w-max"
+                                    onClick={(e) => { e.stopPropagation(); handleOpenJiraIssue(issue.key); }}
+                                  >
+                                    {issue.key} <ExternalLink className="w-3 h-3 ml-1 text-gray-400 group-hover:text-blue-500 transition-colors" />
                                   </span>
                                 </td>
                                 <td className="px-5 py-4"><JiraBadge className={getStatusBadgeClass(issue.status)}>{issue.status}</JiraBadge></td>
@@ -663,7 +673,6 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
                       </table>
                     </div>
 
-                    {/* [추가] 이슈 상세 사이드 패널 (행 클릭 시 호출) */}
                     {selectedIssue && (
                       <div className="absolute inset-y-0 right-0 w-[420px] bg-white shadow-[-20px_0_40px_rgba(0,0,0,0.08)] border-l border-gray-200 z-50 flex flex-col animate-fast-fade">
                         <div className="flex justify-between items-center px-6 py-5 border-b border-gray-100 bg-gray-50/50 shrink-0">
