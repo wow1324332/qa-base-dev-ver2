@@ -1,11 +1,6 @@
 import React, { useState } from 'react';
-import { Users, Settings, User, LogOut, Server, Calendar, Bug, KeyRound, MonitorSmartphone } from 'lucide-react';
-
-const AppLogo = ({ className }) => {
-  const [imgError, setImgError] = useState(false);
-  if (imgError) return <MonitorSmartphone className={`text-gray-800 ${className}`} strokeWidth={1.5} />;
-  return <img src="/icon-192x192.png" alt="QA Base" className={`object-contain ${className}`} onError={() => setImgError(true)} />;
-};
+import { Users, Settings, User, LogOut, Server, Calendar, Bug, KeyRound } from 'lucide-react';
+import { AppLogo } from './SharedUI';
 
 export const FunctionalBoard = ({ user, onNavigate, onLogout, onShowProfileModal, onShowAdminModal }) => {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
@@ -14,7 +9,7 @@ export const FunctionalBoard = ({ user, onNavigate, onLogout, onShowProfileModal
   return (
     <div 
       className="w-screen h-screen bg-[#f8f9fa] flex flex-col animate-simple-fade bg-cover bg-center bg-no-repeat"
-      style={{ backgroundImage: "url('/bg-functional.png')" }}
+      style={{ backgroundImage: "url('/bg-functional.jpg')" }}
     >
       <header className="h-20 px-8 flex justify-between items-center bg-white/50 backdrop-blur-md border-b border-gray-100 shadow-sm">
         <div className="flex items-center space-x-3">
@@ -76,17 +71,25 @@ export const FunctionalBoard = ({ user, onNavigate, onLogout, onShowProfileModal
           <p className="text-sm text-gray-500 mb-10">원하는 업무 기지를 선택하세요.</p>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            
+            {/* [수정] Devices 카드에 배경 이미지 및 오버레이 적용 */}
             <div 
               onClick={() => onNavigate('dashboard')}
-              className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 cursor-pointer border border-gray-200 shadow-md hover-breath group"
+              className="relative overflow-hidden rounded-3xl cursor-pointer shadow-md hover-breath group border border-gray-200 bg-cover bg-center bg-no-repeat"
+              style={{ backgroundImage: "url('/bg-devices.jpg')" }}
             >
-              <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center mb-6 group-hover:bg-gray-800 transition-colors duration-500 shadow-sm border border-gray-100">
-                <Server className="w-6 h-6 text-gray-600 group-hover:text-white transition-colors duration-500" strokeWidth={1.5} />
+              {/* 이미지 위를 살짝 덮어 글씨가 잘 보이게 하는 반투명 레이어 */}
+              <div className="absolute inset-0 bg-white/40 backdrop-blur-[2px] group-hover:bg-white/20 transition-all duration-500"></div>
+              
+              <div className="relative p-8 h-full flex flex-col justify-start">
+                <div className="w-14 h-14 bg-white/80 backdrop-blur-md rounded-2xl flex items-center justify-center mb-6 group-hover:bg-gray-800 transition-colors duration-500 shadow-sm border border-white">
+                  <Server className="w-6 h-6 text-gray-800 group-hover:text-white transition-colors duration-500" strokeWidth={1.5} />
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-2 drop-shadow-sm">Devices</h3>
+                <p className="text-sm text-gray-700 leading-relaxed font-medium drop-shadow-sm">
+                  QA 검증용 시료(단말기) 현황을 조회하고<br/>상태 및 대여 현황을 관리합니다.
+                </p>
               </div>
-              <h3 className="text-xl font-medium text-gray-800 mb-2">Devices</h3>
-              <p className="text-sm text-gray-500 leading-relaxed">
-                QA 검증용 시료(단말기) 현황을 조회하고<br/>상태 및 대여 현황을 관리합니다.
-              </p>
             </div>
             
             <div 
@@ -136,4 +139,3 @@ export const FunctionalBoard = ({ user, onNavigate, onLogout, onShowProfileModal
     </div>
   );
 };
-export default FunctionalBoard;
