@@ -1,6 +1,11 @@
 import React, { useState } from 'react';
-import { Users, Settings, User, LogOut, Server, Calendar, Bug, KeyRound } from 'lucide-react';
-import { AppLogo } from './SharedUI';
+import { Users, Settings, User, LogOut, Server, Calendar, Bug, KeyRound, MonitorSmartphone } from 'lucide-react';
+
+const AppLogo = ({ className }) => {
+  const [imgError, setImgError] = useState(false);
+  if (imgError) return <MonitorSmartphone className={`text-gray-800 ${className}`} strokeWidth={1.5} />;
+  return <img src="/icon-192x192.png" alt="QA Base" className={`object-contain ${className}`} onError={() => setImgError(true)} />;
+};
 
 export const FunctionalBoard = ({ user, onNavigate, onLogout, onShowProfileModal, onShowAdminModal }) => {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
@@ -9,7 +14,7 @@ export const FunctionalBoard = ({ user, onNavigate, onLogout, onShowProfileModal
   return (
     <div 
       className="w-screen h-screen bg-[#f8f9fa] flex flex-col animate-simple-fade bg-cover bg-center bg-no-repeat"
-      style={{ backgroundImage: "url('/bg-functional.jpg')" }}
+      style={{ backgroundImage: "url('/bg-functional.png')" }}
     >
       <header className="h-20 px-8 flex justify-between items-center bg-white/50 backdrop-blur-md border-b border-gray-100 shadow-sm">
         <div className="flex items-center space-x-3">
@@ -99,7 +104,7 @@ export const FunctionalBoard = ({ user, onNavigate, onLogout, onShowProfileModal
               <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center mb-6 group-hover:bg-gray-800 transition-colors duration-500 shadow-sm border border-gray-100">
                 <Calendar className="w-6 h-6 text-gray-600 group-hover:text-white transition-colors duration-500" strokeWidth={1.5} />
               </div>
-              <h3 className="text-xl font-medium text-gray-800 mb-2">Schedule</h3>
+              <h3 className="text-xl font-bold text-gray-800 mb-2">Schedule</h3>
               <p className="text-sm text-gray-500 leading-relaxed">
                 프로젝트별 QA 일정을 캘린더로 확인하고<br/>칸반 보드로 진행 현황을 관리합니다.
               </p>
@@ -112,7 +117,7 @@ export const FunctionalBoard = ({ user, onNavigate, onLogout, onShowProfileModal
               <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center mb-6 group-hover:bg-blue-600 transition-colors duration-500 shadow-sm border border-gray-100">
                 <Bug className="w-6 h-6 text-gray-600 group-hover:text-white transition-colors duration-500" strokeWidth={1.5} />
               </div>
-              <h3 className="text-xl font-medium text-gray-800 mb-2 flex items-center">
+              <h3 className="text-xl font-bold text-gray-800 mb-2 flex items-center">
                 Projects <span className="ml-2 text-[10px] bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full font-bold tracking-wider border border-blue-200 shadow-sm">JIRA</span>
               </h3>
               <p className="text-sm text-gray-500 leading-relaxed">
@@ -127,7 +132,7 @@ export const FunctionalBoard = ({ user, onNavigate, onLogout, onShowProfileModal
               <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center mb-6 group-hover:bg-yellow-500 transition-colors duration-500 shadow-sm border border-gray-100">
                 <KeyRound className="w-6 h-6 text-gray-600 group-hover:text-white transition-colors duration-500" strokeWidth={1.5} />
               </div>
-              <h3 className="text-xl font-medium text-gray-800 mb-2">Accounts Vault</h3>
+              <h3 className="text-xl font-bold text-gray-800 mb-2">Accounts Vault</h3>
               <p className="text-sm text-gray-500 leading-relaxed">
                 보안이 유지된 테스트용 공용 계정들을<br/>빠르고 안전하게 관리합니다.
               </p>
