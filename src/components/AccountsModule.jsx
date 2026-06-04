@@ -21,7 +21,7 @@ const firebaseConfig = {
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 const db = getFirestore(app);
 
-// [추가] 서비스 태그 색상 팔레트 정의 (11종)
+// 서비스 태그 색상 팔레트 정의 (11종)
 const TAG_PALETTE = [
   { name: 'Gray', class: 'bg-gray-100 text-gray-600 border-gray-200', picker: 'bg-gray-400' },
   { name: 'Dark', class: 'bg-gray-800 text-white border-gray-700', picker: 'bg-gray-800' },
@@ -36,7 +36,6 @@ const TAG_PALETTE = [
   { name: 'Pink', class: 'bg-pink-50 text-pink-600 border-pink-200', picker: 'bg-pink-500' },
 ];
 
-// 초기 기본 카테고리 데이터 (시드용)
 const INITIAL_CATEGORIES = [
   { id: 'cat_common', name: 'COMMON', isOpen: true, parentId: null, order: 1 },
   { id: 'cat_platform', name: 'PLATFORM', isOpen: false, parentId: null, order: 2 },
@@ -127,7 +126,6 @@ const PasswordMask = ({ password }) => {
   );
 };
 
-// [수정] 태그 팔레트에서 선택한 색상을 동적으로 반영하는 커스텀 배지 컴포넌트
 const ServiceBadge = ({ service, colorClass }) => {
   const appliedClass = colorClass || TAG_PALETTE[0].class;
   return (
@@ -213,7 +211,6 @@ const AccountModal = ({ isOpen, onClose, formData, setFormData, onSubmit, isEdit
             </select>
           </div>
 
-          {/* [추가] 서비스 태그 색상 설정용 팔레트 */}
           <div>
             <label className="text-xs font-medium text-gray-500 mb-2 block">서비스 태그 색상</label>
             <div className="flex flex-wrap gap-2">
@@ -310,7 +307,6 @@ export const AccountsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
   const [searchInput, setSearchInput] = useState('');
   
   const [accountModal, setAccountModal] = useState({ isOpen: false, isEdit: false });
-  // [수정] formData 초기 상태에서 title 제거 및 tagColor 기본값 설정
   const [accountFormData, setAccountFormData] = useState({ id: '', categoryId: '', accountType: 'Type1', service: '', loginId: '', password: '', owner: '', admin: '', memo: '', aptName: '', moduleName: '', siteUrl: '', tagColor: TAG_PALETTE[0].class });
 
   const [categoryModal, setCategoryModal] = useState({ isOpen: false, isEdit: false });
@@ -397,7 +393,6 @@ export const AccountsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
     }
     if (searchInput) {
       const term = searchInput.toLowerCase();
-      // [수정] title 검색 기능 삭제
       const inId = acc.loginId?.toLowerCase().includes(term);
       const inOwner = acc.owner?.toLowerCase().includes(term);
       const inService = acc.service?.toLowerCase().includes(term);
@@ -407,6 +402,18 @@ export const AccountsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
     }
     return true;
   });
+
+  // [추가] 동적으로 타이틀을 렌더링하는 함수
+  const getDisplayTitle = () => {
+    if (!activeCategoryId) return "계정 금고 (Accounts Vault)";
+    const activeCat = categories.find(c => c.id === activeCategoryId);
+    if (!activeCat) return "계정 금고 (Accounts Vault)";
+    if (activeCat.parentId) {
+      const parentCat = categories.find(c => c.id === activeCat.parentId);
+      return parentCat ? `${parentCat.name} > ${activeCat.name}` : activeCat.name;
+    }
+    return activeCat.name;
+  };
 
   return (
     <div className="w-screen h-screen bg-[#f8f9fa] flex flex-col overflow-hidden animate-simple-fade">
@@ -506,8 +513,9 @@ export const AccountsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
             <div className="flex justify-between items-end mb-6 shrink-0">
               <div>
                 <div className="flex items-center space-x-3 mb-1">
+                  {/* [수정] 대분류/소분류에 따른 동적 타이틀 함수 적용 */}
                   <h1 className="text-2xl font-bold text-gray-800 flex items-center">
-                    계정 금고 (Accounts Vault) 
+                    {getDisplayTitle()}
                     <span className="ml-3 text-xs bg-gray-200 text-gray-600 px-2.5 py-0.5 rounded-full font-bold shadow-inner">
                       {filteredAccounts.length} 개
                     </span>
@@ -518,7 +526,6 @@ export const AccountsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
               <div className="flex items-center space-x-3">
                 <div className="flex items-center bg-white border border-gray-200 rounded-lg px-3 py-1.5 transition-colors focus-within:border-gray-400 shadow-sm h-10 w-64">
                   <Search className="w-4 h-4 text-gray-400 mr-2 shrink-0" />
-                  {/* [수정] 타이틀 검색을 제외하여 placeholder 안내 문구 수정 */}
                   <input type="text" placeholder="서비스, ID 검색..." value={searchInput} onChange={e=>setSearchInput(e.target.value)} className="text-sm bg-transparent outline-none w-full placeholder:text-gray-400 text-gray-700" />
                   {searchInput && (
                     <button onClick={() => setSearchInput('')} className="p-0.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors"><X className="w-3 h-3" /></button>
@@ -556,95 +563,94 @@ export const AccountsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
                           {accs.map(acc => {
                             const type = acc.accountType || 'Type1';
                             return (
-                            <div key={acc.id} className="group relative bg-white border border-gray-100 rounded-xl p-4 shadow-sm hover:shadow-md transition-all duration-300 hover:border-blue-200 pl-5">
+                            // [수정] 카드 외곽선 강화 및 그림자 입체감 보강 (border-gray-200, rounded-2xl, p-5)
+                            <div key={acc.id} className="group relative bg-white border border-gray-200 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all duration-300 hover:border-blue-300">
                               <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity flex space-x-2">
-                                <button onClick={() => { setAccountFormData(acc); setAccountModal({isOpen: true, isEdit: true}); }} className="p-1.5 text-gray-400 bg-gray-50 hover:bg-blue-50 hover:text-blue-600 rounded-md border border-gray-100 shadow-sm transition-colors"><Edit className="w-3.5 h-3.5"/></button>
-                                <button onClick={() => { handleAccountDelete(acc.id); }} className="p-1.5 text-gray-400 bg-gray-50 hover:bg-red-50 hover:text-red-600 rounded-md border border-gray-100 shadow-sm transition-colors"><Trash2 className="w-3.5 h-3.5"/></button>
+                                <button onClick={() => { setAccountFormData(acc); setAccountModal({isOpen: true, isEdit: true}); }} className="p-1.5 text-gray-500 bg-white hover:bg-blue-50 hover:text-blue-600 rounded-md border border-gray-200 shadow-sm transition-colors"><Edit className="w-3.5 h-3.5"/></button>
+                                <button onClick={() => { handleAccountDelete(acc.id); }} className="p-1.5 text-gray-500 bg-white hover:bg-red-50 hover:text-red-600 rounded-md border border-gray-200 shadow-sm transition-colors"><Trash2 className="w-3.5 h-3.5"/></button>
                               </div>
                               
-                              <div className="flex items-start justify-between mb-3 pr-16">
+                              <div className="flex items-start justify-between mb-4 pr-16">
                                 <div className="flex items-center space-x-2">
-                                  {/* [수정] title 제거 및 색상 반영 처리된 배지 하나만 렌더링되게 변경 */}
                                   {type === 'Type1' && <ServiceBadge service={acc.service || 'Default'} colorClass={acc.tagColor} />}
                                   {type === 'Type2' && <ServiceBadge service="APT" colorClass={acc.tagColor} />}
                                   {type === 'Type3' && <ServiceBadge service="WEB" colorClass={acc.tagColor} />}
                                 </div>
-                                {acc.memo && <span className="text-[11px] font-medium text-gray-500 bg-gray-50 px-2 py-1 rounded-md border border-gray-100 max-w-[200px] truncate" title={acc.memo}>{acc.memo}</span>}
+                                {/* [수정] 메모 필드 색 대비 강화 및 크기 조절 */}
+                                {acc.memo && <span className="text-xs font-medium text-gray-600 bg-gray-100 px-3 py-1.5 rounded-lg border border-gray-200 max-w-[250px] truncate shadow-sm" title={acc.memo}>{acc.memo}</span>}
                               </div>
 
-                              <div className="grid grid-cols-12 gap-4 bg-gray-50/50 rounded-lg p-3 border border-gray-50 items-center">
-                                {/* Type1 렌더링 */}
+                              {/* [수정] 내부 상세정보 그리드 박스의 음영 및 외곽선 강화 (bg-gray-100/80, shadow-inner, border-gray-200, mt-2) */}
+                              <div className="grid grid-cols-12 gap-4 bg-gray-100/80 rounded-xl p-4 border border-gray-200 items-center shadow-inner mt-2">
                                 {type === 'Type1' && (
                                   <>
                                     <div className="col-span-4 flex flex-col">
-                                      <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">ID / Email</span>
+                                      <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">ID / Email</span>
                                       <div className="flex items-center group/id">
                                         <span className="text-sm font-bold text-gray-700 truncate w-48" title={acc.loginId}>{acc.loginId}</span>
                                         <div className="ml-2"><CopyButton text={acc.loginId} tooltipText="ID 복사" /></div>
                                       </div>
                                     </div>
                                     <div className="col-span-4 flex flex-col">
-                                      <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">Password</span>
+                                      <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Password</span>
                                       <PasswordMask password={acc.password} />
                                     </div>
-                                    <div className="col-span-2 flex flex-col border-l border-gray-200 pl-4">
-                                      <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">Owner</span>
+                                    <div className="col-span-2 flex flex-col border-l border-gray-300 pl-4">
+                                      <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Owner</span>
                                       <span className="text-xs font-semibold text-blue-600 flex items-center">
                                         <User className="w-3 h-3 mr-1 opacity-70" /> {acc.owner || '-'}
                                       </span>
                                     </div>
-                                    <div className="col-span-2 flex flex-col border-l border-gray-200 pl-4">
-                                      <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">Admin</span>
-                                      <span className="text-xs font-medium text-gray-600">{acc.admin}</span>
+                                    <div className="col-span-2 flex flex-col border-l border-gray-300 pl-4">
+                                      <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Admin</span>
+                                      <span className="text-xs font-medium text-gray-700">{acc.admin}</span>
                                     </div>
                                   </>
                                 )}
 
-                                {/* Type2 렌더링 */}
                                 {type === 'Type2' && (
                                   <>
                                     <div className="col-span-3 flex flex-col">
-                                      <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">APT Name</span>
+                                      <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">APT Name</span>
                                       <span className="text-sm font-bold text-gray-700 truncate" title={acc.aptName}>{acc.aptName}</span>
                                     </div>
-                                    <div className="col-span-3 flex flex-col border-l border-gray-200 pl-4">
-                                      <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">ID / Email</span>
+                                    <div className="col-span-3 flex flex-col border-l border-gray-300 pl-4">
+                                      <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">ID / Email</span>
                                       <div className="flex items-center group/id">
                                         <span className="text-sm font-bold text-gray-700 truncate max-w-[120px]" title={acc.loginId}>{acc.loginId}</span>
                                         <div className="ml-2"><CopyButton text={acc.loginId} tooltipText="ID 복사" /></div>
                                       </div>
                                     </div>
-                                    <div className="col-span-4 flex flex-col border-l border-gray-200 pl-4">
-                                      <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">Password</span>
+                                    <div className="col-span-4 flex flex-col border-l border-gray-300 pl-4">
+                                      <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Password</span>
                                       <PasswordMask password={acc.password} />
                                     </div>
-                                    <div className="col-span-2 flex flex-col border-l border-gray-200 pl-4">
-                                      <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">Admin</span>
-                                      <span className="text-xs font-medium text-gray-600">{acc.admin}</span>
+                                    <div className="col-span-2 flex flex-col border-l border-gray-300 pl-4">
+                                      <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Admin</span>
+                                      <span className="text-xs font-medium text-gray-700">{acc.admin}</span>
                                     </div>
                                   </>
                                 )}
 
-                                {/* Type3 렌더링 */}
                                 {type === 'Type3' && (
                                   <>
                                     <div className="col-span-3 flex flex-col">
-                                      <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">Module Name</span>
+                                      <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Module Name</span>
                                       <span className="text-sm font-bold text-gray-700 truncate" title={acc.moduleName}>{acc.moduleName}</span>
                                     </div>
-                                    <div className="col-span-3 flex flex-col border-l border-gray-200 pl-4">
-                                      <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">ID / Email</span>
+                                    <div className="col-span-3 flex flex-col border-l border-gray-300 pl-4">
+                                      <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">ID / Email</span>
                                       <div className="flex items-center group/id">
                                         <span className="text-sm font-bold text-gray-700 truncate max-w-[120px]" title={acc.loginId}>{acc.loginId}</span>
                                         <div className="ml-2"><CopyButton text={acc.loginId} tooltipText="ID 복사" /></div>
                                       </div>
                                     </div>
-                                    <div className="col-span-3 flex flex-col border-l border-gray-200 pl-4">
-                                      <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">Password</span>
+                                    <div className="col-span-3 flex flex-col border-l border-gray-300 pl-4">
+                                      <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Password</span>
                                       <PasswordMask password={acc.password} />
                                     </div>
-                                    <div className="col-span-3 flex flex-col border-l border-gray-200 pl-4">
-                                      <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">Site URL</span>
+                                    <div className="col-span-3 flex flex-col border-l border-gray-300 pl-4">
+                                      <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Site URL</span>
                                       <div className="flex items-center group/url">
                                         <a href={acc.siteUrl?.startsWith('http') ? acc.siteUrl : `https://${acc.siteUrl}`} target="_blank" rel="noreferrer" className="text-xs font-semibold text-blue-600 hover:underline truncate max-w-[120px]" title={acc.siteUrl}>
                                           {acc.siteUrl}
