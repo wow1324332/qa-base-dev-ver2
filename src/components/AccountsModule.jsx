@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { 
   KeyRound, Shield, Eye, EyeOff, Copy, Check, 
   ChevronRight, ChevronDown, MonitorSmartphone,
-  LogOut, Power, Plus, Search, X, Edit, Trash2, Folder
+  LogOut, Power, Plus, Search, X, Edit, Trash2, Folder,
+  LayoutDashboard, User // [수정] 하얀 화면 원인이었던 누락된 아이콘 컴포넌트 추가
 } from 'lucide-react';
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getFirestore, collection, onSnapshot, doc, updateDoc, addDoc, deleteDoc, writeBatch } from "firebase/firestore";
