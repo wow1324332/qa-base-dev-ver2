@@ -3,7 +3,7 @@ import {
   KeyRound, Shield, Eye, EyeOff, Copy, Check, 
   ChevronRight, ChevronDown, MonitorSmartphone,
   LogOut, Power, Plus, Search, X, Edit, Trash2, Folder,
-  LayoutDashboard, User // [수정] 하얀 화면 원인이었던 누락된 아이콘 컴포넌트 추가
+  LayoutDashboard, User
 } from 'lucide-react';
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getFirestore, collection, onSnapshot, doc, updateDoc, addDoc, deleteDoc, writeBatch } from "firebase/firestore";
@@ -32,16 +32,38 @@ const INITIAL_CATEGORIES = [
 ];
 
 const INITIAL_ACCOUNTS = [
-  { id: 'acc_1', categoryId: 'cat_common', service: 'Google', title: 'QA TEAM GOOGLE ACCOUNT', loginId: 'qaptner01@gmail.com', password: 'qaptner12!', owner: '홍진의', admin: '홍진의', memo: '플레이스토어 결제 테스트용' },
-  { id: 'acc_2', categoryId: 'cat_common', service: 'Apple', title: 'QA TEAM APPLE ACCOUNT', loginId: 'qaptner01@gmail.com', password: 'Qaptner12!', owner: '홍진의', admin: '홍진의', memo: 'TestFlight 배포용' },
-  { id: 'acc_3', categoryId: 'cat_common', service: 'Kakao', title: 'QA TEAM KAKAO ACCOUNT', loginId: 'qa_kakao@kakao.com', password: 'Kakao1234!', owner: '김철수', admin: '김철수', memo: '소셜 로그인 테스트' },
-  { id: 'acc_4', categoryId: 'cat_platform_web', service: 'Admin', title: '플랫폼 어드민 계정 (Staging)', loginId: 'admin_master', password: 'admin_test_123', owner: '플랫폼파트', admin: '홍진의', memo: '스테이징 환경 전용' },
+  { id: 'acc_1', categoryId: 'cat_common', accountType: 'Type1', service: 'Google', title: 'QA TEAM GOOGLE ACCOUNT', loginId: 'qaptner01@gmail.com', password: 'qaptner12!', owner: '홍진의', admin: '홍진의', memo: '플레이스토어 결제 테스트용' },
+  { id: 'acc_2', categoryId: 'cat_common', accountType: 'Type1', service: 'Apple', title: 'QA TEAM APPLE ACCOUNT', loginId: 'qaptner01@gmail.com', password: 'Qaptner12!', owner: '홍진의', admin: '홍진의', memo: 'TestFlight 배포용' },
+  { id: 'acc_3', categoryId: 'cat_common', accountType: 'Type1', service: 'Kakao', title: 'QA TEAM KAKAO ACCOUNT', loginId: 'qa_kakao@kakao.com', password: 'Kakao1234!', owner: '김철수', admin: '김철수', memo: '소셜 로그인 테스트' },
+  { id: 'acc_4', categoryId: 'cat_platform_web', accountType: 'Type1', service: 'Admin', title: '플랫폼 어드민 계정 (Staging)', loginId: 'admin_master', password: 'admin_test_123', owner: '플랫폼파트', admin: '홍진의', memo: '스테이징 환경 전용' },
 ];
 
 const AppLogo = ({ className }) => {
   const [imgError, setImgError] = useState(false);
   if (imgError) return <MonitorSmartphone className={`text-gray-800 ${className}`} strokeWidth={1.5} />;
   return <img src="/icon-192x192.png" alt="QA Base" className={`object-contain ${className}`} onError={() => setImgError(true)} />;
+};
+
+// [추가] 셀렉트 UI 통일성을 위한 CustomSelect 컴포넌트
+const CustomSelect = ({ value, onChange, options, className, disabled }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  return (
+    <div className={`relative ${className} p-0 ${disabled ? 'cursor-not-allowed opacity-60 bg-gray-100' : 'cursor-pointer hover:border-gray-300'}`} tabIndex={disabled ? -1 : 0} onBlur={(e) => { if(!e.currentTarget.contains(e.relatedTarget)) setIsOpen(false); }}>
+      <div className="flex justify-between items-center w-full h-full px-3 py-1.5" onClick={() => !disabled && setIsOpen(!isOpen)}>
+        <span className={`whitespace-nowrap ${disabled ? 'text-gray-400' : 'text-gray-700'}`}>{options.find(o => o.value === value)?.label || value || '선택'}</span>
+        <ChevronDown className={`w-3.5 h-3.5 ml-2 shrink-0 ${disabled ? 'text-gray-300' : 'text-gray-400'} transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+      </div>
+      {isOpen && !disabled && (
+        <div className="absolute top-full left-0 mt-1 min-w-full w-max bg-white border border-gray-100 rounded-lg shadow-xl z-50 py-1 max-h-48 overflow-y-auto animate-fast-fade">
+          {options.map(opt => (
+            <div key={opt.value} className={`px-3 py-2 text-xs hover:bg-blue-50 transition-colors whitespace-nowrap ${value === opt.value ? 'bg-blue-50 text-blue-600 font-bold' : 'text-gray-700'}`} onClick={() => { onChange(opt.value); setIsOpen(false); }}>
+              {opt.label}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
 };
 
 // 클립보드 복사 툴팁 애니메이션 컴포넌트
@@ -100,6 +122,8 @@ const ServiceBadge = ({ service }) => {
   if (service.toLowerCase().includes('apple')) bgColor = 'bg-gray-800 text-white border-gray-700';
   if (service.toLowerCase().includes('kakao')) bgColor = 'bg-yellow-100 text-yellow-800 border-yellow-300';
   if (service.toLowerCase().includes('admin')) bgColor = 'bg-purple-50 text-purple-600 border-purple-200';
+  if (service.toLowerCase() === 'apt') bgColor = 'bg-blue-50 text-blue-600 border-blue-200';
+  if (service.toLowerCase() === 'web') bgColor = 'bg-emerald-50 text-emerald-600 border-emerald-200';
   
   return (
     <span className={`text-[10px] px-2 py-0.5 rounded-md font-bold shadow-sm border whitespace-nowrap ${bgColor}`}>
@@ -108,12 +132,45 @@ const ServiceBadge = ({ service }) => {
   );
 };
 
-// 계정 추가/수정 모달
+// [추가] 카테고리(대/소분류) 추가/수정 모달
+const CategoryModal = ({ isOpen, onClose, formData, setFormData, onSubmit, isEdit, onDelete }) => {
+  if (!isOpen) return null;
+  const isRoot = formData.parentId === null;
+
+  return (
+    <div className="fixed inset-0 bg-gray-900/30 backdrop-blur-sm z-50 flex items-center justify-center animate-fast-fade">
+      <div className="bg-white rounded-2xl shadow-2xl p-6 w-[400px] border border-gray-100 relative">
+        <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"><X className="w-5 h-5"/></button>
+        <h3 className="text-lg font-medium text-gray-800 mb-4 flex items-center shrink-0">
+          <Folder className="w-5 h-5 mr-2 text-gray-600"/> {isRoot ? '대분류' : '소분류'} 폴더 {isEdit ? '수정' : '등록'}
+        </h3>
+        <form id="categoryForm" onSubmit={(e) => { e.preventDefault(); onSubmit(formData); }} className="space-y-4">
+          <div>
+            <label className="text-xs font-medium text-gray-500 mb-1 block">폴더 이름</label>
+            <input required value={formData.name} onChange={e=>setFormData({...formData, name: e.target.value})} className="w-full bg-gray-50 border border-gray-200 text-sm rounded-lg px-3 py-2 outline-none focus:border-gray-400 shadow-sm transition-colors" placeholder={isRoot ? "예: COMMON" : "예: WEB account"} />
+          </div>
+          <div>
+            <label className="text-xs font-medium text-gray-500 mb-1 block">정렬 순서 (숫자)</label>
+            <input type="number" required value={formData.order} onChange={e=>setFormData({...formData, order: Number(e.target.value)})} className="w-full bg-gray-50 border border-gray-200 text-sm rounded-lg px-3 py-2 outline-none focus:border-gray-400 shadow-sm transition-colors" />
+          </div>
+        </form>
+        <div className="flex space-x-2 pt-5 border-t border-gray-100 mt-5">
+          <button type="button" onClick={onClose} className="flex-1 bg-gray-100 text-gray-600 text-sm font-medium py-2.5 rounded-xl hover:bg-gray-200 transition-colors border border-gray-200 shadow-sm">취소</button>
+          {isEdit && <button type="button" onClick={() => onDelete(formData.id)} className="flex-1 bg-red-50 text-red-600 text-sm font-medium py-2.5 rounded-xl hover:bg-red-100 transition-colors border border-red-100 shadow-sm">삭제</button>}
+          <button type="submit" form="categoryForm" className="flex-1 bg-gray-800 text-white text-sm font-medium py-2.5 rounded-xl hover:bg-gray-900 transition-colors shadow-md">{isEdit ? '수정' : '등록'}</button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// 계정 추가/수정 모달 (3가지 타입 지원)
 const AccountModal = ({ isOpen, onClose, formData, setFormData, onSubmit, isEdit, onDelete, categories }) => {
   if (!isOpen) return null;
 
   // 하위 카테고리만 선택 가능하도록 필터링 (최상위이면서 자식이 있는 경우는 선택 불가)
   const selectableCategories = categories.filter(c => c.parentId !== null || !categories.some(child => child.parentId === c.id));
+  const currentType = formData.accountType || 'Type1';
 
   return (
     <div className="fixed inset-0 bg-gray-900/30 backdrop-blur-sm z-50 flex items-center justify-center animate-fast-fade">
@@ -124,6 +181,20 @@ const AccountModal = ({ isOpen, onClose, formData, setFormData, onSubmit, isEdit
         </h3>
         
         <form id="accountForm" onSubmit={(e) => { e.preventDefault(); onSubmit(formData); }} className="space-y-4">
+          <div className="border-b border-gray-100 pb-4">
+            <label className="text-xs font-bold text-blue-600 mb-2 block">계정 구조 타입</label>
+            <CustomSelect 
+              value={currentType} 
+              onChange={val => setFormData({...formData, accountType: val})} 
+              options={[
+                {value: 'Type1', label: '타입1 (ID / PW / Owner / Admin)'},
+                {value: 'Type2', label: '타입2 (APT / ID / PW / Admin)'},
+                {value: 'Type3', label: '타입3 (Module / ID / PW / Site URL)'}
+              ]}
+              className="w-full bg-blue-50 border border-blue-100 text-sm rounded-lg shadow-sm transition-colors text-blue-800 font-medium"
+            />
+          </div>
+
           <div>
             <label className="text-xs font-medium text-gray-500 mb-1 block">소속 폴더 (카테고리)</label>
             <select 
@@ -145,16 +216,45 @@ const AccountModal = ({ isOpen, onClose, formData, setFormData, onSubmit, isEdit
             <input required value={formData.title} onChange={e=>setFormData({...formData, title: e.target.value})} className="w-full bg-gray-50 border border-gray-200 text-sm rounded-lg px-3 py-2 outline-none focus:border-gray-400 shadow-sm transition-colors" placeholder="예: QA TEAM GOOGLE ACCOUNT" />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="text-xs font-medium text-gray-500 mb-1 block">서비스 태그</label>
-              <input required value={formData.service} onChange={e=>setFormData({...formData, service: e.target.value})} className="w-full bg-gray-50 border border-gray-200 text-sm rounded-lg px-3 py-2 outline-none focus:border-gray-400 shadow-sm transition-colors" placeholder="예: Google, Admin" />
+          {/* 타입별 동적 입력 필드 (상단부) */}
+          {currentType === 'Type1' && (
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-xs font-medium text-gray-500 mb-1 block">서비스 태그</label>
+                <input required value={formData.service || ''} onChange={e=>setFormData({...formData, service: e.target.value})} className="w-full bg-gray-50 border border-gray-200 text-sm rounded-lg px-3 py-2 outline-none focus:border-gray-400 shadow-sm transition-colors" placeholder="예: Google, Admin" />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-gray-500 mb-1 block">관리자 (Admin)</label>
+                <input required value={formData.admin || ''} onChange={e=>setFormData({...formData, admin: e.target.value})} className="w-full bg-gray-50 border border-gray-200 text-sm rounded-lg px-3 py-2 outline-none focus:border-gray-400 shadow-sm transition-colors" placeholder="예: 홍진의" />
+              </div>
             </div>
-            <div>
-              <label className="text-xs font-medium text-gray-500 mb-1 block">관리자 (Admin)</label>
-              <input required value={formData.admin} onChange={e=>setFormData({...formData, admin: e.target.value})} className="w-full bg-gray-50 border border-gray-200 text-sm rounded-lg px-3 py-2 outline-none focus:border-gray-400 shadow-sm transition-colors" placeholder="예: 홍진의" />
+          )}
+
+          {currentType === 'Type2' && (
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-xs font-medium text-gray-500 mb-1 block">아파트명 (APT)</label>
+                <input required value={formData.aptName || ''} onChange={e=>setFormData({...formData, aptName: e.target.value})} className="w-full bg-gray-50 border border-gray-200 text-sm rounded-lg px-3 py-2 outline-none focus:border-gray-400 shadow-sm transition-colors" placeholder="예: 래미안 첼리투스" />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-gray-500 mb-1 block">관리자 (Admin)</label>
+                <input required value={formData.admin || ''} onChange={e=>setFormData({...formData, admin: e.target.value})} className="w-full bg-gray-50 border border-gray-200 text-sm rounded-lg px-3 py-2 outline-none focus:border-gray-400 shadow-sm transition-colors" placeholder="예: 홍진의" />
+              </div>
             </div>
-          </div>
+          )}
+
+          {currentType === 'Type3' && (
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-xs font-medium text-gray-500 mb-1 block">모듈명 (Module)</label>
+                <input required value={formData.moduleName || ''} onChange={e=>setFormData({...formData, moduleName: e.target.value})} className="w-full bg-gray-50 border border-gray-200 text-sm rounded-lg px-3 py-2 outline-none focus:border-gray-400 shadow-sm transition-colors" placeholder="예: 통합 결제 어드민" />
+              </div>
+              <div>
+                <label className="text-xs font-medium text-gray-500 mb-1 block">사이트 (Site URL)</label>
+                <input required value={formData.siteUrl || ''} onChange={e=>setFormData({...formData, siteUrl: e.target.value})} className="w-full bg-gray-50 border border-gray-200 text-sm rounded-lg px-3 py-2 outline-none focus:border-gray-400 shadow-sm transition-colors" placeholder="예: admin.example.com" />
+              </div>
+            </div>
+          )}
           
           <div className="border-t border-gray-100 pt-4 mt-2 grid grid-cols-2 gap-4">
             <div>
@@ -168,13 +268,15 @@ const AccountModal = ({ isOpen, onClose, formData, setFormData, onSubmit, isEdit
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="text-xs font-medium text-gray-500 mb-1 block">현재 점유자 (Owner)</label>
-              <input value={formData.owner} onChange={e=>setFormData({...formData, owner: e.target.value})} className="w-full bg-gray-50 border border-gray-200 text-sm rounded-lg px-3 py-2 outline-none focus:border-gray-400 shadow-sm transition-colors" placeholder="현재 사용중인 분 (선택)" />
-            </div>
+            {currentType === 'Type1' ? (
+              <div>
+                <label className="text-xs font-medium text-gray-500 mb-1 block">현재 점유자 (Owner)</label>
+                <input value={formData.owner || ''} onChange={e=>setFormData({...formData, owner: e.target.value})} className="w-full bg-gray-50 border border-gray-200 text-sm rounded-lg px-3 py-2 outline-none focus:border-gray-400 shadow-sm transition-colors" placeholder="현재 사용중인 분 (선택)" />
+              </div>
+            ) : <div></div>}
             <div>
               <label className="text-xs font-medium text-gray-500 mb-1 block">용도 / 메모</label>
-              <input value={formData.memo} onChange={e=>setFormData({...formData, memo: e.target.value})} className="w-full bg-gray-50 border border-gray-200 text-sm rounded-lg px-3 py-2 outline-none focus:border-gray-400 shadow-sm transition-colors" placeholder="예: 결제 테스트 전용" />
+              <input value={formData.memo || ''} onChange={e=>setFormData({...formData, memo: e.target.value})} className="w-full bg-gray-50 border border-gray-200 text-sm rounded-lg px-3 py-2 outline-none focus:border-gray-400 shadow-sm transition-colors" placeholder="예: 결제 테스트 전용" />
             </div>
           </div>
         </form>
@@ -193,18 +295,21 @@ export const AccountsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
   const [categories, setCategories] = useState([]);
   const [accounts, setAccounts] = useState([]);
   
-  const [activeCategoryId, setActiveCategoryId] = useState(null); // null이면 전체 보기
+  const [activeCategoryId, setActiveCategoryId] = useState(null); 
   const [searchInput, setSearchInput] = useState('');
   
+  // 모달 상태 관리
   const [accountModal, setAccountModal] = useState({ isOpen: false, isEdit: false });
-  const [accountFormData, setAccountFormData] = useState({ id: '', categoryId: '', service: '', title: '', loginId: '', password: '', owner: '', admin: '', memo: '' });
+  const [accountFormData, setAccountFormData] = useState({ id: '', categoryId: '', accountType: 'Type1', service: '', title: '', loginId: '', password: '', owner: '', admin: '', memo: '', aptName: '', moduleName: '', siteUrl: '' });
+
+  const [categoryModal, setCategoryModal] = useState({ isOpen: false, isEdit: false });
+  const [categoryFormData, setCategoryFormData] = useState({ id: '', name: '', order: 1, parentId: null, isOpen: false });
 
   // Firebase 초기화 및 구독
   useEffect(() => {
     const categoriesRef = collection(db, 'qa_account_categories');
     const unsubscribeCats = onSnapshot(categoriesRef, (snapshot) => {
       if (snapshot.empty) {
-        // 시드 데이터 생성
         const seedData = async () => {
           const batch = writeBatch(db);
           INITIAL_CATEGORIES.forEach(cat => batch.set(doc(categoriesRef, cat.id), cat));
@@ -212,7 +317,8 @@ export const AccountsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
         };
         seedData();
       } else {
-        setCategories(snapshot.docs.map(doc => ({ ...doc.data(), docId: doc.id })).sort((a, b) => a.order - b.order));
+        // [수정] id 통일: doc.id를 객체의 고유 id로 직접 사용합니다.
+        setCategories(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })).sort((a, b) => a.order - b.order));
       }
     });
 
@@ -236,17 +342,32 @@ export const AccountsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
     };
   }, []);
 
-  // 폴더 접기/펴기 핸들러
-  const toggleCategory = async (docId, currentState) => {
-    try {
-      await updateDoc(doc(db, 'qa_account_categories', docId), { isOpen: !currentState });
-    } catch (err) { console.error("Error toggling category", err); }
+  // 핸들러: 카테고리
+  const toggleCategory = async (id, currentState) => {
+    try { await updateDoc(doc(db, 'qa_account_categories', id), { isOpen: !currentState }); } 
+    catch (err) { console.error("Error toggling category", err); }
   };
 
-  // 계정 저장/삭제 핸들러
+  const handleCategorySubmit = async (data) => {
+    try {
+      const { id, ...saveData } = data;
+      if (categoryModal.isEdit) await updateDoc(doc(db, 'qa_account_categories', id), saveData);
+      else await addDoc(collection(db, 'qa_account_categories'), saveData);
+      setCategoryModal({ isOpen: false, isEdit: false });
+    } catch(err) { console.error("Error saving category", err); }
+  };
+
+  const handleCategoryDelete = async (id) => {
+    try {
+      await deleteDoc(doc(db, 'qa_account_categories', id));
+      setCategoryModal({ isOpen: false, isEdit: false });
+    } catch(err) { console.error("Error deleting category", err); }
+  };
+
+  // 핸들러: 계정
   const handleAccountSubmit = async (data) => {
     try {
-      const { id, docId, ...saveData } = data; // docId 제거
+      const { id, ...saveData } = data; 
       if (accountModal.isEdit) await updateDoc(doc(db, 'qa_accounts', id), saveData);
       else await addDoc(collection(db, 'qa_accounts'), saveData);
       setAccountModal({ isOpen: false, isEdit: false });
@@ -265,20 +386,19 @@ export const AccountsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
 
   // 검색 및 필터링
   const filteredAccounts = accounts.filter(acc => {
-    // 1. 카테고리 필터링 (선택된 카테고리 또는 그 하위 카테고리인지)
     if (activeCategoryId) {
       const childCats = categories.filter(c => c.parentId === activeCategoryId).map(c => c.id);
       if (acc.categoryId !== activeCategoryId && !childCats.includes(acc.categoryId)) return false;
     }
-    
-    // 2. 검색어 필터링
     if (searchInput) {
       const term = searchInput.toLowerCase();
       const inTitle = acc.title?.toLowerCase().includes(term);
       const inId = acc.loginId?.toLowerCase().includes(term);
       const inOwner = acc.owner?.toLowerCase().includes(term);
       const inService = acc.service?.toLowerCase().includes(term);
-      if (!inTitle && !inId && !inOwner && !inService) return false;
+      const inApt = acc.aptName?.toLowerCase().includes(term);
+      const inModule = acc.moduleName?.toLowerCase().includes(term);
+      if (!inTitle && !inId && !inOwner && !inService && !inApt && !inModule) return false;
     }
     return true;
   });
@@ -302,7 +422,6 @@ export const AccountsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
       </header>
 
       <div className="flex flex-1 overflow-hidden relative">
-        {/* 좌측 트리형 폴더 사이드바 */}
         <aside className="w-64 bg-white border-r border-gray-100 transition-all duration-300 ease-in-out flex flex-col z-10 overflow-hidden shrink-0 shadow-sm">
           <div className="p-4 flex flex-col h-full">
             <div className="text-[10px] font-bold text-gray-400 tracking-wider mb-4 px-3 mt-2 uppercase">Menu</div>
@@ -313,8 +432,15 @@ export const AccountsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
             
             <div className="h-px bg-gray-100 my-2 mx-3"></div>
             
-            <div className="text-[10px] font-bold text-blue-500 tracking-wider mb-2 px-3 mt-4 flex items-center uppercase">
-              <Shield className="w-3 h-3 mr-1.5" /> Vault Folders
+            <div className="text-[10px] font-bold text-blue-500 tracking-wider mb-2 px-3 mt-4 flex items-center justify-between uppercase">
+              <div className="flex items-center"><Shield className="w-3 h-3 mr-1.5" /> Vault Folders</div>
+              <button 
+                onClick={() => { setCategoryFormData({ id: '', name: '', order: categories.length + 1, parentId: null, isOpen: true }); setCategoryModal({ isOpen: true, isEdit: false }); }}
+                className="p-1 hover:bg-gray-100 rounded text-gray-500 hover:text-gray-800 transition-colors"
+                title="대분류 추가"
+              >
+                <Plus className="w-3 h-3" />
+              </button>
             </div>
             
             <div className="flex-1 overflow-y-auto no-scrollbar pr-1">
@@ -327,30 +453,40 @@ export const AccountsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
               </button>
 
               {rootCategories.map(rootCat => (
-                <div key={rootCat.id} className="mt-2">
+                <div key={rootCat.id} className="mt-2 group/cat">
                   <div 
-                    className={`flex items-center w-full px-2 py-1.5 rounded-lg transition-colors cursor-pointer ${activeCategoryId === rootCat.id ? 'bg-blue-50 text-blue-700' : 'text-gray-800 hover:bg-gray-50'}`}
+                    className={`flex items-center justify-between w-full pl-2 pr-1 py-1.5 rounded-lg transition-colors cursor-pointer ${activeCategoryId === rootCat.id ? 'bg-blue-50 text-blue-700' : 'text-gray-800 hover:bg-gray-50'}`}
                     onClick={() => setActiveCategoryId(rootCat.id)}
                   >
-                    <button 
-                      onClick={(e) => { e.stopPropagation(); toggleCategory(rootCat.docId, rootCat.isOpen); }}
-                      className="p-1 mr-1 text-gray-400 hover:text-gray-800 transition-colors"
-                    >
-                      <ChevronRight className={`w-3.5 h-3.5 transition-transform duration-200 ${rootCat.isOpen ? 'rotate-90' : ''}`} />
-                    </button>
-                    <span className="text-xs font-bold tracking-wide uppercase">{rootCat.name}</span>
+                    <div className="flex items-center truncate">
+                      <button onClick={(e) => { e.stopPropagation(); toggleCategory(rootCat.id, rootCat.isOpen); }} className="p-1 mr-1 text-gray-400 hover:text-gray-800 transition-colors shrink-0">
+                        <ChevronRight className={`w-3.5 h-3.5 transition-transform duration-200 ${rootCat.isOpen ? 'rotate-90' : ''}`} />
+                      </button>
+                      <span className="text-xs font-bold tracking-wide uppercase truncate">{rootCat.name}</span>
+                    </div>
+                    <div className="hidden group-hover/cat:flex items-center space-x-0.5 shrink-0">
+                      <button onClick={(e) => { e.stopPropagation(); setCategoryFormData({ id: '', name: '', order: categories.length + 1, parentId: rootCat.id, isOpen: false }); setCategoryModal({ isOpen: true, isEdit: false }); }} className="text-gray-400 hover:text-blue-600 transition-colors bg-white/80 p-0.5 rounded shadow-sm" title="소분류 추가"><Plus className="w-3.5 h-3.5"/></button>
+                      <button onClick={(e) => { e.stopPropagation(); setCategoryFormData(rootCat); setCategoryModal({ isOpen: true, isEdit: true }); }} className="text-gray-400 hover:text-green-600 transition-colors bg-white/80 p-0.5 rounded shadow-sm"><Edit className="w-3.5 h-3.5"/></button>
+                      <button onClick={(e) => { e.stopPropagation(); handleCategoryDelete(rootCat.id); }} className="text-gray-400 hover:text-red-600 transition-colors bg-white/80 p-0.5 rounded shadow-sm"><Trash2 className="w-3.5 h-3.5"/></button>
+                    </div>
                   </div>
                   
                   <div className={`overflow-hidden transition-all duration-300 ease-in-out ${rootCat.isOpen ? 'max-h-96 opacity-100 mt-1' : 'max-h-0 opacity-0'}`}>
                     {categories.filter(c => c.parentId === rootCat.id).map(childCat => (
-                      <button 
+                      <div 
                         key={childCat.id}
+                        className={`group/subcat flex items-center justify-between w-full pl-9 pr-1 py-1.5 rounded-lg transition-colors cursor-pointer ${activeCategoryId === childCat.id ? 'bg-blue-50/70 text-blue-700 font-bold shadow-sm border border-blue-100' : 'hover:bg-gray-50 text-gray-500 hover:text-gray-900'}`}
                         onClick={() => setActiveCategoryId(childCat.id)}
-                        className={`w-full flex items-center pl-9 pr-3 py-2 rounded-lg transition-colors text-left ${activeCategoryId === childCat.id ? 'bg-blue-50/70 text-blue-700 font-bold border border-blue-100 shadow-sm' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'}`}
                       >
-                        <div className={`w-1.5 h-1.5 rounded-full mr-2 shadow-sm ${activeCategoryId === childCat.id ? 'bg-blue-500' : 'bg-gray-300'}`}></div>
-                        <span className="text-xs">{childCat.name}</span>
-                      </button>
+                        <div className="flex items-center truncate">
+                          <div className={`w-1.5 h-1.5 rounded-full mr-2 shadow-sm shrink-0 ${activeCategoryId === childCat.id ? 'bg-blue-500' : 'bg-gray-300'}`}></div>
+                          <span className="text-xs truncate">{childCat.name}</span>
+                        </div>
+                        <div className="hidden group-hover/subcat:flex items-center space-x-0.5 shrink-0">
+                          <button onClick={(e) => { e.stopPropagation(); setCategoryFormData(childCat); setCategoryModal({ isOpen: true, isEdit: true }); }} className="text-gray-400 hover:text-green-600 transition-colors bg-white/80 p-0.5 rounded shadow-sm"><Edit className="w-3.5 h-3.5"/></button>
+                          <button onClick={(e) => { e.stopPropagation(); handleCategoryDelete(childCat.id); }} className="text-gray-400 hover:text-red-600 transition-colors bg-white/80 p-0.5 rounded shadow-sm"><Trash2 className="w-3.5 h-3.5"/></button>
+                        </div>
+                      </div>
                     ))}
                   </div>
                 </div>
@@ -362,7 +498,6 @@ export const AccountsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
         <main className="flex-1 overflow-hidden flex flex-col p-8 transition-all duration-300 bg-[#f0f2f5]">
           <div className="animate-fade-in h-full flex flex-col max-w-7xl mx-auto w-full">
             
-            {/* 상단 헤더 영역 */}
             <div className="flex justify-between items-end mb-6 shrink-0">
               <div>
                 <div className="flex items-center space-x-3 mb-1">
@@ -378,18 +513,17 @@ export const AccountsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
               <div className="flex items-center space-x-3">
                 <div className="flex items-center bg-white border border-gray-200 rounded-lg px-3 py-1.5 transition-colors focus-within:border-gray-400 shadow-sm h-10 w-64">
                   <Search className="w-4 h-4 text-gray-400 mr-2 shrink-0" />
-                  <input type="text" placeholder="서비스, 타이틀, ID 검색..." value={searchInput} onChange={e=>setSearchInput(e.target.value)} className="text-sm bg-transparent outline-none w-full placeholder:text-gray-400 text-gray-700" />
+                  <input type="text" placeholder="검색..." value={searchInput} onChange={e=>setSearchInput(e.target.value)} className="text-sm bg-transparent outline-none w-full placeholder:text-gray-400 text-gray-700" />
                   {searchInput && (
                     <button onClick={() => setSearchInput('')} className="p-0.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors"><X className="w-3 h-3" /></button>
                   )}
                 </div>
-                <button onClick={() => { setAccountFormData({ id: '', categoryId: activeCategoryId && activeCategoryId !== 'cat_common' ? activeCategoryId : '', service: '', title: '', loginId: '', password: '', owner: '', admin: '', memo: '' }); setAccountModal({isOpen: true, isEdit: false}); }} className="bg-gray-800 text-white text-sm font-semibold px-4 py-2 rounded-lg hover:bg-gray-900 transition-colors shadow-md flex items-center h-10">
+                <button onClick={() => { setAccountFormData({ id: '', categoryId: activeCategoryId && activeCategoryId !== 'cat_common' ? activeCategoryId : '', accountType: 'Type1', service: '', title: '', loginId: '', password: '', owner: '', admin: '', memo: '', aptName: '', moduleName: '', siteUrl: '' }); setAccountModal({isOpen: true, isEdit: false}); }} className="bg-gray-800 text-white text-sm font-semibold px-4 py-2 rounded-lg hover:bg-gray-900 transition-colors shadow-md flex items-center h-10">
                   <Plus className="w-4 h-4 mr-1.5" /> 계정 등록
                 </button>
               </div>
             </div>
 
-            {/* 리스트 뷰 영역 */}
             <div className="flex-1 bg-white rounded-2xl border border-gray-200 shadow-md overflow-hidden flex flex-col relative z-0">
               <div className="overflow-y-auto no-scrollbar flex-1 relative p-2">
                 <div className="space-y-4 p-4">
@@ -399,7 +533,6 @@ export const AccountsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
                       <p className="text-gray-500 font-medium">등록된 계정이 없거나 검색 결과가 없습니다.</p>
                     </div>
                   ) : (
-                    // 컨플루언스와 유사하게 카테고리별로 묶어서 보여주기 위한 렌더링 로직
                     Object.entries(
                       filteredAccounts.reduce((acc, account) => {
                         const cat = categories.find(c => c.id === account.categoryId);
@@ -414,48 +547,110 @@ export const AccountsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
                           {catName}
                         </h4>
                         <div className="space-y-3">
-                          {accs.map(acc => (
+                          {accs.map(acc => {
+                            const type = acc.accountType || 'Type1';
+                            return (
                             <div key={acc.id} className="group relative bg-white border border-gray-100 rounded-xl p-4 shadow-sm hover:shadow-md transition-all duration-300 hover:border-blue-200 pl-5">
                               <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity flex space-x-2">
                                 <button onClick={() => { setAccountFormData(acc); setAccountModal({isOpen: true, isEdit: true}); }} className="p-1.5 text-gray-400 bg-gray-50 hover:bg-blue-50 hover:text-blue-600 rounded-md border border-gray-100 shadow-sm transition-colors"><Edit className="w-3.5 h-3.5"/></button>
+                                <button onClick={() => { handleAccountDelete(acc.id); }} className="p-1.5 text-gray-400 bg-gray-50 hover:bg-red-50 hover:text-red-600 rounded-md border border-gray-100 shadow-sm transition-colors"><Trash2 className="w-3.5 h-3.5"/></button>
                               </div>
                               
                               <div className="flex items-start justify-between mb-3 pr-16">
                                 <div className="flex items-center space-x-2">
-                                  <ServiceBadge service={acc.service} />
+                                  {type === 'Type1' && <ServiceBadge service={acc.service || 'Default'} />}
+                                  {type === 'Type2' && <ServiceBadge service="APT" />}
+                                  {type === 'Type3' && <ServiceBadge service="WEB" />}
                                   <h5 className="font-bold text-gray-800 text-[15px] tracking-tight">{acc.title}</h5>
                                 </div>
                                 {acc.memo && <span className="text-[11px] font-medium text-gray-500 bg-gray-50 px-2 py-1 rounded-md border border-gray-100 max-w-[200px] truncate" title={acc.memo}>{acc.memo}</span>}
                               </div>
 
                               <div className="grid grid-cols-12 gap-4 bg-gray-50/50 rounded-lg p-3 border border-gray-50 items-center">
-                                <div className="col-span-4 flex flex-col">
-                                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">ID / Email</span>
-                                  <div className="flex items-center group/id">
-                                    <span className="text-sm font-bold text-gray-700 truncate w-48" title={acc.loginId}>{acc.loginId}</span>
-                                    <div className="ml-2"><CopyButton text={acc.loginId} tooltipText="ID 복사" /></div>
-                                  </div>
-                                </div>
-                                
-                                <div className="col-span-4 flex flex-col">
-                                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">Password</span>
-                                  <PasswordMask password={acc.password} />
-                                </div>
+                                {/* Type1 렌더링 */}
+                                {type === 'Type1' && (
+                                  <>
+                                    <div className="col-span-4 flex flex-col">
+                                      <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">ID / Email</span>
+                                      <div className="flex items-center group/id">
+                                        <span className="text-sm font-bold text-gray-700 truncate w-48" title={acc.loginId}>{acc.loginId}</span>
+                                        <div className="ml-2"><CopyButton text={acc.loginId} tooltipText="ID 복사" /></div>
+                                      </div>
+                                    </div>
+                                    <div className="col-span-4 flex flex-col">
+                                      <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">Password</span>
+                                      <PasswordMask password={acc.password} />
+                                    </div>
+                                    <div className="col-span-2 flex flex-col border-l border-gray-200 pl-4">
+                                      <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">Owner</span>
+                                      <span className="text-xs font-semibold text-blue-600 flex items-center">
+                                        <User className="w-3 h-3 mr-1 opacity-70" /> {acc.owner || '-'}
+                                      </span>
+                                    </div>
+                                    <div className="col-span-2 flex flex-col border-l border-gray-200 pl-4">
+                                      <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">Admin</span>
+                                      <span className="text-xs font-medium text-gray-600">{acc.admin}</span>
+                                    </div>
+                                  </>
+                                )}
 
-                                <div className="col-span-2 flex flex-col border-l border-gray-200 pl-4">
-                                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">Owner</span>
-                                  <span className="text-xs font-semibold text-blue-600 flex items-center">
-                                    <User className="w-3 h-3 mr-1 opacity-70" /> {acc.owner || '-'}
-                                  </span>
-                                </div>
+                                {/* Type2 렌더링 */}
+                                {type === 'Type2' && (
+                                  <>
+                                    <div className="col-span-3 flex flex-col">
+                                      <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">APT Name</span>
+                                      <span className="text-sm font-bold text-gray-700 truncate" title={acc.aptName}>{acc.aptName}</span>
+                                    </div>
+                                    <div className="col-span-3 flex flex-col border-l border-gray-200 pl-4">
+                                      <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">ID / Email</span>
+                                      <div className="flex items-center group/id">
+                                        <span className="text-sm font-bold text-gray-700 truncate max-w-[120px]" title={acc.loginId}>{acc.loginId}</span>
+                                        <div className="ml-2"><CopyButton text={acc.loginId} tooltipText="ID 복사" /></div>
+                                      </div>
+                                    </div>
+                                    <div className="col-span-4 flex flex-col border-l border-gray-200 pl-4">
+                                      <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">Password</span>
+                                      <PasswordMask password={acc.password} />
+                                    </div>
+                                    <div className="col-span-2 flex flex-col border-l border-gray-200 pl-4">
+                                      <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">Admin</span>
+                                      <span className="text-xs font-medium text-gray-600">{acc.admin}</span>
+                                    </div>
+                                  </>
+                                )}
 
-                                <div className="col-span-2 flex flex-col border-l border-gray-200 pl-4">
-                                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">Admin</span>
-                                  <span className="text-xs font-medium text-gray-600">{acc.admin}</span>
-                                </div>
+                                {/* Type3 렌더링 */}
+                                {type === 'Type3' && (
+                                  <>
+                                    <div className="col-span-3 flex flex-col">
+                                      <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">Module Name</span>
+                                      <span className="text-sm font-bold text-gray-700 truncate" title={acc.moduleName}>{acc.moduleName}</span>
+                                    </div>
+                                    <div className="col-span-3 flex flex-col border-l border-gray-200 pl-4">
+                                      <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">ID / Email</span>
+                                      <div className="flex items-center group/id">
+                                        <span className="text-sm font-bold text-gray-700 truncate max-w-[120px]" title={acc.loginId}>{acc.loginId}</span>
+                                        <div className="ml-2"><CopyButton text={acc.loginId} tooltipText="ID 복사" /></div>
+                                      </div>
+                                    </div>
+                                    <div className="col-span-3 flex flex-col border-l border-gray-200 pl-4">
+                                      <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">Password</span>
+                                      <PasswordMask password={acc.password} />
+                                    </div>
+                                    <div className="col-span-3 flex flex-col border-l border-gray-200 pl-4">
+                                      <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-0.5">Site URL</span>
+                                      <div className="flex items-center group/url">
+                                        <a href={acc.siteUrl?.startsWith('http') ? acc.siteUrl : `https://${acc.siteUrl}`} target="_blank" rel="noreferrer" className="text-xs font-semibold text-blue-600 hover:underline truncate max-w-[120px]" title={acc.siteUrl}>
+                                          {acc.siteUrl}
+                                        </a>
+                                        <div className="ml-2"><CopyButton text={acc.siteUrl} tooltipText="URL 복사" /></div>
+                                      </div>
+                                    </div>
+                                  </>
+                                )}
                               </div>
                             </div>
-                          ))}
+                          )})}
                         </div>
                       </div>
                     ))
@@ -477,6 +672,16 @@ export const AccountsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
         isEdit={accountModal.isEdit}
         onDelete={handleAccountDelete}
         categories={categories}
+      />
+      
+      <CategoryModal 
+        isOpen={categoryModal.isOpen} 
+        onClose={() => setCategoryModal({ ...categoryModal, isOpen: false })} 
+        formData={categoryFormData} 
+        setFormData={setCategoryFormData} 
+        onSubmit={handleCategorySubmit} 
+        isEdit={categoryModal.isEdit}
+        onDelete={handleCategoryDelete}
       />
     </div>
   );
