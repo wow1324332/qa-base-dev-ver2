@@ -381,13 +381,13 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
     return 'bg-gray-100 text-gray-600 border-gray-200';
   };
 
+  // [수정] 보고자(Reporter) 필터가 전역으로 동작하도록 로직 수정
   const filteredIssues = issues.filter(issue => {
     if (filterStatus !== 'All' && issue.status !== filterStatus) return false;
     if (filterPriority !== 'All' && issue.priority !== filterPriority) return false;
+    if (filterReporter !== 'All' && issue.reporter !== filterReporter) return false; // 모든 타입에서 동작
     
-    if (isType2) {
-      if (filterReporter !== 'All' && issue.reporter !== filterReporter) return false;
-    } else {
+    if (!isType2) {
       if (filterPlatform !== 'All' && issue.component !== filterPlatform) return false;
     }
     
@@ -437,7 +437,8 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
     );
   };
 
-  const hasFilters = filterStatus !== 'All' || filterPriority !== 'All' || searchInput || (isType2 ? filterReporter !== 'All' : filterPlatform !== 'All');
+  // [수정] 보고자 필터가 항상 리셋 조건에 포함되도록 반영
+  const hasFilters = filterStatus !== 'All' || filterPriority !== 'All' || filterReporter !== 'All' || searchInput || (!isType2 && filterPlatform !== 'All');
 
   return (
     <div className="w-screen h-screen bg-[#f8f9fa] flex flex-col overflow-hidden animate-simple-fade">
@@ -457,10 +458,9 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
         </div>
       </header>
 
-      {/* [수정] 배경 이미지가 들어가는 고정 컨테이너 */}
       <div 
         className="flex flex-1 overflow-hidden relative bg-[#f0f2f5] bg-cover bg-center bg-no-repeat"
-        style={{ backgroundImage: "url('/bg-projects.png')" }}
+        style={{ backgroundImage: "url('/bg-projects.jpg')" }}
       >
         <aside className={`bg-white border-r border-gray-100 transition-all duration-300 ease-in-out flex flex-col z-10 overflow-hidden whitespace-nowrap ${sidebarOpen ? 'w-64 translate-x-0' : 'w-0 -translate-x-full'}`}>
           <div className="p-4 space-y-1 w-64">
@@ -478,7 +478,6 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
           {sidebarOpen ? <ChevronLeft className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
         </button>
 
-        {/* [수정] main 태그에 있던 배경 관련 클래스와 스타일 제거하여 투명하게 만듦 */}
         <main className={`flex-1 overflow-hidden flex flex-col p-8 transition-all duration-300 ${!sidebarOpen ? 'ml-12' : ''}`}>
           
           {view === 'spaces' && (
@@ -640,11 +639,14 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
                     <div className="w-px h-4 bg-gray-200 mx-1"></div>
                     <CustomSelect value={filterStatus} onChange={setFilterStatus} options={statusOptions} className="bg-transparent text-xs font-medium text-gray-700 outline-none w-32 hover:bg-gray-50 rounded-md transition-colors" />
                     <div className="w-px h-4 bg-gray-200 mx-1"></div>
-                    {isType2 ? (
-                      <CustomSelect value={filterReporter} onChange={setFilterReporter} options={reporterOptions} className="bg-transparent text-xs font-medium text-gray-700 outline-none w-32 hover:bg-gray-50 rounded-md transition-colors" />
-                    ) : (
-                      <CustomSelect value={filterPlatform} onChange={setFilterPlatform} options={platformOptions} className="bg-transparent text-xs font-medium text-gray-700 outline-none w-32 hover:bg-gray-50 rounded-md transition-colors" />
+                    {!isType2 && (
+                      <>
+                        <CustomSelect value={filterPlatform} onChange={setFilterPlatform} options={platformOptions} className="bg-transparent text-xs font-medium text-gray-700 outline-none w-32 hover:bg-gray-50 rounded-md transition-colors" />
+                        <div className="w-px h-4 bg-gray-200 mx-1"></div>
+                      </>
                     )}
+                    {/* [수정] 보고자(Reporter) 셀렉터가 모든 타입의 스페이스에 항상 노출되도록 추가 */}
+                    <CustomSelect value={filterReporter} onChange={setFilterReporter} options={reporterOptions} className="bg-transparent text-xs font-medium text-gray-700 outline-none w-32 hover:bg-gray-50 rounded-md transition-colors" />
                     <div className="w-px h-4 bg-gray-200 mx-1"></div>
                     <CustomSelect value={filterPriority} onChange={setFilterPriority} options={priorityOptions} className="bg-transparent text-xs font-medium text-gray-700 outline-none w-32 hover:bg-gray-50 rounded-md transition-colors" />
                     <div className="w-px h-4 bg-gray-200 mx-1"></div>
