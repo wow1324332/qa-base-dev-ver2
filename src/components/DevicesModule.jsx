@@ -39,13 +39,13 @@ const CustomSelect = ({ value, onChange, options, className, disabled }) => {
   return (
     <div className={`relative ${className} p-0 ${disabled ? 'cursor-not-allowed opacity-60 bg-gray-100' : 'cursor-pointer hover:border-gray-300'}`} tabIndex={disabled ? -1 : 0} onBlur={(e) => { if(!e.currentTarget.contains(e.relatedTarget)) setIsOpen(false); }}>
       <div className="flex justify-between items-center w-full h-full px-3 py-1.5" onClick={() => !disabled && setIsOpen(!isOpen)}>
-        <span className={`truncate ${disabled ? 'text-gray-400' : 'text-gray-700'}`}>{options.find(o => o.value === value)?.label || value || '선택'}</span>
-        <ChevronDownIcon className={`w-3.5 h-3.5 ml-2 ${disabled ? 'text-gray-300' : 'text-gray-400'} transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+        <span className={`whitespace-nowrap ${disabled ? 'text-gray-400' : 'text-gray-700'}`}>{options.find(o => o.value === value)?.label || value || '선택'}</span>
+        <ChevronDownIcon className={`w-3.5 h-3.5 ml-2 shrink-0 ${disabled ? 'text-gray-300' : 'text-gray-400'} transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
       </div>
       {isOpen && !disabled && (
-        <div className="absolute top-full left-0 mt-1 w-full bg-white border border-gray-100 rounded-lg shadow-xl z-50 py-1 max-h-48 overflow-y-auto animate-fast-fade">
+        <div className="absolute top-full left-0 mt-1 min-w-full w-max bg-white border border-gray-100 rounded-lg shadow-xl z-50 py-1 max-h-48 overflow-y-auto animate-fast-fade">
           {options.map(opt => (
-            <div key={opt.value} className={`px-3 py-2 text-xs hover:bg-blue-50 transition-colors ${value === opt.value ? 'bg-blue-50 text-blue-600 font-bold' : 'text-gray-700'}`} onClick={() => { onChange(opt.value); setIsOpen(false); }}>
+            <div key={opt.value} className={`px-3 py-2 text-xs hover:bg-blue-50 transition-colors whitespace-nowrap ${value === opt.value ? 'bg-blue-50 text-blue-600 font-bold' : 'text-gray-700'}`} onClick={() => { onChange(opt.value); setIsOpen(false); }}>
               {opt.label}
             </div>
           ))}
@@ -115,9 +115,6 @@ const HighlightText = ({ text, highlight }) => {
   );
 };
 
-// ==========================================
-// [디바이스 관리 전용 컴포넌트 (원상복구 완)]
-// ==========================================
 const DeviceAddModal = ({ isOpen, onClose, formData, setFormData, onSubmit }) => {
   if (!isOpen) return null;
 
@@ -152,7 +149,7 @@ const DeviceAddModal = ({ isOpen, onClose, formData, setFormData, onSubmit }) =>
                 <CustomSelect 
                   value={formData.os} onChange={val=>setFormData({...formData, os: val})} 
                   options={[{value:'Android', label:'Android'}, {value:'iOS', label:'iOS'}]}
-                  className="w-full bg-gray-50 border border-gray-200 text-sm rounded-lg shadow-sm transition-colors"
+                  className="w-full bg-gray-50 border border-gray-200 text-sm rounded-lg px-3 py-2 shadow-sm transition-colors hover:border-gray-300"
                 />
               </div>
             </div>
@@ -162,7 +159,7 @@ const DeviceAddModal = ({ isOpen, onClose, formData, setFormData, onSubmit }) =>
                 <CustomSelect 
                   value={formData.type} onChange={val=>setFormData({...formData, type: val})} 
                   options={[{value:'Bar', label:'Bar'}, {value:'Fold', label:'Fold'}, {value:'Flip', label:'Flip'}]}
-                  className="w-full bg-gray-50 border border-gray-200 text-sm rounded-lg shadow-sm transition-colors"
+                  className="w-full bg-gray-50 border border-gray-200 text-sm rounded-lg px-3 py-2 shadow-sm transition-colors hover:border-gray-300"
                 />
               </div>
               <div>
@@ -174,7 +171,7 @@ const DeviceAddModal = ({ isOpen, onClose, formData, setFormData, onSubmit }) =>
                     else setFormData({...formData, status: val});
                   }} 
                   options={[{value:'보관중', label:'보관중'}, {value:'사용중', label:'사용중'}, {value:'대여중', label:'대여중'}]}
-                  className="w-full bg-gray-50 border border-gray-200 text-sm rounded-lg shadow-sm transition-colors"
+                  className="w-full bg-gray-50 border border-gray-200 text-sm rounded-lg px-3 py-2 shadow-sm transition-colors hover:border-gray-300"
                 />
               </div>
             </div>
@@ -275,13 +272,13 @@ const DeviceDetailModal = ({ device, onClose, onUpdate, onDelete, user, customKe
                  <div><label className="text-xs font-medium text-gray-500 mb-1 block">제조사</label><input required value={formData.manufacturer} onChange={e=>setFormData({...formData, manufacturer: e.target.value})} className="w-full bg-gray-50 border border-gray-200 text-sm rounded-lg px-3 py-2 outline-none focus:border-gray-400 shadow-sm transition-colors" /></div>
                  <div>
                    <label className="text-xs font-medium text-gray-500 mb-1 block">OS</label>
-                   <CustomSelect value={formData.os} onChange={val=>setFormData({...formData, os: val})} options={[{value:'Android', label:'Android'}, {value:'iOS', label:'iOS'}]} className="w-full bg-gray-50 border border-gray-200 text-sm rounded-lg shadow-sm" />
+                   <CustomSelect value={formData.os} onChange={val=>setFormData({...formData, os: val})} options={[{value:'Android', label:'Android'}, {value:'iOS', label:'iOS'}]} className="w-full bg-gray-50 border border-gray-200 text-sm rounded-lg px-3 py-2 shadow-sm transition-colors hover:border-gray-300" />
                  </div>
                </div>
                <div className="grid grid-cols-2 gap-4">
                  <div>
                    <label className="text-xs font-medium text-gray-500 mb-1 block">형태</label>
-                   <CustomSelect value={formData.type} onChange={val=>setFormData({...formData, type: val})} options={[{value:'Bar', label:'Bar'}, {value:'Fold', label:'Fold'}, {value:'Flip', label:'Flip'}]} className="w-full bg-gray-50 border border-gray-200 text-sm rounded-lg shadow-sm" />
+                   <CustomSelect value={formData.type} onChange={val=>setFormData({...formData, type: val})} options={[{value:'Bar', label:'Bar'}, {value:'Fold', label:'Fold'}, {value:'Flip', label:'Flip'}]} className="w-full bg-gray-50 border border-gray-200 text-sm rounded-lg px-3 py-2 shadow-sm transition-colors hover:border-gray-300" />
                  </div>
                  <div>
                    <label className="text-xs font-medium text-gray-500 mb-1 block">상태</label>
@@ -289,7 +286,7 @@ const DeviceDetailModal = ({ device, onClose, onUpdate, onDelete, user, customKe
                       value={formData.status} 
                       onChange={val=>{ if(val === '보관중') setFormData({...formData, status: val, renter: ''}); else setFormData({...formData, status: val}); }} 
                       options={[{value:'보관중', label:'보관중'}, {value:'사용중', label:'사용중'}, {value:'대여중', label:'대여중'}]}
-                      className="w-full bg-gray-50 border border-gray-200 text-sm rounded-lg shadow-sm"
+                      className="w-full bg-gray-50 border border-gray-200 text-sm rounded-lg px-3 py-2 shadow-sm transition-colors hover:border-gray-300"
                    />
                  </div>
                </div>
@@ -348,6 +345,7 @@ const DeviceDetailModal = ({ device, onClose, onUpdate, onDelete, user, customKe
                    </div>
                  </div>
                )}
+               
             </div>
           )}
         </div>
@@ -435,51 +433,50 @@ const ListView = ({ devices, onShowDetails }) => {
   const customKeys = Array.from(new Set(devices.flatMap(d => (d.customFields || []).map(f => f.key).filter(Boolean))));
 
   return (
-    <div className="w-full bg-white rounded-2xl border border-gray-200 shadow-md overflow-hidden animate-fade-in">
-      <table className="w-full text-left border-collapse">
-        <thead>
-          <tr className="bg-gray-100/80 border-b border-gray-200">
-            <th className="px-6 py-4 text-xs font-semibold text-gray-600 tracking-wider w-24">상태</th>
-            <th className="px-6 py-4 text-xs font-semibold text-gray-600 tracking-wider">디바이스명</th>
-            <th className="px-6 py-4 text-xs font-semibold text-gray-600 tracking-wider">제조사</th>
-            <th className="px-6 py-4 text-xs font-semibold text-gray-600 tracking-wider">OS</th>
-            <th className="px-6 py-4 text-xs font-semibold text-gray-600 tracking-wider">형태</th>
-            <th className="px-6 py-4 text-xs font-semibold text-gray-600 tracking-wider">시리얼 번호</th>
-            <th className="px-6 py-4 text-xs font-semibold text-gray-600 tracking-wider">사용/대여자</th>
-            {customKeys.map(key => (
-              <th key={key} className="px-6 py-4 text-xs font-semibold text-gray-600 tracking-wider truncate max-w-[120px]" title={key}>{key}</th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {devices.map(device => (
-            <tr key={device.id} onClick={() => onShowDetails(device)} className="border-b border-gray-100 hover:bg-gray-50 transition-colors cursor-pointer group">
-              <td className="px-6 py-4">
-                <span className={`text-xs px-2.5 py-1 rounded-full font-bold shadow-sm whitespace-nowrap ${device.status === '보관중' ? 'bg-gray-100 text-gray-600 border border-gray-200' : device.status === '사용중' ? 'bg-green-50 text-green-600 border border-green-200' : 'bg-blue-50 text-blue-600 border border-blue-200'}`}>{device.status}</span>
-              </td>
-              <td className="px-6 py-4 text-sm font-bold text-gray-800"><div className="truncate max-w-[160px]" title={device.name}>{device.name}</div></td>
-              <td className="px-6 py-4 text-sm font-medium text-gray-600"><div className="truncate max-w-[120px]" title={device.manufacturer}>{device.manufacturer}</div></td>
-              <td className="px-6 py-4 text-sm font-medium text-gray-600"><div className="truncate max-w-[100px]" title={device.os}>{device.os}</div></td>
-              <td className="px-6 py-4 text-sm font-medium text-gray-600"><div className="truncate max-w-[100px]" title={device.type}>{device.type}</div></td>
-              <td className="px-6 py-4 text-sm font-medium text-gray-600"><div className="truncate max-w-[120px]" title={device.serial || '-'}>{device.serial || '-'}</div></td>
-              <td className="px-6 py-4 text-sm font-medium text-gray-600"><div className="truncate max-w-[120px]" title={device.renter || '-'}>{device.renter || '-'}</div></td>
-              {customKeys.map(key => {
-                const field = device.customFields?.find(f => f.key === key);
-                return (
-                  <td key={key} className="px-6 py-4 text-sm font-medium text-gray-600"><div className="truncate max-w-[120px]" title={field && field.value ? field.value : '-'}>{field && field.value ? field.value : '-'}</div></td>
-                );
-              })}
+    <div className="w-full bg-white rounded-2xl border border-gray-200 shadow-md overflow-hidden animate-fade-in flex flex-col h-full relative">
+      <div className="overflow-y-auto flex-1 relative no-scrollbar">
+        <table className="w-full text-left border-collapse relative">
+          <thead className="sticky top-0 bg-gray-100/95 backdrop-blur shadow-sm z-10">
+            <tr>
+              <th className="px-6 py-4 text-xs font-semibold text-gray-600 tracking-wider w-24">상태</th>
+              <th className="px-6 py-4 text-xs font-semibold text-gray-600 tracking-wider">디바이스명</th>
+              <th className="px-6 py-4 text-xs font-semibold text-gray-600 tracking-wider">제조사</th>
+              <th className="px-6 py-4 text-xs font-semibold text-gray-600 tracking-wider">OS</th>
+              <th className="px-6 py-4 text-xs font-semibold text-gray-600 tracking-wider">형태</th>
+              <th className="px-6 py-4 text-xs font-semibold text-gray-600 tracking-wider">시리얼 번호</th>
+              <th className="px-6 py-4 text-xs font-semibold text-gray-600 tracking-wider">사용/대여자</th>
+              {customKeys.map(key => (
+                <th key={key} className="px-6 py-4 text-xs font-semibold text-gray-600 tracking-wider truncate max-w-[120px]" title={key}>{key}</th>
+              ))}
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody className="divide-y divide-gray-100">
+            {devices.map(device => (
+              <tr key={device.id} onClick={() => onShowDetails(device)} className="hover:bg-blue-50/30 transition-colors cursor-pointer group">
+                <td className="px-6 py-4">
+                  <span className={`text-xs px-2.5 py-1 rounded-full font-bold shadow-sm whitespace-nowrap ${device.status === '보관중' ? 'bg-gray-100 text-gray-600 border border-gray-200' : device.status === '사용중' ? 'bg-green-50 text-green-600 border border-green-200' : 'bg-blue-50 text-blue-600 border border-blue-200'}`}>{device.status}</span>
+                </td>
+                <td className="px-6 py-4 text-sm font-bold text-gray-800"><div className="truncate max-w-[160px]" title={device.name}>{device.name}</div></td>
+                <td className="px-6 py-4 text-sm font-medium text-gray-600"><div className="truncate max-w-[120px]" title={device.manufacturer}>{device.manufacturer}</div></td>
+                <td className="px-6 py-4 text-sm font-medium text-gray-600"><div className="truncate max-w-[100px]" title={device.os}>{device.os}</div></td>
+                <td className="px-6 py-4 text-sm font-medium text-gray-600"><div className="truncate max-w-[100px]" title={device.type}>{device.type}</div></td>
+                <td className="px-6 py-4 text-sm font-medium text-gray-600"><div className="truncate max-w-[120px]" title={device.serial || '-'}>{device.serial || '-'}</div></td>
+                <td className="px-6 py-4 text-sm font-medium text-gray-600"><div className="truncate max-w-[120px]" title={device.renter || '-'}>{device.renter || '-'}</div></td>
+                {customKeys.map(key => {
+                  const field = device.customFields?.find(f => f.key === key);
+                  return (
+                    <td key={key} className="px-6 py-4 text-sm font-medium text-gray-600"><div className="truncate max-w-[120px]" title={field && field.value ? field.value : '-'}>{field && field.value ? field.value : '-'}</div></td>
+                  );
+                })}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 };
 
-// ==========================================
-// [USIM 관리 전용 모달]
-// ==========================================
 const UsimModal = ({ isOpen, onClose, formData, setFormData, onSubmit, isEdit, onDelete, devices }) => {
   if (!isOpen) return null;
 
@@ -587,19 +584,14 @@ const UsimModal = ({ isOpen, onClose, formData, setFormData, onSubmit, isEdit, o
   );
 };
 
-// ==========================================
-// [메인 모듈 컴포넌트]
-// ==========================================
 export const DevicesDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [activeMenu, setActiveMenu] = useState('dashboard');
   const [viewType, setViewType] = useState('kanban'); 
   
-  // 데이터 상태
   const [devices, setDevices] = useState([]);
   const [usims, setUsims] = useState([]);
 
-  // 디바이스 필터 및 렌더링 상태
   const [showAddModal, setShowAddModal] = useState(false);
   const [deviceFormData, setDeviceFormData] = useState({ name: '', type: 'Bar', os: 'Android', status: '보관중', serial: '', manufacturer: '', renter: '', customFields: [] });
   const [selectedDevice, setSelectedDevice] = useState(null);
@@ -608,13 +600,12 @@ export const DevicesDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
 
   const [osFilter, setOsFilter] = useState('All');
   const [typeFilter, setTypeFilter] = useState('All');
-  const [statusFilter, setStatusFilter] = useState('All'); // 디바이스용 상태 필터
+  const [statusFilter, setStatusFilter] = useState('All'); 
   const [searchRenter, setSearchRenter] = useState('');
   const [searchManufacturer, setSearchManufacturer] = useState('');
 
-  // USIM 필터 및 모달 상태
   const [filterCarrier, setFilterCarrier] = useState('All');
-  const [filterUsimStatus, setFilterUsimStatus] = useState('All'); // USIM용 상태 필터 (에러 수정됨)
+  const [filterUsimStatus, setFilterUsimStatus] = useState('All');
   const [filterAuth, setFilterAuth] = useState('All');
   const [searchInput, setSearchInput] = useState(''); 
   const [searchSummary, setSearchSummary] = useState(''); 
@@ -631,7 +622,6 @@ export const DevicesDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
     return () => clearTimeout(timer);
   }, [searchInput]);
 
-  // Firebase 동기화
   useEffect(() => {
     const devicesRef = collection(db, 'devices');
     const unsubscribeDevices = onSnapshot(devicesRef, (snapshot) => {
@@ -658,7 +648,6 @@ export const DevicesDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
     };
   }, []);
 
-  // --- 핸들러: 디바이스 ---
   const handleDeviceSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -702,7 +691,6 @@ export const DevicesDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
     setRenterName('');
   };
 
-  // --- 핸들러: USIM ---
   const handleUsimSubmit = async (data) => {
     try {
       const { id, ...saveData } = data;
@@ -719,8 +707,6 @@ export const DevicesDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
     } catch(err) { console.error("Error deleting usim", err); }
   };
 
-
-  // --- 데이터 필터링 ---
   const filteredDevices = devices.filter(d => {
     if (activeMenu === 'android' && d.os !== 'Android') return false;
     if (activeMenu === 'ios' && d.os !== 'iOS') return false;
@@ -755,15 +741,12 @@ export const DevicesDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
     return true;
   });
 
-  // --- USIM 통계 렌더링 값 ---
-  const totalUsims = usims.length;
-  const usimStatusCounts = usims.reduce((acc, cur) => { acc[cur.status] = (acc[cur.status] || 0) + 1; return acc; }, {});
-  const carrierCounts = usims.reduce((acc, cur) => { acc[cur.carrier] = (acc[cur.carrier] || 0) + 1; return acc; }, {});
-  const authCounts = usims.reduce((acc, cur) => { acc[cur.authEnabled] = (acc[cur.authEnabled] || 0) + 1; return acc; }, {});
-
-  const usimStatusColorMap = { '보관중': 'bg-gray-400', '사용중': 'bg-blue-500', '대여중': 'bg-purple-500' };
-  const carrierColorMap = { 'SKT': 'bg-red-500', 'KT': 'bg-cyan-500', 'LG': 'bg-pink-500', '기타': 'bg-gray-500' };
-  const authColorMap = { '활성화': 'bg-green-500', '비활성화': 'bg-gray-300' };
+  const usimSummary = {
+    total: filteredUsims.length,
+    storage: filteredUsims.filter(u => u.status === '보관중').length,
+    inUse: filteredUsims.filter(u => u.status === '사용중').length,
+    rented: filteredUsims.filter(u => u.status === '대여중').length,
+  };
 
   const getCarrierBadgeClass = (carrier) => {
     switch(carrier) {
@@ -812,12 +795,10 @@ export const DevicesDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
             <button onClick={() => onNavigate('board')} className="w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-gray-500 hover:bg-gray-50 hover:text-gray-900 transition-colors"><LayoutDashboard className="w-4 h-4" /><span className="text-sm font-medium">기능 보드 이동</span></button>
             <div className="h-px bg-gray-100 my-2 mx-3"></div>
             
-            {/* 원상복구된 메뉴 항목들 */}
             <button onClick={() => setActiveMenu('dashboard')} className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl transition-colors ${activeMenu === 'dashboard' ? 'bg-gray-50 text-gray-900 font-medium border border-gray-200 shadow-sm' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`}><Server className={`w-4 h-4 ${activeMenu === 'dashboard' ? 'text-gray-700' : ''}`} /><span className="text-sm">대시보드 (Devices)</span></button>
             <button onClick={() => { setActiveMenu('android'); if(!sidebarOpen) setSidebarOpen(true); }} className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-colors ${activeMenu === 'android' ? 'bg-green-50/50 text-green-700 font-medium border border-green-100 shadow-sm' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`}><div className="flex items-center space-x-3"><div className="w-1.5 h-1.5 rounded-full bg-green-400 shadow-sm"></div><span className="text-sm">Android</span></div></button>
             <button onClick={() => { setActiveMenu('ios'); if(!sidebarOpen) setSidebarOpen(true); }} className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-colors ${activeMenu === 'ios' ? 'bg-blue-50/50 text-blue-700 font-medium border border-blue-100 shadow-sm' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`}><div className="flex items-center space-x-3"><div className="w-1.5 h-1.5 rounded-full bg-blue-400 shadow-sm"></div><span className="text-sm">iOS</span></div></button>
             
-            {/* 새롭게 추가된 USIM 메뉴 */}
             <button onClick={() => setActiveMenu('usims')} className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl transition-colors ${activeMenu === 'usims' ? 'bg-purple-50/50 text-purple-700 font-medium border border-purple-100 shadow-sm' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`}><CreditCard className={`w-4 h-4 ${activeMenu === 'usims' ? 'text-purple-600' : ''}`} /><span className="text-sm">USIM 관리</span></button>
           </div>
         </aside>
@@ -828,7 +809,6 @@ export const DevicesDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
 
         <main className={`flex-1 overflow-hidden flex flex-col p-8 transition-all duration-300 ${!sidebarOpen ? 'ml-12' : ''}`}>
           
-          {/* 디바이스 뷰 (대시보드 / 안드로이드 / iOS) */}
           {(activeMenu === 'dashboard' || activeMenu === 'android' || activeMenu === 'ios') && (
             <div className="animate-fade-in h-full flex flex-col">
               <div className="flex justify-between items-end mb-8 shrink-0">
@@ -864,15 +844,15 @@ export const DevicesDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
                   </div>
                   <div className="flex items-center space-x-2 bg-gray-50 p-1.5 rounded-xl border border-gray-200 shadow-sm mr-1">
                     <Filter className="w-4 h-4 text-gray-400 ml-2" />
-                    <CustomSelect value={statusFilter} onChange={setStatusFilter} options={[{value:'All', label:'상태 전체'}, {value:'보관중', label:'보관중'}, {value:'사용중', label:'사용중'}, {value:'대여중', label:'대여중'}]} className="bg-transparent text-xs font-medium text-gray-700 py-1 px-2 outline-none w-24 hover:bg-gray-100 rounded-md transition-colors" />
+                    <CustomSelect value={statusFilter} onChange={setStatusFilter} options={[{value:'All', label:'상태 전체'}, {value:'보관중', label:'보관중'}, {value:'사용중', label:'사용중'}, {value:'대여중', label:'대여중'}]} className="bg-transparent text-xs font-medium text-gray-700 py-1 px-2 outline-none hover:bg-gray-100 rounded-md transition-colors" />
                     <div className="w-px h-4 bg-gray-300 mx-1"></div>
                     {activeMenu === 'dashboard' && (
                       <>
-                        <CustomSelect value={osFilter} onChange={setOsFilter} options={[{value:'All', label:'OS 전체'}, {value:'Android', label:'Android'}, {value:'iOS', label:'iOS'}]} className="bg-transparent text-xs font-medium text-gray-700 py-1 px-2 outline-none w-24 hover:bg-gray-100 rounded-md transition-colors" />
+                        <CustomSelect value={osFilter} onChange={setOsFilter} options={[{value:'All', label:'OS 전체'}, {value:'Android', label:'Android'}, {value:'iOS', label:'iOS'}]} className="bg-transparent text-xs font-medium text-gray-700 py-1 px-2 outline-none hover:bg-gray-100 rounded-md transition-colors" />
                         <div className="w-px h-4 bg-gray-300 mx-1"></div>
                       </>
                     )}
-                    <CustomSelect value={typeFilter} onChange={setTypeFilter} options={[{value:'All', label:'형태 전체'}, {value:'Fold', label:'폴드'}, {value:'Flip', label:'플립'}, {value:'Bar', label:'바'}]} className="bg-transparent text-xs font-medium text-gray-700 py-1 px-2 outline-none w-24 hover:bg-gray-100 rounded-md transition-colors" />
+                    <CustomSelect value={typeFilter} onChange={setTypeFilter} options={[{value:'All', label:'형태 전체'}, {value:'Fold', label:'폴드'}, {value:'Flip', label:'플립'}, {value:'Bar', label:'바'}]} className="bg-transparent text-xs font-medium text-gray-700 py-1 px-2 outline-none hover:bg-gray-100 rounded-md transition-colors" />
                   </div>
                 </div>
                 <div className="flex items-center space-x-3 pt-3 border-t border-gray-100">
@@ -890,7 +870,6 @@ export const DevicesDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
             </div>
           )}
 
-          {/* USIM 뷰 */}
           {activeMenu === 'usims' && (
             <div className="animate-fade-in h-full flex flex-col">
               <div className="flex justify-between items-end mb-6 shrink-0">
@@ -912,54 +891,40 @@ export const DevicesDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
                 </div>
               </div>
 
-              <div className="shrink-0 flex flex-col">
-                <div className={`flex justify-between items-end px-1 ${isStatsExpanded ? 'mb-2' : 'mb-6'} transition-all duration-500`}>
-                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Dashboard Statistics</span>
-                  <button onClick={() => setIsStatsExpanded(!isStatsExpanded)} className="flex items-center justify-center text-gray-500 hover:text-gray-800 transition-colors bg-white p-1.5 rounded-lg shadow-sm border border-gray-200">
-                    {isStatsExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDownIcon className="w-4 h-4" />}
-                  </button>
-                </div>
-                <div className={`grid transition-all duration-500 ease-in-out ${isStatsExpanded ? 'grid-rows-[1fr] opacity-100 mb-6' : 'grid-rows-[0fr] opacity-0 mb-0'}`}>
-                  <div className="overflow-hidden">
-                    <div className="flex space-x-6 items-stretch pb-1">
-                      <div className="flex-1">
-                        <DetailedStatCard title="통신사별 통계" icon={Cpu} total={totalUsims} data={carrierCounts} colorMap={carrierColorMap} defaultColor="bg-gray-400" />
-                      </div>
-                      <div className="flex-1">
-                        <DetailedStatCard title="상태별 통계" icon={Activity} total={totalUsims} data={usimStatusCounts} colorMap={usimStatusColorMap} defaultColor="bg-gray-400" />
-                      </div>
-                      <div className="flex-1">
-                        <DetailedStatCard title="본인인증 가능 통계" icon={CheckCircle2} total={totalUsims} data={authCounts} colorMap={authColorMap} defaultColor="bg-gray-400" />
-                      </div>
-                    </div>
+              <div className="flex flex-col space-y-3 bg-white p-4 rounded-2xl shadow-sm border border-gray-100 mb-6 shrink-0 animate-fade-in relative z-30">
+                <div className="flex justify-between items-center">
+                  <div className="flex space-x-8">
+                    <div className="flex flex-col"><span className="text-[10px] text-gray-500 uppercase tracking-wider font-bold">Total</span><span className="text-xl font-bold text-gray-800">{usimSummary.total}</span></div><div className="w-px bg-gray-200 my-1"></div>
+                    <div className="flex flex-col"><span className="text-[10px] text-gray-500 uppercase tracking-wider font-bold">사용중</span><span className="text-xl font-bold text-green-600">{usimSummary.inUse}</span></div>
+                    <div className="flex flex-col"><span className="text-[10px] text-gray-500 uppercase tracking-wider font-bold">대여중</span><span className="text-xl font-bold text-blue-600">{usimSummary.rented}</span></div>
+                    <div className="flex flex-col"><span className="text-[10px] text-gray-500 uppercase tracking-wider font-bold">보관중</span><span className="text-xl font-bold text-gray-600">{usimSummary.storage}</span></div>
+                  </div>
+                  <div className="flex items-center space-x-2 bg-gray-50 p-1.5 rounded-xl border border-gray-200 shadow-sm mr-1">
+                    <Filter className="w-4 h-4 text-gray-400 ml-2" />
+                    <CustomSelect value={filterCarrier} onChange={setFilterCarrier} options={[{value:'All',label:'통신사 전체'},{value:'SKT',label:'SKT'},{value:'KT',label:'KT'},{value:'LG',label:'LG'},{value:'기타',label:'기타'}]} className="bg-transparent text-xs font-medium text-gray-700 py-1 px-2 outline-none hover:bg-gray-100 rounded-md transition-colors" />
+                    <div className="w-px h-4 bg-gray-300 mx-1"></div>
+                    <CustomSelect value={filterUsimStatus} onChange={setFilterUsimStatus} options={[{value:'All',label:'상태 전체'},{value:'보관중',label:'보관중'},{value:'사용중',label:'사용중'},{value:'대여중',label:'대여중'}]} className="bg-transparent text-xs font-medium text-gray-700 py-1 px-2 outline-none hover:bg-gray-100 rounded-md transition-colors" />
+                    <div className="w-px h-4 bg-gray-300 mx-1"></div>
+                    <CustomSelect value={filterAuth} onChange={setFilterAuth} options={[{value:'All',label:'본인인증 전체'},{value:'활성화',label:'활성화'},{value:'비활성화',label:'비활성화'}]} className="bg-transparent text-xs font-medium text-gray-700 py-1 px-2 outline-none hover:bg-gray-100 rounded-md transition-colors" />
                   </div>
                 </div>
-              </div>
-
-              <div className="flex items-center space-x-3 bg-white p-3 px-5 rounded-t-2xl shadow-sm border border-gray-200 border-b-0 shrink-0 relative z-20">
-                <Filter className="w-4 h-4 text-gray-400" />
-                <div className="w-px h-4 bg-gray-200 mx-1"></div>
-                <CustomSelect value={filterCarrier} onChange={setFilterCarrier} options={[{value:'All',label:'통신사 전체'},{value:'SKT',label:'SKT'},{value:'KT',label:'KT'},{value:'LG',label:'LG'},{value:'기타',label:'기타'}]} className="bg-transparent text-xs font-medium text-gray-700 outline-none w-32 hover:bg-gray-50 rounded-md transition-colors" />
-                <div className="w-px h-4 bg-gray-200 mx-1"></div>
-                <CustomSelect value={filterUsimStatus} onChange={setFilterUsimStatus} options={[{value:'All',label:'상태 전체'},{value:'보관중',label:'보관중'},{value:'사용중',label:'사용중'},{value:'대여중',label:'대여중'}]} className="bg-transparent text-xs font-medium text-gray-700 outline-none w-32 hover:bg-gray-50 rounded-md transition-colors" />
-                <div className="w-px h-4 bg-gray-200 mx-1"></div>
-                <CustomSelect value={filterAuth} onChange={setFilterAuth} options={[{value:'All',label:'본인인증 전체'},{value:'활성화',label:'활성화'},{value:'비활성화',label:'비활성화'}]} className="bg-transparent text-xs font-medium text-gray-700 outline-none w-32 hover:bg-gray-50 rounded-md transition-colors" />
-                <div className="w-px h-4 bg-gray-200 mx-1"></div>
-                <div className="flex items-center bg-gray-50 border border-gray-200 rounded-md px-3 py-1.5 transition-colors focus-within:border-gray-400 relative flex-1 max-w-sm">
-                  <Search className="w-3.5 h-3.5 text-gray-400 mr-2" />
-                  <input type="text" placeholder="번호, 사용자, 시료 검색..." value={searchInput} onChange={e=>setSearchInput(e.target.value)} className="text-xs bg-transparent outline-none w-full placeholder:text-gray-400 text-gray-700 pr-6" />
-                  {searchInput && (
-                    <button onClick={() => { setSearchInput(''); setSearchSummary(''); }} className="absolute right-2 p-0.5 text-gray-400 hover:text-gray-600 hover:bg-gray-200 rounded-full transition-colors flex items-center justify-center">
-                      <X className="w-3 h-3" />
-                    </button>
+                <div className="flex items-center space-x-3 pt-3 border-t border-gray-100">
+                  <div className="flex items-center bg-gray-50 border border-gray-200 rounded-md px-3 py-1.5 transition-colors focus-within:border-gray-400 relative flex-1 max-w-sm">
+                    <Search className="w-3.5 h-3.5 text-gray-400 mr-2" />
+                    <input type="text" placeholder="번호, 사용자, 시료 검색..." value={searchInput} onChange={e=>setSearchInput(e.target.value)} className="text-xs bg-transparent outline-none w-full placeholder:text-gray-400 text-gray-700 pr-6" />
+                    {searchInput && (
+                      <button onClick={() => { setSearchInput(''); setSearchSummary(''); }} className="absolute right-2 p-0.5 text-gray-400 hover:text-gray-600 hover:bg-gray-200 rounded-full transition-colors flex items-center justify-center">
+                        <X className="w-3 h-3" />
+                      </button>
+                    )}
+                  </div>
+                  {(hasUsimFilters) && (
+                    <button onClick={() => { setFilterCarrier('All'); setFilterUsimStatus('All'); setFilterAuth('All'); setSearchInput(''); setSearchSummary(''); }} className="text-[10px] text-gray-500 hover:text-gray-800 underline ml-2 font-medium whitespace-nowrap">초기화</button>
                   )}
                 </div>
-                {(hasUsimFilters) && (
-                  <button onClick={() => { setFilterCarrier('All'); setFilterUsimStatus('All'); setFilterAuth('All'); setSearchInput(''); setSearchSummary(''); }} className="text-[10px] text-gray-500 hover:text-gray-800 underline ml-2 font-medium whitespace-nowrap">초기화</button>
-                )}
               </div>
 
-              <div className="flex-1 bg-white rounded-b-2xl border border-gray-200 shadow-md overflow-hidden flex flex-col relative z-0">
+              <div className="flex-1 bg-white rounded-2xl border border-gray-200 shadow-md overflow-hidden flex flex-col relative z-0">
                 <div className="overflow-y-auto no-scrollbar flex-1 relative">
                   <table className="w-full text-left border-collapse relative">
                     <thead className="sticky top-0 bg-gray-50/95 backdrop-blur z-10 shadow-sm">
