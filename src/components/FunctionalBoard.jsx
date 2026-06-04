@@ -1,13 +1,17 @@
 import React, { useState } from 'react';
-import { Users, Settings, User, LogOut, Server, Calendar, Bug } from 'lucide-react';
-import { AppLogo } from './SharedUI';
+import { Users, Settings, User, LogOut, Server, Calendar, Bug, KeyRound, MonitorSmartphone } from 'lucide-react';
+
+const AppLogo = ({ className }) => {
+  const [imgError, setImgError] = useState(false);
+  if (imgError) return <MonitorSmartphone className={`text-gray-800 ${className}`} strokeWidth={1.5} />;
+  return <img src="/icon-192x192.png" alt="QA Base" className={`object-contain ${className}`} onError={() => setImgError(true)} />;
+};
 
 export const FunctionalBoard = ({ user, onNavigate, onLogout, onShowProfileModal, onShowAdminModal }) => {
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const onlineUsersCount = 1;
 
   return (
-    // [수정 핵심] 배경 이미지를 적용하기 위한 클래스(bg-cover 등)와 인라인 스타일 추가
     <div 
       className="w-screen h-screen bg-[#f8f9fa] flex flex-col animate-simple-fade bg-cover bg-center bg-no-repeat"
       style={{ backgroundImage: "url('/bg-functional.png')" }}
@@ -112,9 +116,24 @@ export const FunctionalBoard = ({ user, onNavigate, onLogout, onShowProfileModal
                 JIRA 스페이스와 에픽을 연동하여<br/>개발결함(버그) 추적 및 통계를 관리합니다.
               </p>
             </div>
+
+            <div 
+              onClick={() => onNavigate('accounts')}
+              className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 cursor-pointer border border-gray-200 shadow-md hover-breath group"
+            >
+              <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center mb-6 group-hover:bg-yellow-500 transition-colors duration-500 shadow-sm border border-gray-100">
+                <KeyRound className="w-6 h-6 text-gray-600 group-hover:text-white transition-colors duration-500" strokeWidth={1.5} />
+              </div>
+              <h3 className="text-xl font-medium text-gray-800 mb-2">Accounts Vault</h3>
+              <p className="text-sm text-gray-500 leading-relaxed">
+                보안이 유지된 테스트용 공용 계정들을<br/>빠르고 안전하게 관리합니다.
+              </p>
+            </div>
+
           </div>
         </div>
       </main>
     </div>
   );
 };
+export default FunctionalBoard;
