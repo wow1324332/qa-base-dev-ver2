@@ -76,25 +76,17 @@ export const FunctionalBoard = ({ user, onNavigate, onLogout, onShowProfileModal
           <p className="text-sm text-gray-500 mb-10">원하는 업무 기지를 선택하세요.</p>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            
-            {/* [수정] Devices 카드에 배경 이미지 및 오버레이 적용 */}
             <div 
               onClick={() => onNavigate('dashboard')}
-              className="relative overflow-hidden rounded-3xl cursor-pointer shadow-md hover-breath group border border-gray-200 bg-cover bg-center bg-no-repeat"
-              style={{ backgroundImage: "url('/bg-devices.jpg')" }}
+              className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 cursor-pointer border border-gray-200 shadow-md hover-breath group"
             >
-              {/* 이미지 위를 살짝 덮어 글씨가 잘 보이게 하는 반투명 레이어 */}
-              <div className="absolute inset-0 bg-white/40 backdrop-blur-[2px] group-hover:bg-white/20 transition-all duration-500"></div>
-              
-              <div className="relative p-8 h-full flex flex-col justify-start">
-                <div className="w-14 h-14 bg-white/80 backdrop-blur-md rounded-2xl flex items-center justify-center mb-6 group-hover:bg-gray-800 transition-colors duration-500 shadow-sm border border-white">
-                  <Server className="w-6 h-6 text-gray-800 group-hover:text-white transition-colors duration-500" strokeWidth={1.5} />
-                </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-2 drop-shadow-sm">Devices</h3>
-                <p className="text-sm text-gray-700 leading-relaxed font-medium drop-shadow-sm">
-                  QA 검증용 시료(단말기) 현황을 조회하고<br/>상태 및 대여 현황을 관리합니다.
-                </p>
+              <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center mb-6 group-hover:bg-gray-800 transition-colors duration-500 shadow-sm border border-gray-100">
+                <Server className="w-6 h-6 text-gray-600 group-hover:text-white transition-colors duration-500" strokeWidth={1.5} />
               </div>
+              <h3 className="text-xl font-medium text-gray-800 mb-2">Devices</h3>
+              <p className="text-sm text-gray-500 leading-relaxed">
+                QA 검증용 시료(단말기) 현황을 조회하고<br/>상태 및 대여 현황을 관리합니다.
+              </p>
             </div>
             
             <div 
@@ -104,7 +96,7 @@ export const FunctionalBoard = ({ user, onNavigate, onLogout, onShowProfileModal
               <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center mb-6 group-hover:bg-gray-800 transition-colors duration-500 shadow-sm border border-gray-100">
                 <Calendar className="w-6 h-6 text-gray-600 group-hover:text-white transition-colors duration-500" strokeWidth={1.5} />
               </div>
-              <h3 className="text-xl font-bold text-gray-800 mb-2">Schedule</h3>
+              <h3 className="text-xl font-medium text-gray-800 mb-2">Schedule</h3>
               <p className="text-sm text-gray-500 leading-relaxed">
                 프로젝트별 QA 일정을 캘린더로 확인하고<br/>칸반 보드로 진행 현황을 관리합니다.
               </p>
@@ -114,10 +106,10 @@ export const FunctionalBoard = ({ user, onNavigate, onLogout, onShowProfileModal
               onClick={() => onNavigate('projects')}
               className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 cursor-pointer border border-gray-200 shadow-md hover-breath group"
             >
-              <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center mb-6 group-hover:bg-blue-600 transition-colors duration-500 shadow-sm border border-gray-100">
+              <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center mb-6 group-hover:bg-gray-800 transition-colors duration-500 shadow-sm border border-gray-100">
                 <Bug className="w-6 h-6 text-gray-600 group-hover:text-white transition-colors duration-500" strokeWidth={1.5} />
               </div>
-              <h3 className="text-xl font-bold text-gray-800 mb-2 flex items-center">
+              <h3 className="text-xl font-medium text-gray-800 mb-2 flex items-center">
                 Projects <span className="ml-2 text-[10px] bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full font-bold tracking-wider border border-blue-200 shadow-sm">JIRA</span>
               </h3>
               <p className="text-sm text-gray-500 leading-relaxed">
@@ -129,10 +121,10 @@ export const FunctionalBoard = ({ user, onNavigate, onLogout, onShowProfileModal
               onClick={() => onNavigate('accounts')}
               className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 cursor-pointer border border-gray-200 shadow-md hover-breath group"
             >
-              <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center mb-6 group-hover:bg-yellow-500 transition-colors duration-500 shadow-sm border border-gray-100">
+              <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center mb-6 group-hover:bg-gray-800 transition-colors duration-500 shadow-sm border border-gray-100">
                 <KeyRound className="w-6 h-6 text-gray-600 group-hover:text-white transition-colors duration-500" strokeWidth={1.5} />
               </div>
-              <h3 className="text-xl font-bold text-gray-800 mb-2">Accounts Vault</h3>
+              <h3 className="text-xl font-medium text-gray-800 mb-2">Accounts</h3>
               <p className="text-sm text-gray-500 leading-relaxed">
                 보안이 유지된 테스트용 공용 계정들을<br/>빠르고 안전하게 관리합니다.
               </p>
@@ -144,3 +136,4 @@ export const FunctionalBoard = ({ user, onNavigate, onLogout, onShowProfileModal
     </div>
   );
 };
+export default FunctionalBoard;
