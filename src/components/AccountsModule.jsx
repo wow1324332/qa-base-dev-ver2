@@ -21,6 +21,21 @@ const firebaseConfig = {
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 const db = getFirestore(app);
 
+// [추가] 서비스 태그 색상 팔레트 정의 (11종)
+const TAG_PALETTE = [
+  { name: 'Gray', class: 'bg-gray-100 text-gray-600 border-gray-200', picker: 'bg-gray-400' },
+  { name: 'Dark', class: 'bg-gray-800 text-white border-gray-700', picker: 'bg-gray-800' },
+  { name: 'Red', class: 'bg-red-50 text-red-600 border-red-200', picker: 'bg-red-500' },
+  { name: 'Orange', class: 'bg-orange-50 text-orange-600 border-orange-200', picker: 'bg-orange-500' },
+  { name: 'Yellow', class: 'bg-yellow-100 text-yellow-800 border-yellow-300', picker: 'bg-yellow-400' },
+  { name: 'Green', class: 'bg-green-50 text-green-600 border-green-200', picker: 'bg-green-500' },
+  { name: 'Emerald', class: 'bg-emerald-50 text-emerald-600 border-emerald-200', picker: 'bg-emerald-500' },
+  { name: 'Blue', class: 'bg-blue-50 text-blue-600 border-blue-200', picker: 'bg-blue-500' },
+  { name: 'Indigo', class: 'bg-indigo-50 text-indigo-600 border-indigo-200', picker: 'bg-indigo-500' },
+  { name: 'Purple', class: 'bg-purple-50 text-purple-600 border-purple-200', picker: 'bg-purple-500' },
+  { name: 'Pink', class: 'bg-pink-50 text-pink-600 border-pink-200', picker: 'bg-pink-500' },
+];
+
 // 초기 기본 카테고리 데이터 (시드용)
 const INITIAL_CATEGORIES = [
   { id: 'cat_common', name: 'COMMON', isOpen: true, parentId: null, order: 1 },
@@ -32,10 +47,10 @@ const INITIAL_CATEGORIES = [
 ];
 
 const INITIAL_ACCOUNTS = [
-  { id: 'acc_1', categoryId: 'cat_common', accountType: 'Type1', service: 'Google', title: 'QA TEAM GOOGLE ACCOUNT', loginId: 'qaptner01@gmail.com', password: 'qaptner12!', owner: '홍진의', admin: '홍진의', memo: '플레이스토어 결제 테스트용' },
-  { id: 'acc_2', categoryId: 'cat_common', accountType: 'Type1', service: 'Apple', title: 'QA TEAM APPLE ACCOUNT', loginId: 'qaptner01@gmail.com', password: 'Qaptner12!', owner: '홍진의', admin: '홍진의', memo: 'TestFlight 배포용' },
-  { id: 'acc_3', categoryId: 'cat_common', accountType: 'Type1', service: 'Kakao', title: 'QA TEAM KAKAO ACCOUNT', loginId: 'qa_kakao@kakao.com', password: 'Kakao1234!', owner: '김철수', admin: '김철수', memo: '소셜 로그인 테스트' },
-  { id: 'acc_4', categoryId: 'cat_platform_web', accountType: 'Type1', service: 'Admin', title: '플랫폼 어드민 계정 (Staging)', loginId: 'admin_master', password: 'admin_test_123', owner: '플랫폼파트', admin: '홍진의', memo: '스테이징 환경 전용' },
+  { id: 'acc_1', categoryId: 'cat_common', accountType: 'Type1', service: 'Google', loginId: 'qaptner01@gmail.com', password: 'qaptner12!', owner: '홍진의', admin: '홍진의', memo: '플레이스토어 결제 테스트용', tagColor: TAG_PALETTE[2].class },
+  { id: 'acc_2', categoryId: 'cat_common', accountType: 'Type1', service: 'Apple', loginId: 'qaptner01@gmail.com', password: 'Qaptner12!', owner: '홍진의', admin: '홍진의', memo: 'TestFlight 배포용', tagColor: TAG_PALETTE[1].class },
+  { id: 'acc_3', categoryId: 'cat_common', accountType: 'Type1', service: 'Kakao', loginId: 'qa_kakao@kakao.com', password: 'Kakao1234!', owner: '김철수', admin: '김철수', memo: '소셜 로그인 테스트', tagColor: TAG_PALETTE[4].class },
+  { id: 'acc_4', categoryId: 'cat_platform_web', accountType: 'Type1', service: 'Admin', loginId: 'admin_master', password: 'admin_test_123', owner: '플랫폼파트', admin: '홍진의', memo: '스테이징 환경 전용', tagColor: TAG_PALETTE[9].class },
 ];
 
 const AppLogo = ({ className }) => {
@@ -44,7 +59,6 @@ const AppLogo = ({ className }) => {
   return <img src="/icon-192x192.png" alt="QA Base" className={`object-contain ${className}`} onError={() => setImgError(true)} />;
 };
 
-// [추가] 셀렉트 UI 통일성을 위한 CustomSelect 컴포넌트
 const CustomSelect = ({ value, onChange, options, className, disabled }) => {
   const [isOpen, setIsOpen] = useState(false);
   return (
@@ -66,7 +80,6 @@ const CustomSelect = ({ value, onChange, options, className, disabled }) => {
   );
 };
 
-// 클립보드 복사 툴팁 애니메이션 컴포넌트
 const CopyButton = ({ text, tooltipText = "복사" }) => {
   const [copied, setCopied] = useState(false);
 
@@ -95,7 +108,6 @@ const CopyButton = ({ text, tooltipText = "복사" }) => {
   );
 };
 
-// 비밀번호 마스킹 컴포넌트
 const PasswordMask = ({ password }) => {
   const [show, setShow] = useState(false);
   
@@ -115,24 +127,16 @@ const PasswordMask = ({ password }) => {
   );
 };
 
-// 커스텀 배지 컴포넌트
-const ServiceBadge = ({ service }) => {
-  let bgColor = 'bg-gray-100 text-gray-600 border-gray-200';
-  if (service.toLowerCase().includes('google')) bgColor = 'bg-red-50 text-red-600 border-red-200';
-  if (service.toLowerCase().includes('apple')) bgColor = 'bg-gray-800 text-white border-gray-700';
-  if (service.toLowerCase().includes('kakao')) bgColor = 'bg-yellow-100 text-yellow-800 border-yellow-300';
-  if (service.toLowerCase().includes('admin')) bgColor = 'bg-purple-50 text-purple-600 border-purple-200';
-  if (service.toLowerCase() === 'apt') bgColor = 'bg-blue-50 text-blue-600 border-blue-200';
-  if (service.toLowerCase() === 'web') bgColor = 'bg-emerald-50 text-emerald-600 border-emerald-200';
-  
+// [수정] 태그 팔레트에서 선택한 색상을 동적으로 반영하는 커스텀 배지 컴포넌트
+const ServiceBadge = ({ service, colorClass }) => {
+  const appliedClass = colorClass || TAG_PALETTE[0].class;
   return (
-    <span className={`text-[10px] px-2 py-0.5 rounded-md font-bold shadow-sm border whitespace-nowrap ${bgColor}`}>
+    <span className={`text-[10px] px-2 py-0.5 rounded-md font-bold shadow-sm border whitespace-nowrap ${appliedClass}`}>
       {service}
     </span>
   );
 };
 
-// [추가] 카테고리(대/소분류) 추가/수정 모달
 const CategoryModal = ({ isOpen, onClose, formData, setFormData, onSubmit, isEdit, onDelete }) => {
   if (!isOpen) return null;
   const isRoot = formData.parentId === null;
@@ -164,11 +168,9 @@ const CategoryModal = ({ isOpen, onClose, formData, setFormData, onSubmit, isEdi
   );
 };
 
-// 계정 추가/수정 모달 (3가지 타입 지원)
 const AccountModal = ({ isOpen, onClose, formData, setFormData, onSubmit, isEdit, onDelete, categories }) => {
   if (!isOpen) return null;
 
-  // 하위 카테고리만 선택 가능하도록 필터링 (최상위이면서 자식이 있는 경우는 선택 불가)
   const selectableCategories = categories.filter(c => c.parentId !== null || !categories.some(child => child.parentId === c.id));
   const currentType = formData.accountType || 'Type1';
 
@@ -211,12 +213,21 @@ const AccountModal = ({ isOpen, onClose, formData, setFormData, onSubmit, isEdit
             </select>
           </div>
 
+          {/* [추가] 서비스 태그 색상 설정용 팔레트 */}
           <div>
-            <label className="text-xs font-medium text-gray-500 mb-1 block">계정 타이틀</label>
-            <input required value={formData.title} onChange={e=>setFormData({...formData, title: e.target.value})} className="w-full bg-gray-50 border border-gray-200 text-sm rounded-lg px-3 py-2 outline-none focus:border-gray-400 shadow-sm transition-colors" placeholder="예: QA TEAM GOOGLE ACCOUNT" />
+            <label className="text-xs font-medium text-gray-500 mb-2 block">서비스 태그 색상</label>
+            <div className="flex flex-wrap gap-2">
+              {TAG_PALETTE.map(c => (
+                <button 
+                  key={c.class} type="button" 
+                  onClick={() => setFormData({...formData, tagColor: c.class})} 
+                  className={`w-6 h-6 rounded-full transition-all border border-gray-100 shadow-sm ${c.picker} ${formData.tagColor === c.class ? 'ring-2 ring-offset-2 ring-gray-800 scale-110 shadow-md' : 'opacity-80 hover:opacity-100 hover:scale-110'}`} 
+                  title={c.name}
+                />
+              ))}
+            </div>
           </div>
 
-          {/* 타입별 동적 입력 필드 (상단부) */}
           {currentType === 'Type1' && (
             <div className="grid grid-cols-2 gap-4">
               <div>
@@ -298,14 +309,13 @@ export const AccountsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
   const [activeCategoryId, setActiveCategoryId] = useState(null); 
   const [searchInput, setSearchInput] = useState('');
   
-  // 모달 상태 관리
   const [accountModal, setAccountModal] = useState({ isOpen: false, isEdit: false });
-  const [accountFormData, setAccountFormData] = useState({ id: '', categoryId: '', accountType: 'Type1', service: '', title: '', loginId: '', password: '', owner: '', admin: '', memo: '', aptName: '', moduleName: '', siteUrl: '' });
+  // [수정] formData 초기 상태에서 title 제거 및 tagColor 기본값 설정
+  const [accountFormData, setAccountFormData] = useState({ id: '', categoryId: '', accountType: 'Type1', service: '', loginId: '', password: '', owner: '', admin: '', memo: '', aptName: '', moduleName: '', siteUrl: '', tagColor: TAG_PALETTE[0].class });
 
   const [categoryModal, setCategoryModal] = useState({ isOpen: false, isEdit: false });
   const [categoryFormData, setCategoryFormData] = useState({ id: '', name: '', order: 1, parentId: null, isOpen: false });
 
-  // Firebase 초기화 및 구독
   useEffect(() => {
     const categoriesRef = collection(db, 'qa_account_categories');
     const unsubscribeCats = onSnapshot(categoriesRef, (snapshot) => {
@@ -317,7 +327,6 @@ export const AccountsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
         };
         seedData();
       } else {
-        // [수정] id 통일: doc.id를 객체의 고유 id로 직접 사용합니다.
         setCategories(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })).sort((a, b) => a.order - b.order));
       }
     });
@@ -342,7 +351,6 @@ export const AccountsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
     };
   }, []);
 
-  // 핸들러: 카테고리
   const toggleCategory = async (id, currentState) => {
     try { await updateDoc(doc(db, 'qa_account_categories', id), { isOpen: !currentState }); } 
     catch (err) { console.error("Error toggling category", err); }
@@ -364,7 +372,6 @@ export const AccountsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
     } catch(err) { console.error("Error deleting category", err); }
   };
 
-  // 핸들러: 계정
   const handleAccountSubmit = async (data) => {
     try {
       const { id, ...saveData } = data; 
@@ -381,10 +388,8 @@ export const AccountsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
     } catch(err) { console.error("Error deleting account", err); }
   };
 
-  // 트리 구조 렌더링을 위한 최상위 카테고리
   const rootCategories = categories.filter(c => c.parentId === null);
 
-  // 검색 및 필터링
   const filteredAccounts = accounts.filter(acc => {
     if (activeCategoryId) {
       const childCats = categories.filter(c => c.parentId === activeCategoryId).map(c => c.id);
@@ -392,13 +397,13 @@ export const AccountsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
     }
     if (searchInput) {
       const term = searchInput.toLowerCase();
-      const inTitle = acc.title?.toLowerCase().includes(term);
+      // [수정] title 검색 기능 삭제
       const inId = acc.loginId?.toLowerCase().includes(term);
       const inOwner = acc.owner?.toLowerCase().includes(term);
       const inService = acc.service?.toLowerCase().includes(term);
       const inApt = acc.aptName?.toLowerCase().includes(term);
       const inModule = acc.moduleName?.toLowerCase().includes(term);
-      if (!inTitle && !inId && !inOwner && !inService && !inApt && !inModule) return false;
+      if (!inId && !inOwner && !inService && !inApt && !inModule) return false;
     }
     return true;
   });
@@ -513,12 +518,13 @@ export const AccountsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
               <div className="flex items-center space-x-3">
                 <div className="flex items-center bg-white border border-gray-200 rounded-lg px-3 py-1.5 transition-colors focus-within:border-gray-400 shadow-sm h-10 w-64">
                   <Search className="w-4 h-4 text-gray-400 mr-2 shrink-0" />
-                  <input type="text" placeholder="검색..." value={searchInput} onChange={e=>setSearchInput(e.target.value)} className="text-sm bg-transparent outline-none w-full placeholder:text-gray-400 text-gray-700" />
+                  {/* [수정] 타이틀 검색을 제외하여 placeholder 안내 문구 수정 */}
+                  <input type="text" placeholder="서비스, ID 검색..." value={searchInput} onChange={e=>setSearchInput(e.target.value)} className="text-sm bg-transparent outline-none w-full placeholder:text-gray-400 text-gray-700" />
                   {searchInput && (
                     <button onClick={() => setSearchInput('')} className="p-0.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors"><X className="w-3 h-3" /></button>
                   )}
                 </div>
-                <button onClick={() => { setAccountFormData({ id: '', categoryId: activeCategoryId && activeCategoryId !== 'cat_common' ? activeCategoryId : '', accountType: 'Type1', service: '', title: '', loginId: '', password: '', owner: '', admin: '', memo: '', aptName: '', moduleName: '', siteUrl: '' }); setAccountModal({isOpen: true, isEdit: false}); }} className="bg-gray-800 text-white text-sm font-semibold px-4 py-2 rounded-lg hover:bg-gray-900 transition-colors shadow-md flex items-center h-10">
+                <button onClick={() => { setAccountFormData({ id: '', categoryId: activeCategoryId && activeCategoryId !== 'cat_common' ? activeCategoryId : '', accountType: 'Type1', service: '', loginId: '', password: '', owner: '', admin: '', memo: '', aptName: '', moduleName: '', siteUrl: '', tagColor: TAG_PALETTE[0].class }); setAccountModal({isOpen: true, isEdit: false}); }} className="bg-gray-800 text-white text-sm font-semibold px-4 py-2 rounded-lg hover:bg-gray-900 transition-colors shadow-md flex items-center h-10">
                   <Plus className="w-4 h-4 mr-1.5" /> 계정 등록
                 </button>
               </div>
@@ -558,10 +564,10 @@ export const AccountsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
                               
                               <div className="flex items-start justify-between mb-3 pr-16">
                                 <div className="flex items-center space-x-2">
-                                  {type === 'Type1' && <ServiceBadge service={acc.service || 'Default'} />}
-                                  {type === 'Type2' && <ServiceBadge service="APT" />}
-                                  {type === 'Type3' && <ServiceBadge service="WEB" />}
-                                  <h5 className="font-bold text-gray-800 text-[15px] tracking-tight">{acc.title}</h5>
+                                  {/* [수정] title 제거 및 색상 반영 처리된 배지 하나만 렌더링되게 변경 */}
+                                  {type === 'Type1' && <ServiceBadge service={acc.service || 'Default'} colorClass={acc.tagColor} />}
+                                  {type === 'Type2' && <ServiceBadge service="APT" colorClass={acc.tagColor} />}
+                                  {type === 'Type3' && <ServiceBadge service="WEB" colorClass={acc.tagColor} />}
                                 </div>
                                 {acc.memo && <span className="text-[11px] font-medium text-gray-500 bg-gray-50 px-2 py-1 rounded-md border border-gray-100 max-w-[200px] truncate" title={acc.memo}>{acc.memo}</span>}
                               </div>
