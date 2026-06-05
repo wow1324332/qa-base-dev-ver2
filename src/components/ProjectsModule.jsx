@@ -333,11 +333,12 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
 
   const filteredEpics = epics.filter(e => e.spaceKey === activeSpace);
 
+  // [수정] 통계 및 데이터 처리 배열을 모두 useMemo로 감싸 불필요한 재계산(화면 멈춤) 완벽 방지
   const totalIssues = issues.length;
-  const statusCounts = issues.reduce((acc, cur) => { acc[cur.status] = (acc[cur.status] || 0) + 1; return acc; }, {});
-  const platformCounts = issues.reduce((acc, cur) => { acc[cur.component] = (acc[cur.component] || 0) + 1; return acc; }, {});
-  const reporterCounts = issues.reduce((acc, cur) => { acc[cur.reporter] = (acc[cur.reporter] || 0) + 1; return acc; }, {});
-  const priorityCounts = issues.reduce((acc, cur) => { acc[cur.priority] = (acc[cur.priority] || 0) + 1; return acc; }, {});
+  const statusCounts = React.useMemo(() => issues.reduce((acc, cur) => { acc[cur.status] = (acc[cur.status] || 0) + 1; return acc; }, {}), [issues]);
+  const platformCounts = React.useMemo(() => issues.reduce((acc, cur) => { acc[cur.component] = (acc[cur.component] || 0) + 1; return acc; }, {}), [issues]);
+  const reporterCounts = React.useMemo(() => issues.reduce((acc, cur) => { acc[cur.reporter] = (acc[cur.reporter] || 0) + 1; return acc; }, {}), [issues]);
+  const priorityCounts = React.useMemo(() => issues.reduce((acc, cur) => { acc[cur.priority] = (acc[cur.priority] || 0) + 1; return acc; }, {}), [issues]);
 
   const statusColorMap = {
     'QA 완료': 'bg-green-500', 'Closed': 'bg-green-500', '완료': 'bg-green-500', 'Resolved': 'bg-green-500',
@@ -349,13 +350,14 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
   const platformColorMap = { 'Android': 'bg-green-400', 'iOS': 'bg-gray-800', 'Backend': 'bg-orange-500', 'Web': 'bg-blue-400' };
   const priorityColorMap = { 'Critical': 'bg-red-600', 'High': 'bg-orange-500', 'Medium': 'bg-yellow-500', 'Low': 'bg-blue-400' };
 
-  const resolvedIssues = issues.filter(i => {
+  const resolvedIssues = React.useMemo(() => issues.filter(i => {
     if (isType2) return i.status.includes('종료') || i.status.includes('Closed');
     return i.status.includes('완료') || i.status.includes('Closed');
-  }).length;
+  }).length, [issues, isType2]);
+  
   const progressPercent = totalIssues === 0 ? 0 : Math.round((resolvedIssues / totalIssues) * 100);
 
-  const currentEpicData = epics.find(e => e.epicKey === activeEpic);
+  const currentEpicData = React.useMemo(() => epics.find(e => e.epicKey === activeEpic), [epics, activeEpic]);
   const displayProgress = loading ? (currentEpicData?.progress || 0) : progressPercent;
 
   const getPriorityIcon = (priority) => {
@@ -375,30 +377,32 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
     return 'bg-gray-100 text-gray-600 border-gray-200';
   };
 
-  // [수정] 보고자(Reporter) 필터가 전역으로 동작하도록 로직 수정
-  const filteredIssues = issues.filter(issue => {
-    if (filterStatus !== 'All' && issue.status !== filterStatus) return false;
-    if (filterPriority !== 'All' && issue.priority !== filterPriority) return false;
-    if (filterReporter !== 'All' && issue.reporter !== filterReporter) return false; // 모든 타입에서 동작
-    
-    if (!isType2) {
-      if (filterPlatform !== 'All' && issue.component !== filterPlatform) return false;
-    }
-    
-    if (searchSummary) {
-      const term = searchSummary.toLowerCase();
-      const inSummary = issue.summary?.toLowerCase().includes(term);
-      const targetDesc = isType2 ? issue.issueContent : issue.description;
-      const inDesc = targetDesc?.toLowerCase().includes(term);
-      if (!inSummary && !inDesc) return false;
-    }
-    return true;
-  });
+  // [수정] 대량의 배열 계산식을 useMemo로 감싸, 사이드 패널 등을 열고 닫을 때 배열의 참조 주소가 바뀌어 전체 리스트가 강제 재렌더링되는 현상(렉) 완벽히 차단
+  const filteredIssues = React.useMemo(() => {
+    return issues.filter(issue => {
+      if (filterStatus !== 'All' && issue.status !== filterStatus) return false;
+      if (filterPriority !== 'All' && issue.priority !== filterPriority) return false;
+      if (filterReporter !== 'All' && issue.reporter !== filterReporter) return false; 
+      
+      if (!isType2) {
+        if (filterPlatform !== 'All' && issue.component !== filterPlatform) return false;
+      }
+      
+      if (searchSummary) {
+        const term = searchSummary.toLowerCase();
+        const inSummary = issue.summary?.toLowerCase().includes(term);
+        const targetDesc = isType2 ? issue.issueContent : issue.description;
+        const inDesc = targetDesc?.toLowerCase().includes(term);
+        if (!inSummary && !inDesc) return false;
+      }
+      return true;
+    });
+  }, [issues, filterStatus, filterPriority, filterReporter, filterPlatform, isType2, searchSummary]);
 
-  const statusOptions = [{value: 'All', label: '상태 전체'}, ...Array.from(new Set(issues.map(i => i.status))).filter(Boolean).map(s => ({value: s, label: s}))];
-  const platformOptions = [{value: 'All', label: '플랫폼 전체'}, ...Array.from(new Set(issues.map(i => i.component))).filter(Boolean).map(p => ({value: p, label: p}))];
-  const reporterOptions = [{value: 'All', label: '보고자 전체'}, ...Array.from(new Set(issues.map(i => i.reporter))).filter(Boolean).map(p => ({value: p, label: p}))];
-  const priorityOptions = [{value: 'All', label: '우선순위 전체'}, ...Array.from(new Set(issues.map(i => i.priority))).filter(Boolean).map(p => ({value: p, label: p}))];
+  const statusOptions = React.useMemo(() => [{value: 'All', label: '상태 전체'}, ...Array.from(new Set(issues.map(i => i.status))).filter(Boolean).map(s => ({value: s, label: s}))], [issues]);
+  const platformOptions = React.useMemo(() => [{value: 'All', label: '플랫폼 전체'}, ...Array.from(new Set(issues.map(i => i.component))).filter(Boolean).map(p => ({value: p, label: p}))], [issues]);
+  const reporterOptions = React.useMemo(() => [{value: 'All', label: '보고자 전체'}, ...Array.from(new Set(issues.map(i => i.reporter))).filter(Boolean).map(p => ({value: p, label: p}))], [issues]);
+  const priorityOptions = React.useMemo(() => [{value: 'All', label: '우선순위 전체'}, ...Array.from(new Set(issues.map(i => i.priority))).filter(Boolean).map(p => ({value: p, label: p}))], [issues]);
 
   const handleTooltip = React.useCallback((e, text) => {
     const textSpan = e.currentTarget.querySelector('.truncate-summary');
