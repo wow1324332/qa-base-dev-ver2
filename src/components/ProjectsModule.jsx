@@ -294,12 +294,6 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
     }
   }, [issues, activeEpic, loading, epics, isType2]);
 
-  const handleOpenJiraIssue = (issueKey) => {
-    if (jiraDomain && issueKey) {
-      window.open(`https://${jiraDomain}/browse/${issueKey}`, '_blank');
-    }
-  };
-
   const handleSpaceSubmit = async (data) => {
     try {
       const { id, ...saveData } = data;
@@ -782,14 +776,29 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
                   </div>
 
                   <div className="flex-1 bg-white rounded-b-2xl border border-gray-200 shadow-md overflow-hidden flex flex-col relative z-0">
-                    <div className="overflow-y-auto no-scrollbar flex-1 relative">
-                      <table className="w-full text-left border-collapse relative">
-                        <thead className="sticky top-0 bg-gray-50/95 backdrop-blur z-10 shadow-sm">
-                          <tr>
-                            {isType2 ? (
-                              <>
-                                <th className="px-5 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider">Key</th>
-                                <th className="px-5 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider">생성일</th>
+                <div className="overflow-y-auto no-scrollbar flex-1 relative">
+                  <table className="w-full text-left border-collapse relative">
+                    <thead className="sticky top-0 bg-gray-50/95 backdrop-blur z-10 shadow-sm">
+                      <tr>
+                        {isType2 ? (
+                          <>
+                            <th className="px-5 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider">Key</th>
+                            <th className="px-5 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider">생성일</th>
+                            <th className="px-5 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider w-1/3">요약 (Summary)</th>
+                            <th className="px-5 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider">우선순위</th>
+                            <th className="px-5 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider">상태</th>
+                            <th className="px-5 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider">보고자</th>
+                          </>
+                        ) : (
+                          <>
+                            <th className="px-5 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider">Key</th>
+                            <th className="px-5 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider">상태</th>
+                            <th className="px-5 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider">우선순위</th>
+                            <th className="px-5 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider">현상분류</th>
+                            <th className="px-5 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider w-1/3">요약 (Summary)</th>
+                            <th className="px-5 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider">플랫폼</th>
+                            <th className="px-5 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider">담당/보고</th>
+                            <th className="px-5 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider">생성일</th>
                           </>
                         )}
                       </tr>
@@ -801,8 +810,8 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
                 </div>
 
                 {selectedIssue && (
-                      <div className="absolute inset-y-0 right-0 w-[420px] bg-white shadow-[-20px_0_40px_rgba(0,0,0,0.08)] border-l border-gray-200 z-50 flex flex-col animate-fast-fade">
-                        <div className="flex justify-between items-center px-6 py-5 border-b border-gray-100 bg-gray-50/50 shrink-0">
+                  <div className="absolute inset-y-0 right-0 w-[420px] bg-white shadow-[-20px_0_40px_rgba(0,0,0,0.08)] border-l border-gray-200 z-50 flex flex-col animate-fast-fade">
+                    <div className="flex justify-between items-center px-6 py-5 border-b border-gray-100 bg-gray-50/50 shrink-0">
                           <h3 className="text-lg font-bold text-gray-800 flex items-center">
                             이슈 상세 정보
                           </h3>
