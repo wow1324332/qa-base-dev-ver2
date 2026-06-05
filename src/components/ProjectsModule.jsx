@@ -381,11 +381,10 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
     return 'bg-gray-100 text-gray-600 border-gray-200';
   };
 
-  // [수정] 보고자(Reporter) 필터가 전역으로 동작하도록 로직 수정
   const filteredIssues = issues.filter(issue => {
     if (filterStatus !== 'All' && issue.status !== filterStatus) return false;
     if (filterPriority !== 'All' && issue.priority !== filterPriority) return false;
-    if (filterReporter !== 'All' && issue.reporter !== filterReporter) return false; // 모든 타입에서 동작
+    if (filterReporter !== 'All' && issue.reporter !== filterReporter) return false; 
     
     if (!isType2) {
       if (filterPlatform !== 'All' && issue.component !== filterPlatform) return false;
@@ -437,7 +436,6 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
     );
   };
 
-  // [수정] 보고자 필터가 항상 리셋 조건에 포함되도록 반영
   const hasFilters = filterStatus !== 'All' || filterPriority !== 'All' || filterReporter !== 'All' || searchInput || (!isType2 && filterPlatform !== 'All');
 
   return (
@@ -449,7 +447,10 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
         </div>
         <div className="flex items-center space-x-4">
           <div className="flex items-center space-x-2 bg-gray-50 px-3 py-1.5 rounded-full border border-gray-200 shadow-sm hover-breath cursor-default">
-            <div className="w-6 h-6 rounded-full bg-gray-800 flex items-center justify-center text-white text-[10px] font-medium">{user?.name?.charAt(0) || 'U'}</div>
+            {/* [수정됨] 프로필 이미지가 등록되어 있으면 이미지를, 없으면 이니셜을 보여주도록 핀셋 적용 (overflow-hidden 추가) */}
+            <div className="w-6 h-6 rounded-full bg-gray-800 flex items-center justify-center text-white text-[10px] font-medium overflow-hidden">
+              {user?.profileImage ? <img src={user.profileImage} alt="profile" className="w-full h-full object-cover" /> : user?.name?.charAt(0) || 'U'}
+            </div>
             <span className="text-xs font-medium text-gray-700">{user?.name || 'User'}</span>
           </div>
           <div className="h-4 w-px bg-gray-200"></div>
@@ -460,7 +461,7 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
 
       <div 
         className="flex flex-1 overflow-hidden relative bg-[#f0f2f5] bg-cover bg-center bg-no-repeat"
-        style={{ backgroundImage: "url('/bg-projects.png')" }}
+        style={{ backgroundImage: "url('/bg-projects.jpg')" }}
       >
         <aside className={`bg-white border-r border-gray-100 transition-all duration-300 ease-in-out flex flex-col z-10 overflow-hidden whitespace-nowrap ${sidebarOpen ? 'w-64 translate-x-0' : 'w-0 -translate-x-full'}`}>
           <div className="p-4 space-y-1 w-64">
@@ -645,7 +646,6 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
                         <div className="w-px h-4 bg-gray-200 mx-1"></div>
                       </>
                     )}
-                    {/* [수정] 보고자(Reporter) 셀렉터가 모든 타입의 스페이스에 항상 노출되도록 추가 */}
                     <CustomSelect value={filterReporter} onChange={setFilterReporter} options={reporterOptions} className="bg-transparent text-xs font-medium text-gray-700 outline-none w-32 hover:bg-gray-50 rounded-md transition-colors" />
                     <div className="w-px h-4 bg-gray-200 mx-1"></div>
                     <CustomSelect value={filterPriority} onChange={setFilterPriority} options={priorityOptions} className="bg-transparent text-xs font-medium text-gray-700 outline-none w-32 hover:bg-gray-50 rounded-md transition-colors" />
