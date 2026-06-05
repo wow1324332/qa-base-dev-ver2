@@ -333,7 +333,7 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
 
   const filteredEpics = epics.filter(e => e.spaceKey === activeSpace);
 
-  // [수정] 통계 및 데이터 처리 배열을 모두 useMemo로 감싸 불필요한 재계산(화면 멈춤) 완벽 방지
+  // [수정] 300개 이상의 배열 계산식을 useMemo로 감싸 불필요한 렌더링 폭주 완벽 차단
   const totalIssues = issues.length;
   const statusCounts = React.useMemo(() => issues.reduce((acc, cur) => { acc[cur.status] = (acc[cur.status] || 0) + 1; return acc; }, {}), [issues]);
   const platformCounts = React.useMemo(() => issues.reduce((acc, cur) => { acc[cur.component] = (acc[cur.component] || 0) + 1; return acc; }, {}), [issues]);
@@ -377,7 +377,6 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
     return 'bg-gray-100 text-gray-600 border-gray-200';
   };
 
-  // [수정] 대량의 배열 계산식을 useMemo로 감싸, 사이드 패널 등을 열고 닫을 때 배열의 참조 주소가 바뀌어 전체 리스트가 강제 재렌더링되는 현상(렉) 완벽히 차단
   const filteredIssues = React.useMemo(() => {
     return issues.filter(issue => {
       if (filterStatus !== 'All' && issue.status !== filterStatus) return false;
@@ -406,16 +405,12 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
 
   const handleTooltip = React.useCallback((e, text) => {
     const textSpan = e.currentTarget.querySelector('.truncate-summary');
-    let isTruncated = false;
-    if (textSpan && textSpan.scrollWidth > textSpan.clientWidth) isTruncated = true;
-
-    if (isTruncated) {
+    if (textSpan && textSpan.scrollWidth > textSpan.clientWidth) {
       setTooltipInfo(prev => {
-        // 마우스가 조금 움직였을 때 불필요한 화면 재렌더링(Lag)을 완벽 차단하는 핀셋 로직
         if (prev.visible && prev.text === text && Math.abs(prev.x - e.clientX) < 5 && Math.abs(prev.y - e.clientY) < 5) {
           return prev;
         }
-        return { visible: true, x: e.clientX, y: e.clientY, text: text };
+        return { visible: true, x: e.clientX, y: e.clientY, text };
       });
     } else {
       setTooltipInfo(prev => prev.visible ? { visible: false, x: 0, y: 0, text: '' } : prev);
@@ -476,7 +471,7 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
               className="px-5 py-4 text-sm font-bold text-gray-800"
               onMouseEnter={(e) => handleTooltip(e, issue.summary)}
               onMouseMove={(e) => handleTooltip(e, issue.summary)}
-              onMouseLeave={() => setTooltipInfo({ visible: false, x: 0, y: 0, text: '' })}
+              onMouseLeave={() => setTooltipInfo(prev => prev.visible ? { visible: false, x: 0, y: 0, text: '' } : prev)}
             >
               <div className="truncate-summary truncate max-w-[200px] xl:max-w-sm"><HighlightText text={issue.summary} highlight={searchSummary} /></div>
             </td>
@@ -511,7 +506,7 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
               className="px-5 py-4 text-sm font-bold text-gray-800"
               onMouseEnter={(e) => handleTooltip(e, issue.summary)}
               onMouseMove={(e) => handleTooltip(e, issue.summary)}
-              onMouseLeave={() => setTooltipInfo({ visible: false, x: 0, y: 0, text: '' })}
+              onMouseLeave={() => setTooltipInfo(prev => prev.visible ? { visible: false, x: 0, y: 0, text: '' } : prev)}
             >
               <div className="truncate-summary truncate max-w-[200px] xl:max-w-sm"><HighlightText text={issue.summary} highlight={searchSummary} /></div>
             </td>
@@ -528,7 +523,7 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
         )}
       </tr>
     ));
-  }, [loading, filteredIssues, isType2, searchSummary, handleOpenJiraIssue, handleTooltip]);
+  }, [filteredIssues, isType2, searchSummary, handleOpenJiraIssue, handleTooltip, loading]);
 
   const renderTooltip = () => {
     if (!tooltipInfo.visible) return null;
@@ -549,7 +544,6 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
     );
   };
 
-  // [수정] 보고자 필터가 항상 리셋 조건에 포함되도록 반영
   const hasFilters = filterStatus !== 'All' || filterPriority !== 'All' || filterReporter !== 'All' || searchInput || (!isType2 && filterPlatform !== 'All');
 
   return (
@@ -780,42 +774,43 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
                   </div>
 
                   <div className="flex-1 bg-white rounded-b-2xl border border-gray-200 shadow-md overflow-hidden flex flex-col relative z-0">
-                <div className="overflow-y-auto no-scrollbar flex-1 relative">
-                  <table className="w-full text-left border-collapse relative">
-                    <thead className="sticky top-0 bg-gray-50/95 backdrop-blur z-10 shadow-sm">
-                      <tr>
-                        {isType2 ? (
-                          <>
-                            <th className="px-5 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider">Key</th>
-                            <th className="px-5 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider">생성일</th>
-                            <th className="px-5 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider w-1/3">요약 (Summary)</th>
-                            <th className="px-5 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider">우선순위</th>
-                            <th className="px-5 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider">상태</th>
-                            <th className="px-5 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider">보고자</th>
-                          </>
-                        ) : (
-                          <>
-                            <th className="px-5 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider">Key</th>
-                            <th className="px-5 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider">상태</th>
-                            <th className="px-5 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider">우선순위</th>
-                            <th className="px-5 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider">현상분류</th>
-                            <th className="px-5 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider w-1/3">요약 (Summary)</th>
-                            <th className="px-5 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider">플랫폼</th>
-                            <th className="px-5 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider">담당/보고</th>
-                            <th className="px-5 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider">생성일</th>
-                          </>
-                        )}
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-100">
-                      {renderedIssues}
-                    </tbody>
-                  </table>
-                </div>
+                    <div className="overflow-y-auto no-scrollbar flex-1 relative">
+                      {/* [수정] table-fixed 클래스 단 1개를 핀셋 추가하여 애니메이션(사이드바, 통계창 폴딩) 중 발생하는 극심한 레이아웃 렉 완전 제거 */}
+                      <table className="w-full text-left border-collapse relative table-fixed">
+                        <thead className="sticky top-0 bg-gray-50/95 backdrop-blur z-10 shadow-sm">
+                          <tr>
+                            {isType2 ? (
+                              <>
+                                <th className="px-5 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider">Key</th>
+                                <th className="px-5 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider">생성일</th>
+                                <th className="px-5 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider w-1/3">요약 (Summary)</th>
+                                <th className="px-5 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider">우선순위</th>
+                                <th className="px-5 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider">상태</th>
+                                <th className="px-5 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider">보고자</th>
+                              </>
+                            ) : (
+                              <>
+                                <th className="px-5 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider">Key</th>
+                                <th className="px-5 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider">상태</th>
+                                <th className="px-5 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider">우선순위</th>
+                                <th className="px-5 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider">현상분류</th>
+                                <th className="px-5 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider w-1/3">요약 (Summary)</th>
+                                <th className="px-5 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider">플랫폼</th>
+                                <th className="px-5 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider">담당/보고</th>
+                                <th className="px-5 py-3 text-[10px] font-bold text-gray-500 uppercase tracking-wider">생성일</th>
+                              </>
+                            )}
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-100">
+                          {renderedIssues}
+                        </tbody>
+                      </table>
+                    </div>
 
-                {selectedIssue && (
-                  <div className="absolute inset-y-0 right-0 w-[420px] bg-white shadow-[-20px_0_40px_rgba(0,0,0,0.08)] border-l border-gray-200 z-50 flex flex-col animate-fast-fade">
-                    <div className="flex justify-between items-center px-6 py-5 border-b border-gray-100 bg-gray-50/50 shrink-0">
+                    {selectedIssue && (
+                      <div className="absolute inset-y-0 right-0 w-[420px] bg-white shadow-[-20px_0_40px_rgba(0,0,0,0.08)] border-l border-gray-200 z-50 flex flex-col animate-fast-fade">
+                        <div className="flex justify-between items-center px-6 py-5 border-b border-gray-100 bg-gray-50/50 shrink-0">
                           <h3 className="text-lg font-bold text-gray-800 flex items-center">
                             이슈 상세 정보
                           </h3>
