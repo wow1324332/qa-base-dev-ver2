@@ -427,9 +427,9 @@ export const AccountsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
   });
 
   const getDisplayTitle = () => {
-    if (!activeCategoryId) return "계정 금고 (Accounts Vault)";
+    if (!activeCategoryId) return "Accounts";
     const activeCat = categories.find(c => c.id === activeCategoryId);
-    if (!activeCat) return "계정 금고 (Accounts Vault)";
+    if (!activeCat) return "Accounts";
     if (activeCat.parentId) {
       const parentCat = categories.find(c => c.id === activeCat.parentId);
       return parentCat ? `${parentCat.name} > ${activeCat.name}` : activeCat.name;
@@ -442,14 +442,14 @@ export const AccountsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
     return (
       <div className="w-screen h-screen bg-[#f8f9fa] flex flex-col items-center justify-center animate-fade-in relative">
         <button onClick={() => onNavigate('board')} className="absolute top-6 left-6 flex items-center text-gray-500 hover:text-gray-900 transition-colors font-medium">
-          <ChevronLeft className="w-5 h-5 mr-1" /> 기능 보드로 돌아가기
+          <ChevronLeft className="w-5 h-5 mr-1" /> Functional Board
         </button>
         <div className="bg-white p-8 rounded-3xl shadow-xl border border-gray-100 flex flex-col items-center w-[340px]">
           <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mb-4">
             <KeyRound className="w-8 h-8 text-blue-600" />
           </div>
           <h2 className="text-xl font-bold text-gray-800 mb-2">보안 PIN 입력</h2>
-          <p className="text-xs text-gray-500 mb-6 text-center">계정 금고 열람을 위해<br/>PIN 번호(1324)를 입력해주세요.</p>
+          <p className="text-xs text-gray-500 mb-6 text-center">계정 금고 열람을 위해<br/>PIN 번호를 입력해주세요.</p>
           
           <div className="flex space-x-4 mb-6 h-4">
             {[0, 1, 2, 3].map(i => (
@@ -498,7 +498,7 @@ export const AccountsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
             <div className="text-[10px] font-bold text-gray-400 tracking-wider mb-4 px-3 mt-2 uppercase">Menu</div>
             <button onClick={() => onNavigate('board')} className="w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-gray-500 hover:bg-gray-50 hover:text-gray-900 transition-colors mb-2">
               <LayoutDashboard className="w-4 h-4" />
-              <span className="text-sm font-medium">기능 보드 이동</span>
+              <span className="text-sm font-medium">Functional Board</span>
             </button>
             
             <div className="h-px bg-gray-100 my-2 mx-3"></div>
@@ -523,7 +523,7 @@ export const AccountsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
                 className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors text-left ${activeCategoryId === null ? 'bg-blue-50 text-blue-700 font-bold' : 'text-gray-600 hover:bg-gray-50'}`}
               >
                 <Folder className="w-4 h-4 shrink-0" />
-                <span className="text-sm">전체 계정 보기</span>
+                <span className="text-sm">All Acounts</span>
               </button>
 
               {rootCategories.map(rootCat => (
