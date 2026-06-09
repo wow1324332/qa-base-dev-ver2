@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   KeyRound, Shield, Eye, EyeOff, Copy, Check, 
-  ChevronRight, ChevronDown, MonitorSmartphone,
+  ChevronRight, ChevronDown, ChevronLeft, MonitorSmartphone,
   LogOut, Power, Plus, Search, X, Edit, Trash2, Folder,
   LayoutDashboard, User
 } from 'lucide-react';
@@ -10,12 +10,12 @@ import { getFirestore, collection, onSnapshot, doc, updateDoc, addDoc, deleteDoc
 
 // Firebase 설정
 const firebaseConfig = {
-  apiKey: "AIzaSyATKKSrUm6NKATdZdJeDxhQ5Dj2Q32ujh0",
-  authDomain: "q-base-dev.firebaseapp.com",
-  projectId: "q-base-dev",
-  storageBucket: "q-base-dev.firebasestorage.app",
-  messagingSenderId: "756427289812",
-  appId: "1:756427289812:web:217c6ebb1bfbd1d931f741"
+  apiKey: "AIzaSyBIsBcW0eBceMAJdhGsKmdNew7vvMPbwB4",
+  authDomain: "qa-base-prd.firebaseapp.com",
+  projectId: "qa-base-prd",
+  storageBucket: "qa-base-prd.firebasestorage.app",
+  messagingSenderId: "138324755275",
+  appId: "1:138324755275:web:ead26c4202fad8c0885ece"
 };
 
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
@@ -300,6 +300,12 @@ const AccountModal = ({ isOpen, onClose, formData, setFormData, onSubmit, isEdit
 };
 
 export const AccountsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
+  // [추가] 뷰어 모드 및 핀 번호 검증 상태
+  const isViewer = user?.role === 'viewer';
+  const [isPinVerified, setIsPinVerified] = useState(!isViewer);
+  const [pinInput, setPinInput] = useState('');
+  const [pinError, setPinError] = useState(false);
+
   const [categories, setCategories] = useState([]);
   const [accounts, setAccounts] = useState([]);
   
@@ -311,6 +317,23 @@ export const AccountsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
 
   const [categoryModal, setCategoryModal] = useState({ isOpen: false, isEdit: false });
   const [categoryFormData, setCategoryFormData] = useState({ id: '', name: '', order: 1, parentId: null, isOpen: false });
+
+  // [추가] 핀 번호 입력 핸들러 로직 (1324)
+  const handlePinClick = (num) => {
+    if (pinInput.length < 4) {
+      const newPin = pinInput + num;
+      setPinInput(newPin);
+      setPinError(false);
+      if (newPin.length === 4) {
+        if (newPin === '1324') {
+          setTimeout(() => setIsPinVerified(true), 200);
+        } else {
+          setPinError(true);
+          setTimeout(() => setPinInput(''), 500);
+        }
+      }
+    }
+  };
 
   useEffect(() => {
     const categoriesRef = collection(db, 'qa_account_categories');
@@ -403,7 +426,6 @@ export const AccountsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
     return true;
   });
 
-  // [추가] 동적으로 타이틀을 렌더링하는 함수
   const getDisplayTitle = () => {
     if (!activeCategoryId) return "계정 금고 (Accounts Vault)";
     const activeCat = categories.find(c => c.id === activeCategoryId);
@@ -414,6 +436,43 @@ export const AccountsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
     }
     return activeCat.name;
   };
+
+  // [추가] 핀 번호 인증이 안 된 뷰어 사용자를 위한 핀 패드 렌더링
+  if (!isPinVerified) {
+    return (
+      <div className="w-screen h-screen bg-[#f8f9fa] flex flex-col items-center justify-center animate-fade-in relative">
+        <button onClick={() => onNavigate('board')} className="absolute top-6 left-6 flex items-center text-gray-500 hover:text-gray-900 transition-colors font-medium">
+          <ChevronLeft className="w-5 h-5 mr-1" /> 기능 보드로 돌아가기
+        </button>
+        <div className="bg-white p-8 rounded-3xl shadow-xl border border-gray-100 flex flex-col items-center w-[340px]">
+          <div className="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mb-4">
+            <KeyRound className="w-8 h-8 text-blue-600" />
+          </div>
+          <h2 className="text-xl font-bold text-gray-800 mb-2">보안 PIN 입력</h2>
+          <p className="text-xs text-gray-500 mb-6 text-center">계정 금고 열람을 위해<br/>PIN 번호(1324)를 입력해주세요.</p>
+          
+          <div className="flex space-x-4 mb-6 h-4">
+            {[0, 1, 2, 3].map(i => (
+              <div key={i} className={`w-3.5 h-3.5 rounded-full transition-all duration-300 ${pinInput.length > i ? 'bg-blue-600 scale-110' : 'bg-gray-200'}`} />
+            ))}
+          </div>
+
+          <div className="h-4 mb-4">
+            {pinError && <p className="text-xs text-red-500 animate-bounce font-medium">PIN 번호가 일치하지 않습니다.</p>}
+          </div>
+
+          <div className="grid grid-cols-3 gap-3 w-full">
+            {[1, 2, 3, 4, 5, 6, 7, 8, 9].map(num => (
+              <button key={num} onClick={() => handlePinClick(num.toString())} className="h-14 bg-gray-50 hover:bg-gray-100 rounded-2xl text-xl font-bold text-gray-700 transition-colors active:scale-95">{num}</button>
+            ))}
+            <button onClick={() => setPinInput('')} className="h-14 bg-gray-50 hover:bg-gray-100 rounded-2xl text-xs font-bold text-gray-500 transition-colors active:scale-95 uppercase tracking-wider">Clear</button>
+            <button onClick={() => handlePinClick('0')} className="h-14 bg-gray-50 hover:bg-gray-100 rounded-2xl text-xl font-bold text-gray-700 transition-colors active:scale-95">0</button>
+            <button onClick={() => setPinInput(prev => prev.slice(0, -1))} className="h-14 bg-gray-50 hover:bg-gray-100 rounded-2xl flex items-center justify-center text-gray-500 transition-colors active:scale-95"><X className="w-5 h-5"/></button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-screen h-screen bg-[#f8f9fa] flex flex-col overflow-hidden animate-simple-fade">
@@ -446,13 +505,16 @@ export const AccountsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
             
             <div className="text-[10px] font-bold text-blue-500 tracking-wider mb-2 px-3 mt-4 flex items-center justify-between uppercase">
               <div className="flex items-center"><Shield className="w-3 h-3 mr-1.5" /> Vault Folders</div>
-              <button 
-                onClick={() => { setCategoryFormData({ id: '', name: '', order: categories.length + 1, parentId: null, isOpen: true }); setCategoryModal({ isOpen: true, isEdit: false }); }}
-                className="p-1 hover:bg-gray-100 rounded text-gray-500 hover:text-gray-800 transition-colors"
-                title="대분류 추가"
-              >
-                <Plus className="w-3 h-3" />
-              </button>
+              {/* [수정] 뷰어 모드에서는 대분류 추가 버튼 숨김 */}
+              {!isViewer && (
+                <button 
+                  onClick={() => { setCategoryFormData({ id: '', name: '', order: categories.length + 1, parentId: null, isOpen: true }); setCategoryModal({ isOpen: true, isEdit: false }); }}
+                  className="p-1 hover:bg-gray-100 rounded text-gray-500 hover:text-gray-800 transition-colors"
+                  title="대분류 추가"
+                >
+                  <Plus className="w-3 h-3" />
+                </button>
+              )}
             </div>
             
             <div className="flex-1 overflow-y-auto no-scrollbar pr-1">
@@ -476,11 +538,14 @@ export const AccountsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
                       </button>
                       <span className="text-xs font-bold tracking-wide uppercase truncate">{rootCat.name}</span>
                     </div>
-                    <div className="hidden group-hover/cat:flex items-center space-x-0.5 shrink-0">
-                      <button onClick={(e) => { e.stopPropagation(); setCategoryFormData({ id: '', name: '', order: categories.length + 1, parentId: rootCat.id, isOpen: false }); setCategoryModal({ isOpen: true, isEdit: false }); }} className="text-gray-400 hover:text-blue-600 transition-colors bg-white/80 p-0.5 rounded shadow-sm" title="소분류 추가"><Plus className="w-3.5 h-3.5"/></button>
-                      <button onClick={(e) => { e.stopPropagation(); setCategoryFormData(rootCat); setCategoryModal({ isOpen: true, isEdit: true }); }} className="text-gray-400 hover:text-green-600 transition-colors bg-white/80 p-0.5 rounded shadow-sm"><Edit className="w-3.5 h-3.5"/></button>
-                      <button onClick={(e) => { e.stopPropagation(); handleCategoryDelete(rootCat.id); }} className="text-gray-400 hover:text-red-600 transition-colors bg-white/80 p-0.5 rounded shadow-sm"><Trash2 className="w-3.5 h-3.5"/></button>
-                    </div>
+                    {/* [수정] 뷰어 모드에서는 카테고리 설정 동작들 모두 숨김 */}
+                    {!isViewer && (
+                      <div className="hidden group-hover/cat:flex items-center space-x-0.5 shrink-0">
+                        <button onClick={(e) => { e.stopPropagation(); setCategoryFormData({ id: '', name: '', order: categories.length + 1, parentId: rootCat.id, isOpen: false }); setCategoryModal({ isOpen: true, isEdit: false }); }} className="text-gray-400 hover:text-blue-600 transition-colors bg-white/80 p-0.5 rounded shadow-sm" title="소분류 추가"><Plus className="w-3.5 h-3.5"/></button>
+                        <button onClick={(e) => { e.stopPropagation(); setCategoryFormData(rootCat); setCategoryModal({ isOpen: true, isEdit: true }); }} className="text-gray-400 hover:text-green-600 transition-colors bg-white/80 p-0.5 rounded shadow-sm"><Edit className="w-3.5 h-3.5"/></button>
+                        <button onClick={(e) => { e.stopPropagation(); handleCategoryDelete(rootCat.id); }} className="text-gray-400 hover:text-red-600 transition-colors bg-white/80 p-0.5 rounded shadow-sm"><Trash2 className="w-3.5 h-3.5"/></button>
+                      </div>
+                    )}
                   </div>
                   
                   <div className={`overflow-hidden transition-all duration-300 ease-in-out ${rootCat.isOpen ? 'max-h-96 opacity-100 mt-1' : 'max-h-0 opacity-0'}`}>
@@ -494,10 +559,13 @@ export const AccountsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
                           <div className={`w-1.5 h-1.5 rounded-full mr-2 shadow-sm shrink-0 ${activeCategoryId === childCat.id ? 'bg-blue-500' : 'bg-gray-300'}`}></div>
                           <span className="text-xs truncate">{childCat.name}</span>
                         </div>
-                        <div className="hidden group-hover/subcat:flex items-center space-x-0.5 shrink-0">
-                          <button onClick={(e) => { e.stopPropagation(); setCategoryFormData(childCat); setCategoryModal({ isOpen: true, isEdit: true }); }} className="text-gray-400 hover:text-green-600 transition-colors bg-white/80 p-0.5 rounded shadow-sm"><Edit className="w-3.5 h-3.5"/></button>
-                          <button onClick={(e) => { e.stopPropagation(); handleCategoryDelete(childCat.id); }} className="text-gray-400 hover:text-red-600 transition-colors bg-white/80 p-0.5 rounded shadow-sm"><Trash2 className="w-3.5 h-3.5"/></button>
-                        </div>
+                        {/* [수정] 뷰어 모드 제한 */}
+                        {!isViewer && (
+                          <div className="hidden group-hover/subcat:flex items-center space-x-0.5 shrink-0">
+                            <button onClick={(e) => { e.stopPropagation(); setCategoryFormData(childCat); setCategoryModal({ isOpen: true, isEdit: true }); }} className="text-gray-400 hover:text-green-600 transition-colors bg-white/80 p-0.5 rounded shadow-sm"><Edit className="w-3.5 h-3.5"/></button>
+                            <button onClick={(e) => { e.stopPropagation(); handleCategoryDelete(childCat.id); }} className="text-gray-400 hover:text-red-600 transition-colors bg-white/80 p-0.5 rounded shadow-sm"><Trash2 className="w-3.5 h-3.5"/></button>
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>
@@ -513,12 +581,13 @@ export const AccountsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
             <div className="flex justify-between items-end mb-6 shrink-0">
               <div>
                 <div className="flex items-center space-x-3 mb-1">
-                  {/* [수정] 대분류/소분류에 따른 동적 타이틀 함수 적용 */}
                   <h1 className="text-2xl font-bold text-gray-800 flex items-center">
                     {getDisplayTitle()}
                     <span className="ml-3 text-xs bg-gray-200 text-gray-600 px-2.5 py-0.5 rounded-full font-bold shadow-inner">
                       {filteredAccounts.length} 개
                     </span>
+                    {/* [수정] 게스트 뷰어모드 전용 읽기 전용 뱃지 */}
+                    {isViewer && <span className="ml-2 bg-gray-100 text-gray-500 text-[10px] px-2 py-0.5 rounded border border-gray-200 font-semibold uppercase tracking-wider shadow-sm">Read Only</span>}
                   </h1>
                 </div>
                 <p className="text-sm text-gray-500 font-medium">보안이 유지된 테스트용 공용 계정들을 빠르고 쉽게 관리하세요.</p>
@@ -531,9 +600,12 @@ export const AccountsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
                     <button onClick={() => setSearchInput('')} className="p-0.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors"><X className="w-3 h-3" /></button>
                   )}
                 </div>
-                <button onClick={() => { setAccountFormData({ id: '', categoryId: activeCategoryId && activeCategoryId !== 'cat_common' ? activeCategoryId : '', accountType: 'Type1', service: '', loginId: '', password: '', owner: '', admin: '', memo: '', aptName: '', moduleName: '', siteUrl: '', tagColor: TAG_PALETTE[0].class }); setAccountModal({isOpen: true, isEdit: false}); }} className="bg-gray-800 text-white text-sm font-semibold px-4 py-2 rounded-lg hover:bg-gray-900 transition-colors shadow-md flex items-center h-10">
-                  <Plus className="w-4 h-4 mr-1.5" /> 계정 등록
-                </button>
+                {/* [수정] 뷰어 모드에서는 계정 등록 버튼 숨김 */}
+                {!isViewer && (
+                  <button onClick={() => { setAccountFormData({ id: '', categoryId: activeCategoryId && activeCategoryId !== 'cat_common' ? activeCategoryId : '', accountType: 'Type1', service: '', loginId: '', password: '', owner: '', admin: '', memo: '', aptName: '', moduleName: '', siteUrl: '', tagColor: TAG_PALETTE[0].class }); setAccountModal({isOpen: true, isEdit: false}); }} className="bg-gray-800 text-white text-sm font-semibold px-4 py-2 rounded-lg hover:bg-gray-900 transition-colors shadow-md flex items-center h-10">
+                    <Plus className="w-4 h-4 mr-1.5" /> 계정 등록
+                  </button>
+                )}
               </div>
             </div>
 
@@ -563,12 +635,14 @@ export const AccountsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
                           {accs.map(acc => {
                             const type = acc.accountType || 'Type1';
                             return (
-                            // [수정] 카드 외곽선 강화 및 그림자 입체감 보강 (border-gray-200, rounded-2xl, p-5)
                             <div key={acc.id} className="group relative bg-white border border-gray-200 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all duration-300 hover:border-blue-300">
-                              <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity flex space-x-2">
-                                <button onClick={() => { setAccountFormData(acc); setAccountModal({isOpen: true, isEdit: true}); }} className="p-1.5 text-gray-500 bg-white hover:bg-blue-50 hover:text-blue-600 rounded-md border border-gray-200 shadow-sm transition-colors"><Edit className="w-3.5 h-3.5"/></button>
-                                <button onClick={() => { handleAccountDelete(acc.id); }} className="p-1.5 text-gray-500 bg-white hover:bg-red-50 hover:text-red-600 rounded-md border border-gray-200 shadow-sm transition-colors"><Trash2 className="w-3.5 h-3.5"/></button>
-                              </div>
+                              {/* [수정] 뷰어 모드에서는 수정/삭제 버튼 숨김 */}
+                              {!isViewer && (
+                                <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity flex space-x-2">
+                                  <button onClick={() => { setAccountFormData(acc); setAccountModal({isOpen: true, isEdit: true}); }} className="p-1.5 text-gray-500 bg-white hover:bg-blue-50 hover:text-blue-600 rounded-md border border-gray-200 shadow-sm transition-colors"><Edit className="w-3.5 h-3.5"/></button>
+                                  <button onClick={() => { handleAccountDelete(acc.id); }} className="p-1.5 text-gray-500 bg-white hover:bg-red-50 hover:text-red-600 rounded-md border border-gray-200 shadow-sm transition-colors"><Trash2 className="w-3.5 h-3.5"/></button>
+                                </div>
+                              )}
                               
                               <div className="flex items-start justify-between mb-4 pr-16">
                                 <div className="flex items-center space-x-2">
@@ -576,12 +650,11 @@ export const AccountsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
                                   {type === 'Type2' && <ServiceBadge service="APT" colorClass={acc.tagColor} />}
                                   {type === 'Type3' && <ServiceBadge service="WEB" colorClass={acc.tagColor} />}
                                 </div>
-                                {/* [수정] 메모 필드 색 대비 강화 및 크기 조절 */}
                                 {acc.memo && <span className="text-xs font-medium text-gray-600 bg-gray-100 px-3 py-1.5 rounded-lg border border-gray-200 max-w-[250px] truncate shadow-sm" title={acc.memo}>{acc.memo}</span>}
                               </div>
 
-                              {/* [수정] 내부 상세정보 그리드 박스의 음영 및 외곽선 강화 (bg-gray-100/80, shadow-inner, border-gray-200, mt-2) */}
                               <div className="grid grid-cols-12 gap-4 bg-gray-100/80 rounded-xl p-4 border border-gray-200 items-center shadow-inner mt-2">
+                                {/* Type1 렌더링 */}
                                 {type === 'Type1' && (
                                   <>
                                     <div className="col-span-4 flex flex-col">
@@ -608,6 +681,7 @@ export const AccountsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
                                   </>
                                 )}
 
+                                {/* Type2 렌더링 */}
                                 {type === 'Type2' && (
                                   <>
                                     <div className="col-span-3 flex flex-col">
@@ -632,6 +706,7 @@ export const AccountsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
                                   </>
                                 )}
 
+                                {/* Type3 렌더링 */}
                                 {type === 'Type3' && (
                                   <>
                                     <div className="col-span-3 flex flex-col">
