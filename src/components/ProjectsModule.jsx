@@ -705,7 +705,7 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
                         <button 
                           onClick={() => setRefreshTrigger(prev => prev + 1)}
                           disabled={loading}
-                          className={`font-black italic uppercase text-[15px] tracking-tighter bg-clip-text text-transparent bg-gradient-to-b from-sky-300 to-blue-600 drop-shadow-[0_2px_1px_rgba(0,0,0,0.3)] transition-all duration-300 px-2 ${loading ? 'opacity-50 cursor-not-allowed animate-pulse' : 'hover:scale-110 hover:brightness-125 active:scale-95'}`}
+                          className={`font-black italic uppercase text-[15px] tracking-tighter text-gray-900 drop-shadow-[0_2px_1px_rgba(0,0,0,0.3)] transition-all duration-300 px-2 ${loading ? 'opacity-50 cursor-not-allowed animate-pulse' : 'hover:scale-110 hover:brightness-125 active:scale-95'}`}
                           title="최신 데이터로 새로고침"
                         >
                           REFRESH
