@@ -3,13 +3,76 @@ import { createPortal } from 'react-dom';
 import { 
   Plus, X, CalendarDays, Filter, LayoutDashboard, 
   Calendar, List, Kanban, ChevronLeft, ChevronRight, 
-  User, LogOut, Power, ChevronDown
+  User, LogOut, Power, ChevronDown, MonitorSmartphone
 } from 'lucide-react';
-import { collection, onSnapshot, doc, writeBatch, updateDoc, addDoc, deleteDoc } from "firebase/firestore";
-import { db } from '../firebaseConfig';
-import { AppLogo, CustomSelect, CustomDatePicker } from './SharedUI';
-import { INITIAL_SCHEDULES, PROJECT_COLORS, HOLIDAYS } from '../constants';
+import { initializeApp, getApps, getApp } from "firebase/app";
+import { getFirestore, collection, onSnapshot, doc, writeBatch, updateDoc, addDoc, deleteDoc } from "firebase/firestore";
 
+// Firebase 초기화
+const firebaseConfig = {
+  apiKey: "AIzaSyBIsBcW0eBceMAJdhGsKmdNew7vvMPbwB4",
+  authDomain: "qa-base-prd.firebaseapp.com",
+  projectId: "qa-base-prd",
+  storageBucket: "qa-base-prd.firebasestorage.app",
+  messagingSenderId: "138324755275",
+  appId: "1:138324755275:web:ead26c4202fad8c0885ece"
+};
+const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+const db = getFirestore(app);
+
+// 상수 정의
+const PROJECT_COLORS = ['bg-blue-500', 'bg-red-500', 'bg-green-500', 'bg-yellow-500', 'bg-purple-500', 'bg-pink-500', 'bg-indigo-500', 'bg-teal-500', 'bg-cyan-500', 'bg-orange-500', 'bg-gray-800'];
+const HOLIDAYS = [
+  '2024-01-01', '2024-02-09', '2024-02-10', '2024-02-11', '2024-02-12', '2024-03-01', '2024-05-05', '2024-05-15', '2024-06-06', '2024-08-15', '2024-09-16', '2024-09-17', '2024-09-18', '2024-10-03', '2024-10-09', '2024-12-25',
+  '2025-01-01', '2025-01-28', '2025-01-29', '2025-01-30', '2025-03-01', '2025-05-05', '2025-05-06', '2025-06-06', '2025-08-15', '2025-10-03', '2025-10-05', '2025-10-06', '2025-10-07', '2025-10-08', '2025-10-09', '2025-12-25',
+  '2026-01-01', '2026-02-16', '2026-02-17', '2026-02-18', '2026-03-01', '2026-05-05', '2026-05-24', '2026-06-06', '2026-08-15', '2026-09-24', '2026-09-25', '2026-09-26', '2026-10-03', '2026-10-09', '2026-12-25'
+];
+const INITIAL_SCHEDULES = [
+  { id: 'sch_1', name: 'v1.0 앱 리뉴얼 QA', startDate: '2026-05-10', endDate: '2026-05-20', assignees: ['홍진의', '김철수'], department: 'QA 1팀', status: '진행중', color: 'bg-blue-500', progressStage: '검증 중', description: '앱 전체 리뉴얼에 따른 통합 테스트 진행' },
+  { id: 'sch_2', name: '결제 모듈 업데이트', startDate: '2026-05-15', endDate: '2026-05-25', assignees: ['이영희'], department: 'QA 2팀', status: '예정', color: 'bg-green-500', progressStage: '대기 중', description: '신규 PG사 연동 테스트' }
+];
+
+// 공통 컴포넌트
+const AppLogo = ({ className }) => {
+  const [imgError, setImgError] = useState(false);
+  if (imgError) return <MonitorSmartphone className={`text-gray-800 ${className}`} strokeWidth={1.5} />;
+  return <img src="/icon-192x192.png" alt="QA Base" className={`object-contain ${className}`} onError={() => setImgError(true)} />;
+};
+
+const CustomSelect = ({ value, onChange, options, className, disabled }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  return (
+    <div className={`relative ${className} p-0 ${disabled ? 'cursor-not-allowed opacity-60 bg-gray-100' : 'cursor-pointer'}`} tabIndex={disabled ? -1 : 0} onBlur={(e) => { if(!e.currentTarget.contains(e.relatedTarget)) setIsOpen(false); }}>
+      <div className="flex justify-between items-center w-full h-full px-3 py-1.5" onClick={() => !disabled && setIsOpen(!isOpen)}>
+        <span className="truncate">{options.find(o => o.value === value)?.label || value}</span>
+        <ChevronDown className={`w-3.5 h-3.5 ml-2 text-gray-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+      </div>
+      {isOpen && !disabled && (
+        <div className="absolute top-full left-0 mt-1 w-full bg-white border border-gray-100 rounded-lg shadow-xl z-50 py-1 max-h-48 overflow-y-auto animate-fast-fade">
+          {options.map(opt => (
+            <div key={opt.value} className={`px-3 py-2 text-xs hover:bg-blue-50 transition-colors ${value === opt.value ? 'bg-blue-50 text-blue-600 font-bold' : 'text-gray-700'}`} onClick={() => { onChange(opt.value); setIsOpen(false); }}>
+              {opt.label}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+const CustomDatePicker = ({ value, onChange, disabled, alignRight }) => {
+  return (
+    <input 
+      type="date" 
+      disabled={disabled}
+      value={value || ''} 
+      onChange={(e) => onChange(e.target.value)} 
+      className={`w-full bg-gray-50 border border-gray-200 text-sm rounded-lg px-3 py-2 outline-none focus:border-gray-400 shadow-sm disabled:bg-gray-100 disabled:text-gray-500 ${alignRight ? 'text-right' : ''}`} 
+    />
+  );
+};
+
+// 메인 모듈 로직
 const ProjectModal = ({ isOpen, onClose, formData, setFormData, onSubmit, isViewer, isEdit, onDelete, allAssigneesList, onAddCustomAssignee }) => {
   const [isAssigneeOpen, setIsAssigneeOpen] = useState(false);
   const [newAssigneeName, setNewAssigneeName] = useState('');
@@ -164,7 +227,8 @@ const ProjectModal = ({ isOpen, onClose, formData, setFormData, onSubmit, isView
 };
 
 const ScheduleCalendar = ({ schedules, onShowDetails, user, onUpdateEndDate, onUpdateStartDate, onCellClick }) => {
-  const [currentDate, setCurrentDate] = useState(new Date(2026, 4, 1)); 
+  // [수정] 캘린더 진입 시 고정된 '5월'이 아닌 현재(오늘)를 기준으로 렌더링되도록 핀셋 수정 완료
+  const [currentDate, setCurrentDate] = useState(new Date(new Date().getFullYear(), new Date().getMonth(), 1)); 
   const [showWeekend, setShowWeekend] = useState(true);
   
   const [assigneeFilter, setAssigneeFilter] = useState('All');
@@ -297,8 +361,6 @@ const ScheduleCalendar = ({ schedules, onShowDetails, user, onUpdateEndDate, onU
                     dayProjects.push(proj || null);
                   }
 
-                  const columns = showWeekend ? 7 : 5;
-
                   return (
                     <div 
                       key={dateStr} 
@@ -317,7 +379,7 @@ const ScheduleCalendar = ({ schedules, onShowDetails, user, onUpdateEndDate, onU
                         }
                       }}
                     >
-                      {/* 빈공간 클릭 배경 층 (Plus 버튼 제거) */}
+                      {/* 빈공간 클릭 배경 층 */}
                       <div 
                         className="absolute inset-0 z-0 flex flex-col pointer-events-auto"
                         onClick={() => onCellClick && onCellClick(dateStr)}
