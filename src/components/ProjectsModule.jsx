@@ -295,12 +295,6 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
     }
   }, [issues, activeEpic, loading, epics, isType2]);
 
-  const handleOpenJiraIssue = (issueKey) => {
-    if (jiraDomain && issueKey) {
-      window.open(`https://${jiraDomain}/browse/${issueKey}`, '_blank');
-    }
-  };
-
   const handleSpaceSubmit = async (data) => {
     try {
       const { id, ...saveData } = data;
