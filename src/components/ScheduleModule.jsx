@@ -796,11 +796,11 @@ export const ScheduleDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
         <aside className={`bg-white border-r border-gray-100 transition-all duration-300 ease-in-out flex flex-col z-10 overflow-hidden whitespace-nowrap ${sidebarOpen ? 'w-64 translate-x-0' : 'w-0 -translate-x-full'}`}>
           <div className="p-4 space-y-1 w-64">
             <div className="text-xs font-semibold text-gray-400 tracking-wider mb-4 px-3 mt-2">MENU</div>
-            <button onClick={() => onNavigate('board')} className="w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-gray-500 hover:bg-gray-50 hover:text-gray-900 transition-colors"><LayoutDashboard className="w-4 h-4" /><span className="text-sm font-medium">기능 보드 이동</span></button>
+            <button onClick={() => onNavigate('board')} className="w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-gray-500 hover:bg-gray-50 hover:text-gray-900 transition-colors"><LayoutDashboard className="w-4 h-4" /><span className="text-sm font-medium">Functional Board</span></button>
             <div className="h-px bg-gray-100 my-2 mx-3"></div>
-            <button onClick={() => setActiveMenu('calendar')} className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl transition-colors ${activeMenu === 'calendar' ? 'bg-gray-50 text-gray-900 font-medium border border-gray-200 shadow-sm' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`}><CalendarDays className={`w-4 h-4 ${activeMenu === 'calendar' ? 'text-gray-700' : ''}`} /><span className="text-sm">캘린더 (Schedule)</span></button>
-            <button onClick={() => setActiveMenu('list')} className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl transition-colors ${activeMenu === 'list' ? 'bg-gray-50 text-gray-900 font-medium border border-gray-200 shadow-sm' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`}><List className={`w-4 h-4 ${activeMenu === 'list' ? 'text-gray-700' : ''}`} /><span className="text-sm">프로젝트 목록</span></button>
-            <button onClick={() => setActiveMenu('kanban')} className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl transition-colors ${activeMenu === 'kanban' ? 'bg-gray-50 text-gray-900 font-medium border border-gray-200 shadow-sm' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`}><Kanban className={`w-4 h-4 ${activeMenu === 'kanban' ? 'text-gray-700' : ''}`} /><span className="text-sm">프로젝트 현황 (보드)</span></button>
+            <button onClick={() => setActiveMenu('calendar')} className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl transition-colors ${activeMenu === 'calendar' ? 'bg-gray-50 text-gray-900 font-medium border border-gray-200 shadow-sm' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`}><CalendarDays className={`w-4 h-4 ${activeMenu === 'calendar' ? 'text-gray-700' : ''}`} /><span className="text-sm">QA Calendar</span></button>
+            <button onClick={() => setActiveMenu('list')} className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl transition-colors ${activeMenu === 'list' ? 'bg-gray-50 text-gray-900 font-medium border border-gray-200 shadow-sm' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`}><List className={`w-4 h-4 ${activeMenu === 'list' ? 'text-gray-700' : ''}`} /><span className="text-sm">Project List</span></button>
+            <button onClick={() => setActiveMenu('kanban')} className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl transition-colors ${activeMenu === 'kanban' ? 'bg-gray-50 text-gray-900 font-medium border border-gray-200 shadow-sm' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`}><Kanban className={`w-4 h-4 ${activeMenu === 'kanban' ? 'text-gray-700' : ''}`} /><span className="text-sm">Project Board</span></button>
           </div>
         </aside>
 
@@ -813,7 +813,7 @@ export const ScheduleDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
             <div>
               <div className="flex items-center space-x-3 mb-1">
                 <h1 className="text-2xl font-bold text-gray-800">
-                  {activeMenu === 'calendar' ? 'QA 스케쥴 캘린더' : activeMenu === 'list' ? '프로젝트 목록' : '프로젝트 현황 보드'}
+                  {activeMenu === 'calendar' ? 'QA Calendar' : activeMenu === 'list' ? 'Project List' : 'Project Board'}
                 </h1>
                 {user.role === 'viewer' && <span className="bg-gray-100 text-gray-500 text-[10px] px-2 py-0.5 rounded border border-gray-200 font-semibold uppercase tracking-wider shadow-sm">Read Only</span>}
               </div>
