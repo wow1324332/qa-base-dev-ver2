@@ -770,11 +770,8 @@ export const ScheduleDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
 
   return (
     <div className="w-screen h-screen bg-[#f8f9fa] flex flex-col overflow-hidden animate-simple-fade">
-      <header className="h-16 px-6 flex justify-between items-center bg-white border-b border-gray-100 z-20 shrink-0 shadow-sm relative">
-        <div className="flex items-center space-x-3">
-          <AppLogo className="w-6 h-6" />
-          <span className="text-lg font-medium tracking-wide text-gray-800">QA BASE</span>
-        </div>
+      <header className="h-20 px-8 flex justify-between items-center bg-[url('/header-bg.jpg')] bg-cover bg-[length:100%_100%]">
+        <div className="flex items-center space-x-3"></div>
         <div className="flex items-center space-x-4">
           <div className="flex items-center space-x-2 mr-4 bg-white px-3 py-1.5 rounded-full border border-gray-200 shadow-sm cursor-default">
             <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></div>
