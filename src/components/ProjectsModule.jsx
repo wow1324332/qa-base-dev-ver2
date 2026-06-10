@@ -532,7 +532,7 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
 
   return (
     <div className="w-screen h-screen bg-[#f8f9fa] flex flex-col overflow-hidden animate-simple-fade">
-      <header className="h-20 px-8 flex justify-between items-center bg-[url('/header-bg.jpg')] bg-cover bg-[length:100%_100%] border-b border-gray-50/50 shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)]">
+      <header className="h-20 px-8 flex justify-between items-center bg-[url('/header-bg.jpg')] bg-cover bg-[length:100%_100%] shadow-[0_4px_20px_-4px_rgba(0,0,0,0.2)]">
         <div className="flex items-center space-x-3"></div>
         <div className="flex items-center space-x-4">
           <div className="flex items-center space-x-2 bg-gray-50 px-3 py-1.5 rounded-full border border-gray-200 shadow-sm hover-breath cursor-default">
