@@ -16,7 +16,7 @@ export const FunctionalBoard = ({ user, onNavigate, onLogout, onShowProfileModal
       className="w-screen h-screen bg-[#f8f9fa] flex flex-col animate-simple-fade bg-cover bg-center bg-no-repeat"
       style={{ backgroundImage: "url('/bg-functional.png')" }}
     >
-      <header className="h-20 px-8 flex justify-between items-center bg-[url('/header-bg.jpg')] bg-cover bg-[length:100%_100%]">
+      <header className="h-20 px-8 flex justify-between items-center bg-[url('/header-bg.jpg')] bg-cover bg-[length:100%_100%] shrink-0 relative z-50 shadow-[0_15px_30px_-5px_rgba(0,0,0,0.5)]">
         <div className="flex items-center space-x-3"></div>
         
         <div className="flex items-center space-x-6">
