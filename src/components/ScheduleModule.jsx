@@ -793,7 +793,7 @@ export const ScheduleDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
         
         {/* 2. [추가] 블러 처리된 독립적인 배경 레이어 */}
         <div 
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat blur-[4px] scale-[1.02] z-0 pointer-events-none"
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat blur-[2px] scale-[1.02] z-0 pointer-events-none"
           style={{ backgroundImage: "url('/project-bg.jpg')" }}
         ></div>
 
