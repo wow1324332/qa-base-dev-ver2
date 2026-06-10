@@ -826,7 +826,7 @@ export const ScheduleDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
           {sidebarOpen ? <ChevronLeft className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
         </button>
 
-        <main className={`flex-1 overflow-hidden flex flex-col p-8 transition-all duration-300 ${!sidebarOpen ? 'ml-12' : ''}`}>
+        <main className={`relative z-10 flex-1 overflow-hidden flex flex-col p-8 transition-all duration-300 ${!sidebarOpen ? 'ml-12' : ''}`}>
           <div className="flex justify-between items-end mb-8 shrink-0">
             <div>
               <div className="flex items-center space-x-3 mb-1">
