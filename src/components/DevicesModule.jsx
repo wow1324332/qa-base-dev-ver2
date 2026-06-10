@@ -770,7 +770,7 @@ export const DevicesDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
 
   return (
     <div className="w-screen h-screen bg-[#f8f9fa] flex flex-col overflow-hidden animate-simple-fade">
-      <header className="h-20 px-8 flex justify-between items-center bg-[url('/header-bg.jpg')] bg-cover bg-center border-b border-gray-100 shadow-sm">
+      <header className="h-20 px-8 flex justify-between items-center bg-[url('/header-bg.jpg')] bg-cover bg-[length:100%_100%]">
         <div className="flex items-center space-x-3"></div>
         <div className="flex items-center space-x-4">
           <div className="flex items-center space-x-2 bg-gray-50 px-3 py-1.5 rounded-full border border-gray-200 shadow-sm hover-breath cursor-default">
