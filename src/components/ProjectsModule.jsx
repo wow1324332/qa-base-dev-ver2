@@ -551,8 +551,8 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
         
         {/* 1. 블러 처리된 배경 레이어 (여기서 깔끔하게 닫혀야 함) */}
         <div 
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat blur-[4px] scale-[1.02] z-0 pointer-events-none"
-          style={{ backgroundImage: "url('/bg-projects.png')" }}
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat blur-[42px] scale-[1.02] z-0 pointer-events-none"
+          style={{ backgroundImage: "url('/project-bg.jpg')" }}
         ></div>
 
         {/* 2. 사이드바 영역 */}
