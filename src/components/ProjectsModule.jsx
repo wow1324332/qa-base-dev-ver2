@@ -549,35 +549,32 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
 
 <div className="flex flex-1 overflow-hidden relative bg-[#f0f2f5]">
         
-        {/* [추가] 블러 처리된 독립적인 배경 레이어 */}
+        {/* 1. 블러 처리된 배경 레이어 (여기서 깔끔하게 닫혀야 함) */}
         <div 
           className="absolute inset-0 bg-cover bg-center bg-no-repeat blur-[4px] scale-[1.02] z-0 pointer-events-none"
           style={{ backgroundImage: "url('/bg-projects.png')" }}
         ></div>
 
-        {/* 기존 사이드바 (그대로 유지) */}
-        <aside className={`bg-white border-r ...`}>
-          {/* 사이드바 내용 */}
+        {/* 2. 사이드바 영역 */}
+        <aside className={`bg-white border-r border-gray-100 transition-all duration-300 ease-in-out flex flex-col z-10 overflow-hidden whitespace-nowrap ${sidebarOpen ? 'w-64 translate-x-0' : 'w-0 -translate-x-full'}`}>
+          <div className="p-4 space-y-1 w-64">
+            <div className="text-xs font-semibold text-gray-400 tracking-wider mb-4 px-3 mt-2">MENU</div>
+            <button onClick={() => onNavigate('board')} className="w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-gray-500 hover:bg-gray-50 hover:text-gray-900 transition-colors"><LayoutDashboard className="w-4 h-4" /><span className="text-sm font-medium">Functional Board</span></button>
+            <div className="h-px bg-gray-100 my-2 mx-3"></div>
+            <button onClick={() => { setActiveMenu('space'); setView('spaces'); setActiveSpace(null); setActiveEpic(null); }} className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl transition-colors ${activeMenu === 'space' ? 'bg-blue-50/50 text-blue-700 font-medium border border-blue-100 shadow-sm' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`}><Server className={`w-4 h-4 ${activeMenu === 'space' ? 'text-blue-600' : ''}`} /><span className="text-sm">Space Board</span></button>
+            {activeSpace && (
+              <button onClick={() => { setActiveMenu('epic'); setView('epics'); }} className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl transition-colors ml-2 w-[calc(100%-8px)] ${activeMenu === 'epic' ? 'bg-gray-50 text-gray-900 font-medium border border-gray-200 shadow-sm' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`}><Kanban className="w-4 h-4" /><span className="text-sm">Project Board</span></button>
+            )}
+          </div>
         </aside>
 
-        {/* 기존 네비게이션 버튼 (그대로 유지) */}
-        <button onClick={() => setSidebarOpen(!sidebarOpen)} className={`absolute top-6 z-20 ...`}>
-          {/* 버튼 내용 */}
-        </button>
-
-        {/* [수정] 메인 컨텐츠가 배경 위로 올라오도록 relative와 z-10 추가 */}
-        <main className={`relative z-10 flex-1 overflow-hidden flex flex-col p-8 transition-all duration-300 ...`}>
-          {/* 메인 컨텐츠 내용 */}
-        </main>
-
-      </div>
-        </aside>
-
+        {/* 3. 접기/펴기 버튼 */}
         <button onClick={() => setSidebarOpen(!sidebarOpen)} className={`absolute top-6 z-20 bg-white border border-gray-200 shadow-md rounded-full p-1.5 text-gray-600 hover:text-gray-900 transition-all duration-300 ${sidebarOpen ? 'left-[244px]' : 'left-4'}`}>
           {sidebarOpen ? <ChevronLeft className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
         </button>
 
-        <main className={`flex-1 overflow-hidden flex flex-col p-8 transition-all duration-300 ${!sidebarOpen ? 'ml-12' : ''}`}>
+        {/* 4. 메인 콘텐츠 영역 (relative z-10 필수) */}
+        <main className={`relative z-10 flex-1 overflow-hidden flex flex-col p-8 transition-all duration-300 ${!sidebarOpen ? 'ml-12' : ''}`}>
           
           {view === 'spaces' && (
             <div className="animate-fade-in h-full flex flex-col">
