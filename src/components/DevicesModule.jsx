@@ -822,7 +822,7 @@ export const DevicesDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
           {sidebarOpen ? <ChevronLeft className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
         </button>
 
-        <main className={`relative z-10 flex-1 overflow-hidden flex flex-col p-8 transition-all duration-300 ${!sidebarOpen ? 'ml-12' : ''}`}>
+        <main className={`flex-1 overflow-hidden flex flex-col p-8 transition-all duration-300 ${!sidebarOpen ? 'ml-12' : ''}`}>
           
           {(activeMenu === 'dashboard' || activeMenu === 'android' || activeMenu === 'ios') && (
             <div className="animate-fade-in h-full flex flex-col">
