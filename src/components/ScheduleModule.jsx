@@ -789,15 +789,16 @@ export const ScheduleDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
         </div>
       </header>
 
-<div className="flex flex-1 overflow-hidden relative bg-[#f0f2f5]">
+{/* 1. 배경 속성이 제거된 최상위 컨테이너 */}
+      <div className="flex flex-1 overflow-hidden relative bg-[#f0f2f5]">
         
         {/* 2. [추가] 블러 처리된 독립적인 배경 레이어 */}
         <div 
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat blur-[2px] scale-[1.02] z-0 pointer-events-none"
-          style={{ backgroundImage: "url('/project-bg.jpg')" }}
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat blur-[4px] scale-[1.02] z-0 pointer-events-none"
+          style={{ backgroundImage: "url('/project-bg.jpg')" }} 
         ></div>
 
-        {/* 3. [수정] 투명화 클래스가 적용된 원래 스케줄 사이드바 */}
+        {/* 3. [수정] 투명화가 적용된 디바이스 관리 사이드바 */}
         <aside className={`bg-white/60 backdrop-blur-xl border-r border-gray-100/50 shadow-[-5px_0_30px_rgba(0,0,0,0.02)] transition-all duration-300 ease-in-out flex flex-col z-10 overflow-hidden whitespace-nowrap ${sidebarOpen ? 'w-64 translate-x-0' : 'w-0 -translate-x-full'}`}>
           <div className="p-4 space-y-1 w-64">
             <div className="text-xs font-semibold text-gray-400 tracking-wider mb-4 px-3 mt-2">MENU</div>
@@ -806,17 +807,21 @@ export const ScheduleDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
               <span className="text-sm font-medium">Functional Board</span>
             </button>
             <div className="h-px bg-gray-100/50 my-2 mx-3"></div>
-            <button onClick={() => setActiveMenu('calendar')} className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl transition-colors ${activeMenu === 'calendar' ? 'bg-gray-50/50 text-gray-900 font-medium border border-gray-200/50 shadow-sm' : 'text-gray-500 hover:bg-gray-50/50 hover:text-gray-900'}`}>
-              <CalendarDays className={`w-4 h-4 ${activeMenu === 'calendar' ? 'text-gray-700' : ''}`} />
-              <span className="text-sm">QA Calendar</span>
+            
+            <button onClick={() => setActiveMenu('dashboard')} className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl transition-colors ${activeMenu === 'dashboard' ? 'bg-gray-50/50 text-gray-900 font-medium border border-gray-200/50 shadow-sm' : 'text-gray-500 hover:bg-gray-50/50 hover:text-gray-900'}`}>
+              <Server className={`w-4 h-4 ${activeMenu === 'dashboard' ? 'text-gray-700' : ''}`} />
+              <span className="text-sm">Deivce manager</span>
             </button>
-            <button onClick={() => setActiveMenu('list')} className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl transition-colors ${activeMenu === 'list' ? 'bg-gray-50/50 text-gray-900 font-medium border border-gray-200/50 shadow-sm' : 'text-gray-500 hover:bg-gray-50/50 hover:text-gray-900'}`}>
-              <List className={`w-4 h-4 ${activeMenu === 'list' ? 'text-gray-700' : ''}`} />
-              <span className="text-sm">Project List</span>
+            <button onClick={() => { setActiveMenu('android'); if(!sidebarOpen) setSidebarOpen(true); }} className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-colors ${activeMenu === 'android' ? 'bg-green-50/50 text-green-700 font-medium border border-green-100/50 shadow-sm' : 'text-gray-500 hover:bg-gray-50/50 hover:text-gray-900'}`}>
+              <div className="flex items-center space-x-3"><div className="w-1.5 h-1.5 rounded-full bg-green-400 shadow-sm"></div><span className="text-sm">Android</span></div>
             </button>
-            <button onClick={() => setActiveMenu('kanban')} className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl transition-colors ${activeMenu === 'kanban' ? 'bg-gray-50/50 text-gray-900 font-medium border border-gray-200/50 shadow-sm' : 'text-gray-500 hover:bg-gray-50/50 hover:text-gray-900'}`}>
-              <Kanban className={`w-4 h-4 ${activeMenu === 'kanban' ? 'text-gray-700' : ''}`} />
-              <span className="text-sm">Project Board</span>
+            <button onClick={() => { setActiveMenu('ios'); if(!sidebarOpen) setSidebarOpen(true); }} className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-colors ${activeMenu === 'ios' ? 'bg-blue-50/50 text-blue-700 font-medium border border-blue-100/50 shadow-sm' : 'text-gray-500 hover:bg-gray-50/50 hover:text-gray-900'}`}>
+              <div className="flex items-center space-x-3"><div className="w-1.5 h-1.5 rounded-full bg-blue-400 shadow-sm"></div><span className="text-sm">iOS</span></div>
+            </button>
+            
+            <button onClick={() => setActiveMenu('usims')} className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl transition-colors ${activeMenu === 'usims' ? 'bg-purple-50/50 text-purple-700 font-medium border border-purple-100/50 shadow-sm' : 'text-gray-500 hover:bg-gray-50/50 hover:text-gray-900'}`}>
+              <CreditCard className={`w-4 h-4 ${activeMenu === 'usims' ? 'text-purple-600' : ''}`} />
+              <span className="text-sm">USIM manager</span>
             </button>
           </div>
         </aside>
