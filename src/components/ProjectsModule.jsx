@@ -357,7 +357,7 @@ const AVAILABLE_FEATURES = [
     longPressTimer.current = setTimeout(() => {
       setFavEditMode(true);
       setShowAddFav(false);
-    }, 1800); 
+    }, 1500); 
   };
 
   const handleTouchEnd = () => {
