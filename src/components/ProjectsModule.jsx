@@ -293,11 +293,11 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
   const [activeSpace, setActiveSpace] = useState(null);
   const [activeEpic, setActiveEpic] = useState(null);
 
-const AVAILABLE_FEATURES = [
+  const AVAILABLE_FEATURES = [
   { id: 'devices', label: 'Device Manager', icon: Server },
   { id: 'schedule', label: 'QA Calendar', icon: Calendar },
   { id: 'accounts', label: 'Account Vault', icon: User }
-];
+  ];
 
   const [favorites, setFavorites] = useState([]); // 초기값 빈 배열
   const [showAddFav, setShowAddFav] = useState(false);
