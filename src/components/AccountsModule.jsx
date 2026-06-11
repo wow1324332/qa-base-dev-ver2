@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getFirestore, collection, onSnapshot, doc, updateDoc, addDoc, deleteDoc, writeBatch } from "firebase/firestore";
-import { SidebarFavorites } from './components/SidebarFavorites'; // 경로 확인 필요
+import { SidebarFavorites } from './SidebarFavorites';
 
 // Firebase 설정
 const firebaseConfig = {
