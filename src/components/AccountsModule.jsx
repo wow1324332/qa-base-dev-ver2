@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getFirestore, collection, onSnapshot, doc, updateDoc, addDoc, deleteDoc, writeBatch } from "firebase/firestore";
+import { SidebarFavorites } from './components/SidebarFavorites';
 
 // Firebase 설정
 const firebaseConfig = {
@@ -497,8 +498,8 @@ export const AccountsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
           style={{ backgroundImage: "url('/project-bg.jpg')" }}
         ></div>
   
-        <aside className="w-64 bg-white/60 backdrop-blur-xl border-r border-gray-100/50 transition-all duration-300 ease-in-out flex flex-col z-10 overflow-hidden shrink-0 shadow-[-5px_0_30px_rgba(0,0,0,0.02)]">
-          <div className="p-4 flex flex-col h-full relative z-10">
+<aside className="w-64 bg-white/60 backdrop-blur-xl border-r border-gray-100/50 transition-all duration-300 ease-in-out flex flex-col justify-between z-10 overflow-hidden shrink-0 shadow-[-5px_0_30px_rgba(0,0,0,0.02)]">
+          <div className="p-4 flex flex-col relative z-10 overflow-y-auto no-scrollbar flex-1">
             <div className="text-[10px] font-bold text-gray-400 tracking-wider mb-4 px-3 mt-2 uppercase">Menu</div>
             <button onClick={() => onNavigate('board')} className="w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-gray-500 hover:bg-gray-50/50 hover:text-gray-900 transition-colors mb-2">
               <LayoutDashboard className="w-4 h-4" />
@@ -521,7 +522,7 @@ export const AccountsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
               )}
             </div>
             
-            <div className="flex-1 overflow-y-auto no-scrollbar pr-1">
+            <div className="pr-1">
               <button 
                 onClick={() => setActiveCategoryId(null)} 
                 className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors text-left ${activeCategoryId === null ? 'bg-blue-50 text-blue-700 font-bold' : 'text-gray-600 hover:bg-gray-50'}`}
@@ -577,6 +578,15 @@ export const AccountsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
               ))}
             </div>
           </div>
+
+          {/* 🌟 여기에 공통 즐겨찾기 컴포넌트가 조립됩니다! 🌟 */}
+          <SidebarFavorites 
+            db={db} 
+            user={user} 
+            onNavigate={onNavigate} 
+            sidebarOpen={true} // account 메뉴는 현재 고정폭이므로 일단 true로 열어둡니다. (만약 폴딩 기능이 있다면 해당 상태값을 넣어주세요)
+            currentModule="accounts" // 현재 컴포넌트(AccountsDashboard)를 팝업 목록에서 제외합니다.
+          />
         </aside>
 
         <main className="flex-1 overflow-hidden flex flex-col p-8 transition-all duration-300 bg-[#f0f2f5]">
