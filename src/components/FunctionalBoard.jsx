@@ -69,8 +69,8 @@ export const FunctionalBoard = ({ user, onNavigate, onLogout, onShowProfileModal
 
       <main className="flex-1 overflow-auto p-12 flex flex-col items-center">
         <div className="w-full max-w-5xl">
-          <h2 className="text-3xl font-light text-gray-800 mb-2">Functional Board</h2>
-          <p className="text-sm text-gray-500 mb-10">원하는 업무 기지를 선택하세요.</p>
+          <h2 className="text-3xl font-bold text-gray-600 mb-2">Functional Board</h2>
+          <p className="text-sm text-gray-500 mb-10">사용할 QA 기능을 선택하세요.</p>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <div 
@@ -82,7 +82,7 @@ export const FunctionalBoard = ({ user, onNavigate, onLogout, onShowProfileModal
               </div>
               <h3 className="text-xl font-medium text-gray-800 mb-2">Devices</h3>
               <p className="text-sm text-gray-500 leading-relaxed">
-                QA 검증용 시료(단말기) 현황을 조회하고<br/>상태 및 대여 현황을 관리합니다.
+                검증용 시료 보유 현황을 조회하고<br/>상태 및 대여 현황을 관리하세요.
               </p>
             </div>
             
@@ -95,7 +95,7 @@ export const FunctionalBoard = ({ user, onNavigate, onLogout, onShowProfileModal
               </div>
               <h3 className="text-xl font-medium text-gray-800 mb-2">Schedule</h3>
               <p className="text-sm text-gray-500 leading-relaxed">
-                프로젝트별 QA 일정을 캘린더로 확인하고<br/>칸반 보드로 진행 현황을 관리합니다.
+                검증 일정을 캘린더로 확인하고<br/>칸반 보드로 진행 현황을 관리하세요.
               </p>
             </div>
 
@@ -110,7 +110,7 @@ export const FunctionalBoard = ({ user, onNavigate, onLogout, onShowProfileModal
                 Projects <span className="ml-2 text-[10px] bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full font-bold tracking-wider border border-blue-200 shadow-sm">JIRA</span>
               </h3>
               <p className="text-sm text-gray-500 leading-relaxed">
-                JIRA 스페이스와 에픽을 연동하여<br/>개발결함(버그) 추적 및 통계를 관리합니다.
+                JIRA 스페이스와 연동하여<br/>개발결함 추적 및 통계를 관리하세요.
               </p>
             </div>
 
@@ -123,7 +123,7 @@ export const FunctionalBoard = ({ user, onNavigate, onLogout, onShowProfileModal
               </div>
               <h3 className="text-xl font-medium text-gray-800 mb-2">Accounts</h3>
               <p className="text-sm text-gray-500 leading-relaxed">
-                보안이 유지된 테스트용 공용 계정들을<br/>빠르고 안전하게 관리합니다.
+                강력한 보안의 테스트용 계정들을<br/>빠르고 안전하게 관리하세요.
               </p>
             </div>
 
