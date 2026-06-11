@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Server, Calendar, User, Kanban, Plus, Minus, KeyRound } from 'lucide-react'; // [수정] KeyRound 임포트 추가
+import { Server, Calendar, User, Kanban, Plus, Minus, KeyRound } from 'lucide-react';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 
 export const SidebarFavorites = ({ db, user, onNavigate, sidebarOpen, currentModule }) => {
@@ -7,12 +7,11 @@ export const SidebarFavorites = ({ db, user, onNavigate, sidebarOpen, currentMod
   const ALL_FEATURES = [
     { id: 'dashboard', label: 'Device Manager', icon: Server },
     { id: 'schedule', label: 'QA Calendar', icon: Calendar },
-    { id: 'accounts', label: 'Account Vault', icon: KeyRound }, // [수정] User -> KeyRound로 변경
+    { id: 'accounts', label: 'Account Vault', icon: KeyRound },
     { id: 'projects', label: 'Project Board', icon: Kanban } 
   ];
 
-  // 2. 현재 진입한 기능(currentModule)을 제외한 나머지 기능만 필터링 (추가 메뉴용)
-  const AVAILABLE_FEATURES = ALL_FEATURES.filter(f => f.id !== currentModule);
+  // [수정] AVAILABLE_FEATURES 제거: 현재 모듈도 추가 목록에 뜰 수 있도록 함
 
   const [favorites, setFavorites] = useState([]);
   const [showAddFav, setShowAddFav] = useState(false);
@@ -87,7 +86,6 @@ export const SidebarFavorites = ({ db, user, onNavigate, sidebarOpen, currentMod
           if (!feature) return null;
           const Icon = feature.icon;
           
-          // [수정] 현재 진입한 모듈인지 확인하는 변수 추가
           const isCurrent = favId === currentModule;
 
           return (
@@ -98,14 +96,14 @@ export const SidebarFavorites = ({ db, user, onNavigate, sidebarOpen, currentMod
             >
               <button
                 onClick={(e) => {
-                  if (isCurrent && !favEditMode) return; // [수정] 현재 모듈이면 이동 클릭 무시 (삭제 모드일 땐 클릭 가능)
+                  if (isCurrent && !favEditMode) return;
                   handleFavClick(favId, e);
                 }}
                 className={`p-3 rounded-2xl transition-all duration-300 ${
                   favEditMode 
                     ? 'bg-gray-100/80' 
                     : isCurrent
-                      ? 'bg-blue-50/40 text-blue-300 opacity-60 cursor-default shadow-inner' // [수정] 현재 페이지 비활성화 스타일
+                      ? 'bg-blue-50/40 text-blue-300 opacity-60 cursor-default shadow-inner'
                       : 'bg-white hover:bg-blue-50 text-gray-500 hover:text-blue-600 shadow-sm border border-gray-100/50 hover:border-blue-200'
                 }`}
                 title={isCurrent ? `${feature.label} (현재 접속 중)` : feature.label}
@@ -124,7 +122,8 @@ export const SidebarFavorites = ({ db, user, onNavigate, sidebarOpen, currentMod
           );
         })}
 
-        {favorites.length < 3 && (
+        {/* [수정] 3개 제한을 전체 기능 개수(ALL_FEATURES.length)로 변경 */}
+        {favorites.length < ALL_FEATURES.length && (
           <div className="relative" onClick={e => e.stopPropagation()}>
             <button
               onClick={() => setShowAddFav(!showAddFav)}
@@ -135,7 +134,8 @@ export const SidebarFavorites = ({ db, user, onNavigate, sidebarOpen, currentMod
             {showAddFav && (
               <div className="fixed bottom-24 left-6 w-48 bg-white border border-gray-100 rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.1)] z-[99999] p-2 animate-fast-fade">
                 <div className="text-[10px] font-bold text-gray-400 px-3 py-1.5 mb-1 tracking-wider uppercase">기능 추가</div>
-                {AVAILABLE_FEATURES.filter(f => !favorites.includes(f.id)).map(f => (
+                {/* [수정] AVAILABLE_FEATURES 대신 ALL_FEATURES를 직접 필터링하여 현재 기능도 추가할 수 있게 만듦 */}
+                {ALL_FEATURES.filter(f => !favorites.includes(f.id)).map(f => (
                   <button
                     key={f.id}
                     onClick={() => { updateFavorites([...favorites, f.id]); setShowAddFav(false); }}
