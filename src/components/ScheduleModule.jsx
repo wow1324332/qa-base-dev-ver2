@@ -804,24 +804,15 @@ export const ScheduleDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
           </div>
         </aside>
 
-            {/* 중앙 시네마틱 폴딩 핸들 (고정 사이즈, 글래스모피즘 톤앤매너 유지) */}
+          {/* 미니멀 시네마틱 폴딩 핸들 (아이콘 및 테두리 제거, 사이즈 축소) */}
         <button 
           onClick={() => setSidebarOpen(!sidebarOpen)} 
-          className={`absolute top-1/2 -translate-y-1/2 z-30 flex items-center justify-center transition-all duration-300 ease-in-out group outline-none w-5 h-20 rounded-r-xl border-y border-r border-white/30 backdrop-blur-md shadow-[4px_0_16px_-4px_rgba(0,0,0,0.05)] bg-white/20 hover:bg-white/40 hover:shadow-[6px_0_24px_-4px_rgba(0,0,0,0.1)] ${
+          className={`absolute top-1/2 -translate-y-1/2 z-30 flex items-center justify-center transition-all duration-300 ease-in-out group outline-none w-3 h-14 rounded-r-lg backdrop-blur-md shadow-[3px_0_10px_-3px_rgba(0,0,0,0.05)] bg-white/30 hover:bg-white/50 hover:shadow-[4px_0_16px_-4px_rgba(0,0,0,0.1)] ${
             sidebarOpen ? 'left-[256px]' : 'left-0'
           }`}
         >
-          <div className="flex items-center justify-center w-full h-full relative">
-            {/* 고급스러운 기계식 그립 느낌을 주는 미세한 세로 음각 라인 */}
-            <div className="absolute left-[3px] w-[1.5px] h-8 bg-gray-400/20 rounded-full transition-colors duration-300 group-hover:bg-gray-400/40"></div>
-            
-            {/* 선 두께(strokeWidth)를 1.5로 얇게 하여 엣지있고 시네마틱한 폰트 느낌 연출 */}
-            {sidebarOpen ? (
-              <ChevronLeft className="w-3.5 h-3.5 text-gray-500/80 group-hover:text-gray-800 transition-colors duration-300 ml-1" strokeWidth={1.5} />
-            ) : (
-              <ChevronRight className="w-3.5 h-3.5 text-gray-500/80 group-hover:text-gray-800 transition-colors duration-300 ml-1" strokeWidth={1.5} />
-            )}
-          </div>
+          {/* 화살표 없이 정중앙에 위치한 얇은 세로 그립 라인 */}
+          <div className="w-[1.5px] h-5 bg-gray-400/40 rounded-full transition-colors duration-300 group-hover:bg-gray-500/60"></div>
         </button>
 
         <main className={`flex-1 overflow-hidden flex flex-col p-8 transition-all duration-300 ${!sidebarOpen ? 'ml-12' : ''}`}>
