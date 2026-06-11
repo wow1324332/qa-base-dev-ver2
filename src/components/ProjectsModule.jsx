@@ -304,8 +304,8 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
   const longPressTimer = useRef(null);
 
   // 현재 로그인한 유저의 고유 식별자 (이메일 또는 UID)
-  const userDocId = user?.email || user?.uid || 'anonymous_user';
-
+  const userDocId = user?.email || user?.uid || user?.id || user?.name || 'anonymous_user';
+  
   // [추가] 1. 화면이 켜질 때 서버에서 내 계정의 즐겨찾기를 불러옴
   useEffect(() => {
     const fetchFavorites = async () => {
