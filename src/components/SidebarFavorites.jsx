@@ -1,17 +1,17 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Server, Calendar, User, Kanban, Plus, Minus } from 'lucide-react';
+import { Server, Calendar, User, Kanban, Plus, Minus, KeyRound } from 'lucide-react'; // [수정] KeyRound 임포트 추가
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 
 export const SidebarFavorites = ({ db, user, onNavigate, sidebarOpen, currentModule }) => {
-  // 1. 앱의 전체 기능 목록 (필요시 더 추가하세요)
+  // 1. 앱의 전체 기능 목록
   const ALL_FEATURES = [
     { id: 'dashboard', label: 'Device Manager', icon: Server },
     { id: 'schedule', label: 'QA Calendar', icon: Calendar },
-    { id: 'accounts', label: 'Account Vault', icon: User },
+    { id: 'accounts', label: 'Account Vault', icon: KeyRound }, // [수정] User -> KeyRound로 변경
     { id: 'projects', label: 'Project Board', icon: Kanban } 
   ];
 
-  // 2. 현재 진입한 기능(currentModule)을 제외한 나머지 기능만 필터링
+  // 2. 현재 진입한 기능(currentModule)을 제외한 나머지 기능만 필터링 (추가 메뉴용)
   const AVAILABLE_FEATURES = ALL_FEATURES.filter(f => f.id !== currentModule);
 
   const [favorites, setFavorites] = useState([]);
@@ -86,6 +86,10 @@ export const SidebarFavorites = ({ db, user, onNavigate, sidebarOpen, currentMod
           const feature = ALL_FEATURES.find(f => f.id === favId);
           if (!feature) return null;
           const Icon = feature.icon;
+          
+          // [수정] 현재 진입한 모듈인지 확인하는 변수 추가
+          const isCurrent = favId === currentModule;
+
           return (
             <div
               key={favId} className="relative"
@@ -93,9 +97,18 @@ export const SidebarFavorites = ({ db, user, onNavigate, sidebarOpen, currentMod
               onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}
             >
               <button
-                onClick={(e) => handleFavClick(favId, e)}
-                className={`p-3 rounded-2xl transition-all duration-300 ${favEditMode ? 'bg-gray-100/80' : 'bg-white hover:bg-blue-50 text-gray-500 hover:text-blue-600 shadow-sm border border-gray-100/50 hover:border-blue-200'}`}
-                title={feature.label}
+                onClick={(e) => {
+                  if (isCurrent && !favEditMode) return; // [수정] 현재 모듈이면 이동 클릭 무시 (삭제 모드일 땐 클릭 가능)
+                  handleFavClick(favId, e);
+                }}
+                className={`p-3 rounded-2xl transition-all duration-300 ${
+                  favEditMode 
+                    ? 'bg-gray-100/80' 
+                    : isCurrent
+                      ? 'bg-blue-50/40 text-blue-300 opacity-60 cursor-default shadow-inner' // [수정] 현재 페이지 비활성화 스타일
+                      : 'bg-white hover:bg-blue-50 text-gray-500 hover:text-blue-600 shadow-sm border border-gray-100/50 hover:border-blue-200'
+                }`}
+                title={isCurrent ? `${feature.label} (현재 접속 중)` : feature.label}
               >
                 <Icon className={`w-5 h-5 ${favEditMode ? 'animate-pulse text-gray-400' : ''}`} />
               </button>
