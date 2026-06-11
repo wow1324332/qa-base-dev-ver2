@@ -3,7 +3,8 @@ import { createPortal } from 'react-dom';
 import { 
   Bug, Activity, CheckCircle2, AlertCircle, 
   ChevronUp, Equal, ChevronDown as ChevronDownIcon,
-  ChevronLeft, ChevronRight, LayoutDashboard, Server, Kanban, LogOut, Power, User, Plus, MonitorSmartphone, X, Edit, Filter, Search, ExternalLink
+  ChevronLeft, ChevronRight, LayoutDashboard, Server, Kanban, LogOut, Power, User, Plus, MonitorSmartphone, X, Edit, Filter, Search, ExternalLink,
+  CalendarDays, Users, Minus
 } from 'lucide-react';
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getFirestore, collection, onSnapshot, doc, updateDoc, addDoc, deleteDoc } from "firebase/firestore";
@@ -291,6 +292,55 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
   
   const [activeSpace, setActiveSpace] = useState(null);
   const [activeEpic, setActiveEpic] = useState(null);
+
+  const AVAILABLE_FEATURES = [
+    { id: 'dashboard', label: '단말기 관리', icon: MonitorSmartphone },
+    { id: 'schedule', label: 'QA 일정 관리', icon: CalendarDays },
+    { id: 'accounts', label: '계정/권한 관리', icon: Users }
+  ];
+
+  const [favorites, setFavorites] = useState(() => {
+    try {
+      const saved = localStorage.getItem('qa_favorites');
+      return saved ? JSON.parse(saved) : [];
+    } catch { return []; }
+  });
+  const [showAddFav, setShowAddFav] = useState(false);
+  const [favEditMode, setFavEditMode] = useState(false);
+  const longPressTimer = useRef(null);
+
+  useEffect(() => {
+    localStorage.setItem('qa_favorites', JSON.stringify(favorites));
+  }, [favorites]);
+
+  // 바탕 클릭 시 즐겨찾기 팝업 및 편집 모드 해제
+  useEffect(() => {
+    const handleClickOutside = () => {
+      setFavEditMode(false);
+      setShowAddFav(false);
+    };
+    window.addEventListener('click', handleClickOutside);
+    return () => window.removeEventListener('click', handleClickOutside);
+  }, []);
+
+  const handleTouchStart = () => {
+    longPressTimer.current = setTimeout(() => {
+      setFavEditMode(true);
+      setShowAddFav(false);
+    }, 2000); // 2초 이상 롱프레스 시 편집 모드 활성화
+  };
+
+  const handleTouchEnd = () => {
+    if (longPressTimer.current) clearTimeout(longPressTimer.current);
+  };
+
+  const handleFavClick = (id, e) => {
+    if (favEditMode) {
+      e.stopPropagation(); // 편집 모드일 땐 이동 금지
+      return;
+    }
+    onNavigate(id); // 정상 상태일 땐 해당 기능으로 즉시 이동
+  };
   
   const [issues, setIssues] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -586,7 +636,10 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
         className="flex flex-1 overflow-hidden relative bg-[#f0f2f5] bg-cover bg-center bg-no-repeat"
         style={{ backgroundImage: "url('/project-bg.jpg')" }}
       >
-        <aside className={`bg-white/60 backdrop-blur-xl shadow-[-5px_0_30px_rgba(0,0,0,0.02)] transition-all duration-300 ease-in-out flex flex-col z-10 overflow-hidden whitespace-nowrap ${sidebarOpen ? 'w-64' : 'w-0'}`}>
+
+        <aside className={`bg-white/60 backdrop-blur-xl shadow-[-5px_0_30px_rgba(0,0,0,0.02)] transition-all duration-300 ease-in-out flex flex-col justify-between z-10 overflow-hidden whitespace-nowrap ${sidebarOpen ? 'w-64' : 'w-0'}`}>
+          
+          {/* 상단 메인 메뉴 */}
           <div className="p-4 space-y-1 w-64">
             <div className="text-xs font-semibold text-gray-400 tracking-wider mb-4 px-3 mt-2">MENU</div>
             <button onClick={() => onNavigate('board')} className="w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-gray-500 hover:bg-gray-50 hover:text-gray-900 transition-colors"><LayoutDashboard className="w-4 h-4" /><span className="text-sm font-medium">Functional Board</span></button>
@@ -595,6 +648,84 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
             {activeSpace && (
               <button onClick={() => { setActiveMenu('epic'); setView('epics'); }} className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl transition-colors ml-2 w-[calc(100%-8px)] ${activeMenu === 'epic' ? 'bg-gray-50 text-gray-900 font-medium border border-gray-200 shadow-sm' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`}><Kanban className="w-4 h-4" /><span className="text-sm">Project Board</span></button>
             )}
+          </div>
+
+          {/* 하단 퀵링크 (즐겨찾기) 영역 */}
+          <div className="p-5 w-64 shrink-0 border-t border-gray-100/50 bg-white/40">
+            <div className="text-[10px] font-bold text-gray-400 tracking-wider mb-3 px-1 uppercase flex justify-between items-center">
+              <span>Quick Links</span>
+              {favEditMode && <span className="text-red-400 text-[9px] animate-pulse font-medium">삭제 모드</span>}
+            </div>
+            
+            <div className="flex items-center space-x-3 relative">
+              {/* 등록된 즐겨찾기 아이콘들 */}
+              {favorites.map(favId => {
+                const feature = AVAILABLE_FEATURES.find(f => f.id === favId);
+                if (!feature) return null;
+                const Icon = feature.icon;
+                return (
+                  <div
+                    key={favId}
+                    className="relative"
+                    onMouseDown={handleTouchStart}
+                    onMouseUp={handleTouchEnd}
+                    onMouseLeave={handleTouchEnd}
+                    onTouchStart={handleTouchStart}
+                    onTouchEnd={handleTouchEnd}
+                  >
+                    <button
+                      onClick={(e) => handleFavClick(favId, e)}
+                      className={`p-3 rounded-2xl transition-all duration-300 ${favEditMode ? 'bg-gray-100/80' : 'bg-white hover:bg-blue-50 text-gray-500 hover:text-blue-600 shadow-sm border border-gray-100/50 hover:border-blue-200'}`}
+                      title={feature.label}
+                    >
+                      <Icon className={`w-5 h-5 ${favEditMode ? 'animate-pulse text-gray-400' : ''}`} />
+                    </button>
+                    
+                    {/* 롱프레스 시 나타나는 삭제 버튼 (-) */}
+                    {favEditMode && (
+                      <button
+                        onClick={(e) => { 
+                          e.stopPropagation(); 
+                          setFavorites(prev => prev.filter(id => id !== favId)); 
+                        }}
+                        className="absolute -top-1.5 -right-1.5 bg-red-500 text-white rounded-full p-0.5 shadow-md hover:bg-red-600 transition-colors z-10 animate-fade-in"
+                      >
+                        <Minus className="w-3 h-3" strokeWidth={3} />
+                      </button>
+                    )}
+                  </div>
+                );
+              })}
+
+              {/* 추가 버튼 (3개 미만일 때만 표시) */}
+              {favorites.length < 3 && (
+                <div className="relative" onClick={e => e.stopPropagation()}>
+                  <button
+                    onClick={() => setShowAddFav(!showAddFav)}
+                    className="p-3 rounded-2xl border border-dashed border-gray-300 text-gray-400 hover:text-gray-600 hover:border-gray-400 hover:bg-white transition-all duration-300 flex items-center justify-center bg-transparent"
+                  >
+                    <Plus className="w-5 h-5" />
+                  </button>
+
+                  {/* 추가 기능 선택 팝업 */}
+                  {showAddFav && (
+                    <div className="absolute bottom-[110%] left-0 w-48 bg-white border border-gray-100 rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.1)] z-50 p-2 animate-fast-fade">
+                      <div className="text-[10px] font-bold text-gray-400 px-3 py-1.5 mb-1 tracking-wider uppercase">기능 추가</div>
+                      {AVAILABLE_FEATURES.filter(f => !favorites.includes(f.id)).map(f => (
+                        <button
+                          key={f.id}
+                          onClick={() => { setFavorites([...favorites, f.id]); setShowAddFav(false); }}
+                          className="w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl hover:bg-gray-50 text-gray-600 hover:text-gray-900 transition-colors text-sm font-medium"
+                        >
+                          <f.icon className="w-4 h-4 text-gray-400" />
+                          <span>{f.label}</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         </aside>
 
