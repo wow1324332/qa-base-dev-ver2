@@ -293,10 +293,10 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
   const [activeSpace, setActiveSpace] = useState(null);
   const [activeEpic, setActiveEpic] = useState(null);
 
-  const AVAILABLE_FEATURES = [
-    { id: 'dashboard', label: '단말기 관리', icon: MonitorSmartphone },
-    { id: 'schedule', label: 'QA 일정 관리', icon: CalendarDays },
-    { id: 'accounts', label: '계정/권한 관리', icon: Users }
+const AVAILABLE_FEATURES = [
+    { id: 'devices', label: 'Device Manager', icon: MonitorSmartphone },
+    { id: 'schedule', label: 'QA Calendar', icon: CalendarDays },
+    { id: 'accounts', label: 'Account Vault', icon: Users }
   ];
 
   const [favorites, setFavorites] = useState(() => {
@@ -313,7 +313,7 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
     localStorage.setItem('qa_favorites', JSON.stringify(favorites));
   }, [favorites]);
 
-  // 바탕 클릭 시 즐겨찾기 팝업 및 편집 모드 해제
+  // 바탕 클릭 시 팝업 닫기
   useEffect(() => {
     const handleClickOutside = () => {
       setFavEditMode(false);
@@ -323,11 +323,20 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
     return () => window.removeEventListener('click', handleClickOutside);
   }, []);
 
+  // [추가] 사이드바가 접힐 때 열려있던 팝업이나 삭제 모드를 깔끔하게 초기화
+  useEffect(() => {
+    if (!sidebarOpen) {
+      setShowAddFav(false);
+      setFavEditMode(false);
+    }
+  }, [sidebarOpen]);
+
+  // 2. 1.8초(1800ms) 롱프레스 적용
   const handleTouchStart = () => {
     longPressTimer.current = setTimeout(() => {
       setFavEditMode(true);
       setShowAddFav(false);
-    }, 2000); // 2초 이상 롱프레스 시 편집 모드 활성화
+    }, 1800); 
   };
 
   const handleTouchEnd = () => {
@@ -336,10 +345,10 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
 
   const handleFavClick = (id, e) => {
     if (favEditMode) {
-      e.stopPropagation(); // 편집 모드일 땐 이동 금지
+      e.stopPropagation(); 
       return;
     }
-    onNavigate(id); // 정상 상태일 땐 해당 기능으로 즉시 이동
+    onNavigate(id); 
   };
   
   const [issues, setIssues] = useState([]);
@@ -707,9 +716,8 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
                     <Plus className="w-5 h-5" />
                   </button>
 
-                  {/* 추가 기능 선택 팝업 */}
                   {showAddFav && (
-                    <div className="absolute bottom-[110%] left-0 w-48 bg-white border border-gray-100 rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.1)] z-50 p-2 animate-fast-fade">
+                    <div className="fixed bottom-24 left-6 w-48 bg-white border border-gray-100 rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.1)] z-[99999] p-2 animate-fast-fade">
                       <div className="text-[10px] font-bold text-gray-400 px-3 py-1.5 mb-1 tracking-wider uppercase">기능 추가</div>
                       {AVAILABLE_FEATURES.filter(f => !favorites.includes(f.id)).map(f => (
                         <button
