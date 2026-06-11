@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getFirestore, collection, onSnapshot, doc, updateDoc, addDoc, deleteDoc, setDoc, getDoc } from "firebase/firestore";
+import { SidebarFavorites } from './SidebarFavorites';
 
 const firebaseConfig = {
   apiKey: "AIzaSyBIsBcW0eBceMAJdhGsKmdNew7vvMPbwB4",
@@ -291,89 +292,6 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
   
   const [activeSpace, setActiveSpace] = useState(null);
   const [activeEpic, setActiveEpic] = useState(null);
-
-  const AVAILABLE_FEATURES = [
-  { id: 'dashboard', label: 'Devices', icon: Server },
-  { id: 'schedule', label: 'Schedule', icon: Calendar },
-  { id: 'accounts', label: 'Accounts', icon: KeyRound }
-  ];
-
-  const [favorites, setFavorites] = useState([]); // 초기값 빈 배열
-  const [showAddFav, setShowAddFav] = useState(false);
-  const [favEditMode, setFavEditMode] = useState(false);
-  const longPressTimer = useRef(null);
-
-  // 현재 로그인한 유저의 고유 식별자 (이메일 또는 UID)
-  const userDocId = user?.email || user?.uid || user?.id || user?.name || 'anonymous_user';
-  
-  // [추가] 1. 화면이 켜질 때 서버에서 내 계정의 즐겨찾기를 불러옴
-  useEffect(() => {
-    const fetchFavorites = async () => {
-      if (!user) return;
-      try {
-        const docRef = doc(db, 'user_preferences', userDocId);
-        const docSnap = await getDoc(docRef);
-        if (docSnap.exists() && docSnap.data().favorites) {
-          setFavorites(docSnap.data().favorites);
-        }
-      } catch (error) {
-        console.error("즐겨찾기 데이터를 불러오는 중 에러 발생:", error);
-      }
-    };
-    fetchFavorites();
-  }, [userDocId, user]);
-
-  // [추가] 2. 즐겨찾기를 추가/삭제할 때 화면에 반영하고 서버에 즉시 저장하는 통합 함수
-  const updateFavorites = async (newFavs) => {
-    setFavorites(newFavs); // 딜레이 없이 화면에 즉각 반영 (Optimistic UI)
-    
-    // [추가된 방어 로직] 유저 정보가 없거나 익명 유저일 때는 서버에 찌꺼기를 남기지 않고 종료!
-    if (!user || userDocId === 'anonymous_user') return;
-
-    try {
-      // 서버에 유저 계정 ID로 데이터 덮어쓰기
-      await setDoc(doc(db, 'user_preferences', userDocId), { favorites: newFavs }, { merge: true });
-    } catch (error) {
-      console.error("즐겨찾기 서버 저장 실패:", error);
-    }
-  };
-
-  // 바탕 클릭 및 팝업 초기화 로직
-  useEffect(() => {
-    const handleClickOutside = () => {
-      setFavEditMode(false);
-      setShowAddFav(false);
-    };
-    window.addEventListener('click', handleClickOutside);
-    return () => window.removeEventListener('click', handleClickOutside);
-  }, []);
-
-  useEffect(() => {
-    if (!sidebarOpen) {
-      setShowAddFav(false);
-      setFavEditMode(false);
-    }
-  }, [sidebarOpen]);
-
-  // 1.8초 롱프레스 (삭제 모드 진입)
-  const handleTouchStart = () => {
-    longPressTimer.current = setTimeout(() => {
-      setFavEditMode(true);
-      setShowAddFav(false);
-    }, 1500); 
-  };
-
-  const handleTouchEnd = () => {
-    if (longPressTimer.current) clearTimeout(longPressTimer.current);
-  };
-
-  const handleFavClick = (id, e) => {
-    if (favEditMode) {
-      e.stopPropagation(); 
-      return;
-    }
-    onNavigate(id); 
-  };
   
   const [issues, setIssues] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -682,85 +600,14 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
               <button onClick={() => { setActiveMenu('epic'); setView('epics'); }} className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl transition-colors ml-2 w-[calc(100%-8px)] ${activeMenu === 'epic' ? 'bg-gray-50 text-gray-900 font-medium border border-gray-200 shadow-sm' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`}><Kanban className="w-4 h-4" /><span className="text-sm">Project Board</span></button>
             )}
           </div>
-
-          {/* 하단 퀵링크 (즐겨찾기) 영역 */}
-          <div className="p-5 w-64 shrink-0 border-t border-gray-100/50 bg-white/40">
-            <div className="text-[10px] font-bold text-gray-400 tracking-wider mb-3 px-1 uppercase flex justify-between items-center">
-              <span>Quick Links</span>
-              {favEditMode && <span className="text-red-400 text-[9px] animate-pulse font-medium">삭제 모드</span>}
-            </div>
-            
-            <div className="flex items-center space-x-3 relative">
-              {/* 등록된 즐겨찾기 아이콘들 */}
-              {favorites.map(favId => {
-                const feature = AVAILABLE_FEATURES.find(f => f.id === favId);
-                if (!feature) return null;
-                const Icon = feature.icon;
-                return (
-                  <div
-                    key={favId}
-                    className="relative"
-                    onMouseDown={handleTouchStart}
-                    onMouseUp={handleTouchEnd}
-                    onMouseLeave={handleTouchEnd}
-                    onTouchStart={handleTouchStart}
-                    onTouchEnd={handleTouchEnd}
-                  >
-                    <button
-                      onClick={(e) => handleFavClick(favId, e)}
-                      className={`p-3 rounded-2xl transition-all duration-300 ${favEditMode ? 'bg-gray-100/80' : 'bg-white hover:bg-blue-50 text-gray-500 hover:text-blue-600 shadow-sm border border-gray-100/50 hover:border-blue-200'}`}
-                      title={feature.label}
-                    >
-                      <Icon className={`w-5 h-5 ${favEditMode ? 'animate-pulse text-gray-400' : ''}`} />
-                    </button>
-                    
-                    {/* 롱프레스 시 나타나는 삭제 버튼 (-) */}
-                    {favEditMode && (
-                      <button
-                        onClick={(e) => { 
-                          e.stopPropagation(); 
-                          // 변경: setFavorites -> updateFavorites
-                          updateFavorites(favorites.filter(id => id !== favId)); 
-                        }}
-                        className="absolute -top-1.5 -right-1.5 bg-red-500 text-white rounded-full p-0.5 shadow-md hover:bg-red-600 transition-colors z-10 animate-fade-in"
-                      >
-                        <Minus className="w-3 h-3" strokeWidth={3} />
-                      </button>
-                    )}
-                  </div>
-                );
-              })}
-
-              {/* 추가 버튼 (3개 미만일 때만 표시) */}
-              {favorites.length < 3 && (
-                <div className="relative" onClick={e => e.stopPropagation()}>
-                  <button
-                    onClick={() => setShowAddFav(!showAddFav)}
-                    className="p-3 rounded-2xl border border-dashed border-gray-300 text-gray-400 hover:text-gray-600 hover:border-gray-400 hover:bg-white transition-all duration-300 flex items-center justify-center bg-transparent"
-                  >
-                    <Plus className="w-5 h-5" />
-                  </button>
-
-                  {showAddFav && (
-                    <div className="fixed bottom-24 left-6 w-48 bg-white border border-gray-100 rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.1)] z-[99999] p-2 animate-fast-fade">
-                      <div className="text-[10px] font-bold text-gray-400 px-3 py-1.5 mb-1 tracking-wider uppercase">기능 추가</div>
-                      {AVAILABLE_FEATURES.filter(f => !favorites.includes(f.id)).map(f => (
-                        <button
-                          key={f.id}
-                          // 변경: setFavorites -> updateFavorites
-                          onClick={() => { updateFavorites([...favorites, f.id]); setShowAddFav(false); }}
-                          className="w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl hover:bg-gray-50 text-gray-600 hover:text-gray-900 transition-colors text-sm font-medium"
-                        >
-                          <f.icon className="w-4 h-4 text-gray-400" />
-                          <span>{f.label}</span>
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
+          {/* 하단 퀵링크 (즐겨찾기) 공통 컴포넌트 적용 */}
+          <SidebarFavorites 
+            db={db} 
+            user={user} 
+            onNavigate={onNavigate} 
+            sidebarOpen={sidebarOpen} 
+            currentModule="projects" 
+          />
         </aside>
 
         <button 
