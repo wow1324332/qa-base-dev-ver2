@@ -326,8 +326,12 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
   // [추가] 2. 즐겨찾기를 추가/삭제할 때 화면에 반영하고 서버에 즉시 저장하는 통합 함수
   const updateFavorites = async (newFavs) => {
     setFavorites(newFavs); // 딜레이 없이 화면에 즉각 반영 (Optimistic UI)
+    
+    // [추가된 방어 로직] 유저 정보가 없거나 익명 유저일 때는 서버에 찌꺼기를 남기지 않고 종료!
+    if (!user || userDocId === 'anonymous_user') return;
+
     try {
-      // 서버에 유저 계정 ID로 데이터 덮어쓰기 (없으면 자동 생성)
+      // 서버에 유저 계정 ID로 데이터 덮어쓰기
       await setDoc(doc(db, 'user_preferences', userDocId), { favorites: newFavs }, { merge: true });
     } catch (error) {
       console.error("즐겨찾기 서버 저장 실패:", error);
