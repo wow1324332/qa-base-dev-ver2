@@ -804,8 +804,25 @@ export const ScheduleDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
           </div>
         </aside>
 
-        <button onClick={() => setSidebarOpen(!sidebarOpen)} className={`absolute top-6 z-20 bg-white border border-gray-200 shadow-md rounded-full p-1.5 text-gray-600 hover:text-gray-900 transition-all duration-300 ${sidebarOpen ? 'left-[244px]' : 'left-4'}`}>
-          {sidebarOpen ? <ChevronLeft className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+          {/* 중앙 시네마틱 폴딩 핸들 */}
+        <button 
+          onClick={() => setSidebarOpen(!sidebarOpen)} 
+          className={`absolute top-1/2 -translate-y-1/2 z-30 flex items-center justify-center transition-all duration-300 ease-in-out group backdrop-blur-xl shadow-[4px_0_24px_-4px_rgba(0,0,0,0.08)] border-y border-r outline-none ${
+            sidebarOpen 
+              ? 'left-[256px] w-3.5 h-20 bg-white/40 border-gray-200/50 rounded-r-xl hover:bg-white/80 hover:w-5' 
+              : 'left-0 w-6 h-28 bg-white/70 border-white/80 rounded-r-2xl hover:bg-white hover:w-7'
+          }`}
+        >
+          {/* 열려있을 때: 평소엔 중앙 라인, 마우스 올리면 화살표 등장 */}
+          {sidebarOpen ? (
+            <>
+              <div className="w-[2px] h-8 bg-gray-300/80 rounded-full transition-all duration-300 group-hover:opacity-0 group-hover:scale-y-50"></div>
+              <ChevronLeft className="w-3.5 h-3.5 text-gray-600 opacity-0 group-hover:opacity-100 transition-all duration-300 absolute stroke-[2.5]" />
+            </>
+          ) : (
+            /* 닫혀있을 때: 항상 화살표 노출 및 호버시 부드러운 스케일 업 */
+            <ChevronRight className="w-4 h-4 text-gray-700 stroke-[2.5] ml-0.5 transition-transform duration-300 group-hover:scale-110" />
+          )}
         </button>
 
         <main className={`flex-1 overflow-hidden flex flex-col p-8 transition-all duration-300 ${!sidebarOpen ? 'ml-12' : ''}`}>
