@@ -294,9 +294,9 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
   const [activeEpic, setActiveEpic] = useState(null);
 
 const AVAILABLE_FEATURES = [
-    { id: 'devices', label: 'Device Manager', icon: MonitorSmartphone },
-    { id: 'schedule', label: 'QA Calendar', icon: CalendarDays },
-    { id: 'accounts', label: 'Account Vault', icon: Users }
+    { id: 'devices', label: 'Device Manager', icon: Server },
+    { id: 'schedule', label: 'QA Calendar', icon: Calendar },
+    { id: 'accounts', label: 'Account Vault', icon: User }
   ];
 
   const [favorites, setFavorites] = useState([]); // 초기값 빈 배열
