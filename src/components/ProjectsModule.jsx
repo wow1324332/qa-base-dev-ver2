@@ -7,7 +7,7 @@ import {
   CalendarDays, Users, Minus, KeyRound, Calendar
 } from 'lucide-react';
 import { initializeApp, getApps, getApp } from "firebase/app";
-import { getFirestore, collection, onSnapshot, doc, updateDoc, addDoc, deleteDoc } from "firebase/firestore";
+import { getFirestore, collection, onSnapshot, doc, updateDoc, addDoc, deleteDoc, setDoc, getDoc } from "firebase/firestore";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBIsBcW0eBceMAJdhGsKmdNew7vvMPbwB4",
@@ -294,26 +294,48 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
   const [activeEpic, setActiveEpic] = useState(null);
 
 const AVAILABLE_FEATURES = [
-    { id: 'devices', label: 'Device Manager', icon: Server },
-    { id: 'schedule', label: 'QA Calendar', icon: Calendar },
-    { id: 'accounts', label: 'Account Vault', icon: KeyRound }
+    { id: 'devices', label: 'Device Manager', icon: MonitorSmartphone },
+    { id: 'schedule', label: 'QA Calendar', icon: CalendarDays },
+    { id: 'accounts', label: 'Account Vault', icon: Users }
   ];
 
-  const [favorites, setFavorites] = useState(() => {
-    try {
-      const saved = localStorage.getItem('qa_favorites');
-      return saved ? JSON.parse(saved) : [];
-    } catch { return []; }
-  });
+  const [favorites, setFavorites] = useState([]); // 초기값 빈 배열
   const [showAddFav, setShowAddFav] = useState(false);
   const [favEditMode, setFavEditMode] = useState(false);
   const longPressTimer = useRef(null);
 
-  useEffect(() => {
-    localStorage.setItem('qa_favorites', JSON.stringify(favorites));
-  }, [favorites]);
+  // 현재 로그인한 유저의 고유 식별자 (이메일 또는 UID)
+  const userDocId = user?.email || user?.uid || 'anonymous_user';
 
-  // 바탕 클릭 시 팝업 닫기
+  // [추가] 1. 화면이 켜질 때 서버에서 내 계정의 즐겨찾기를 불러옴
+  useEffect(() => {
+    const fetchFavorites = async () => {
+      if (!user) return;
+      try {
+        const docRef = doc(db, 'user_preferences', userDocId);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists() && docSnap.data().favorites) {
+          setFavorites(docSnap.data().favorites);
+        }
+      } catch (error) {
+        console.error("즐겨찾기 데이터를 불러오는 중 에러 발생:", error);
+      }
+    };
+    fetchFavorites();
+  }, [userDocId, user]);
+
+  // [추가] 2. 즐겨찾기를 추가/삭제할 때 화면에 반영하고 서버에 즉시 저장하는 통합 함수
+  const updateFavorites = async (newFavs) => {
+    setFavorites(newFavs); // 딜레이 없이 화면에 즉각 반영 (Optimistic UI)
+    try {
+      // 서버에 유저 계정 ID로 데이터 덮어쓰기 (없으면 자동 생성)
+      await setDoc(doc(db, 'user_preferences', userDocId), { favorites: newFavs }, { merge: true });
+    } catch (error) {
+      console.error("즐겨찾기 서버 저장 실패:", error);
+    }
+  };
+
+  // 바탕 클릭 및 팝업 초기화 로직
   useEffect(() => {
     const handleClickOutside = () => {
       setFavEditMode(false);
@@ -323,7 +345,6 @@ const AVAILABLE_FEATURES = [
     return () => window.removeEventListener('click', handleClickOutside);
   }, []);
 
-  // [추가] 사이드바가 접힐 때 열려있던 팝업이나 삭제 모드를 깔끔하게 초기화
   useEffect(() => {
     if (!sidebarOpen) {
       setShowAddFav(false);
@@ -331,12 +352,12 @@ const AVAILABLE_FEATURES = [
     }
   }, [sidebarOpen]);
 
-  // 2. 1.8초(1800ms) 롱프레스 적용
+  // 1.8초 롱프레스 (삭제 모드 진입)
   const handleTouchStart = () => {
     longPressTimer.current = setTimeout(() => {
       setFavEditMode(true);
       setShowAddFav(false);
-    }, 1500); 
+    }, 1800); 
   };
 
   const handleTouchEnd = () => {
@@ -695,7 +716,8 @@ const AVAILABLE_FEATURES = [
                       <button
                         onClick={(e) => { 
                           e.stopPropagation(); 
-                          setFavorites(prev => prev.filter(id => id !== favId)); 
+                          // 변경: setFavorites -> updateFavorites
+                          updateFavorites(favorites.filter(id => id !== favId)); 
                         }}
                         className="absolute -top-1.5 -right-1.5 bg-red-500 text-white rounded-full p-0.5 shadow-md hover:bg-red-600 transition-colors z-10 animate-fade-in"
                       >
@@ -722,7 +744,8 @@ const AVAILABLE_FEATURES = [
                       {AVAILABLE_FEATURES.filter(f => !favorites.includes(f.id)).map(f => (
                         <button
                           key={f.id}
-                          onClick={() => { setFavorites([...favorites, f.id]); setShowAddFav(false); }}
+                          // 변경: setFavorites -> updateFavorites
+                          onClick={() => { updateFavorites([...favorites, f.id]); setShowAddFav(false); }}
                           className="w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl hover:bg-gray-50 text-gray-600 hover:text-gray-900 transition-colors text-sm font-medium"
                         >
                           <f.icon className="w-4 h-4 text-gray-400" />
