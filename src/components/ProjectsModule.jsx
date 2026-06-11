@@ -4,7 +4,7 @@ import {
   Bug, Activity, CheckCircle2, AlertCircle, 
   ChevronUp, Equal, ChevronDown as ChevronDownIcon,
   ChevronLeft, ChevronRight, LayoutDashboard, Server, Kanban, LogOut, Power, User, Plus, MonitorSmartphone, X, Edit, Filter, Search, ExternalLink,
-  CalendarDays, Users, Minus
+  CalendarDays, Users, Minus, keyRound, Claendar
 } from 'lucide-react';
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getFirestore, collection, onSnapshot, doc, updateDoc, addDoc, deleteDoc } from "firebase/firestore";
@@ -294,9 +294,9 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
   const [activeEpic, setActiveEpic] = useState(null);
 
 const AVAILABLE_FEATURES = [
-    { id: 'devices', label: 'Device Manager', icon: MonitorSmartphone },
-    { id: 'schedule', label: 'QA Calendar', icon: CalendarDays },
-    { id: 'accounts', label: 'Account Vault', icon: Users }
+    { id: 'devices', label: 'Device Manager', icon: Server },
+    { id: 'schedule', label: 'QA Calendar', icon: Calendar },
+    { id: 'accounts', label: 'Account Vault', icon: KeyRound }
   ];
 
   const [favorites, setFavorites] = useState(() => {
@@ -336,7 +336,7 @@ const AVAILABLE_FEATURES = [
     longPressTimer.current = setTimeout(() => {
       setFavEditMode(true);
       setShowAddFav(false);
-    }, 1800); 
+    }, 1500); 
   };
 
   const handleTouchEnd = () => {
