@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getFirestore, collection, onSnapshot, doc, updateDoc, addDoc, deleteDoc, writeBatch } from "firebase/firestore";
+import { SidebarFavorites } from './SidebarFavorites';
 
 const firebaseConfig = {
   apiKey: "AIzaSyBIsBcW0eBceMAJdhGsKmdNew7vvMPbwB4",
@@ -789,7 +790,7 @@ export const DevicesDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
         className="flex flex-1 overflow-hidden relative bg-[#f0f2f5] bg-cover bg-center bg-no-repeat"
         style={{ backgroundImage: "url('/project-bg.jpg')" }}
       >
-        <aside className={`bg-white/60 backdrop-blur-xl shadow-[-5px_0_30px_rgba(0,0,0,0.02)] transition-all duration-300 ease-in-out flex flex-col z-10 overflow-hidden whitespace-nowrap ${sidebarOpen ? 'w-64' : 'w-0'}`}>
+        <aside className={`bg-white/60 backdrop-blur-xl shadow-[-5px_0_30px_rgba(0,0,0,0.02)] transition-all duration-300 ease-in-out flex flex-col justify-between z-10 overflow-hidden whitespace-nowrap ${sidebarOpen ? 'w-64' : 'w-0'}`}>
           <div className="p-4 space-y-1 w-64">
             <div className="text-xs font-semibold text-gray-400 tracking-wider mb-4 px-3 mt-2">MENU</div>
             <button onClick={() => onNavigate('board')} className="w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-gray-500 hover:bg-gray-50 hover:text-gray-900 transition-colors"><LayoutDashboard className="w-4 h-4" /><span className="text-sm font-medium">Functional Board</span></button>
@@ -801,6 +802,15 @@ export const DevicesDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
             
             <button onClick={() => setActiveMenu('usims')} className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl transition-colors ${activeMenu === 'usims' ? 'bg-purple-50/50 text-purple-700 font-medium border border-purple-100 shadow-sm' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`}><CreditCard className={`w-4 h-4 ${activeMenu === 'usims' ? 'text-purple-600' : ''}`} /><span className="text-sm">USIM manager</span></button>
           </div>
+
+          {/* ▼ 하단 퀵링크 (즐겨찾기) 공통 컴포넌트 추가 ▼ */}
+          <SidebarFavorites 
+            db={db} 
+            user={user} 
+            onNavigate={onNavigate} 
+            sidebarOpen={sidebarOpen} 
+            currentModule="dashboard" 
+          />
         </aside>
 
           {/* 미니멀 시네마틱 폴딩 핸들 (아이콘 및 테두리 제거, 사이즈 축소) */}
