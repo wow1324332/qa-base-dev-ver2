@@ -785,36 +785,25 @@ export const DevicesDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
         </div>
       </header>
 
-<div 
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat blur-[4px] scale-[1.02] z-0 pointer-events-none"
-          style={{ backgroundImage: "url('/project-bg.jpg')" }} 
+      <div className="flex flex-1 overflow-hidden relative bg-[#f0f2f5]">
+        
+        {/* 블러 처리된 배경 레이어 (블러 2px로 조절 완료) */}
+        <div 
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat blur-[2px] scale-[1.02] z-0 pointer-events-none"
+          style={{ backgroundImage: "url('/project-bg.jpg')" }}
         ></div>
 
-        {/* 3. [수정] 투명화가 적용된 디바이스 관리 사이드바 */}
         <aside className={`bg-white/60 backdrop-blur-xl border-r border-gray-100/50 shadow-[-5px_0_30px_rgba(0,0,0,0.02)] transition-all duration-300 ease-in-out flex flex-col z-10 overflow-hidden whitespace-nowrap ${sidebarOpen ? 'w-64 translate-x-0' : 'w-0 -translate-x-full'}`}>
           <div className="p-4 space-y-1 w-64">
             <div className="text-xs font-semibold text-gray-400 tracking-wider mb-4 px-3 mt-2">MENU</div>
-            <button onClick={() => onNavigate('board')} className="w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-gray-500 hover:bg-gray-50/50 hover:text-gray-900 transition-colors">
-              <LayoutDashboard className="w-4 h-4" />
-              <span className="text-sm font-medium">Functional Board</span>
-            </button>
+            <button onClick={() => onNavigate('board')} className="w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-gray-500 hover:bg-gray-50/50 hover:text-gray-900 transition-colors"><LayoutDashboard className="w-4 h-4" /><span className="text-sm font-medium">Functional Board</span></button>
             <div className="h-px bg-gray-100/50 my-2 mx-3"></div>
             
-            <button onClick={() => setActiveMenu('dashboard')} className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl transition-colors ${activeMenu === 'dashboard' ? 'bg-gray-50/50 text-gray-900 font-medium border border-gray-200/50 shadow-sm' : 'text-gray-500 hover:bg-gray-50/50 hover:text-gray-900'}`}>
-              <Server className={`w-4 h-4 ${activeMenu === 'dashboard' ? 'text-gray-700' : ''}`} />
-              <span className="text-sm">Deivce manager</span>
-            </button>
-            <button onClick={() => { setActiveMenu('android'); if(!sidebarOpen) setSidebarOpen(true); }} className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-colors ${activeMenu === 'android' ? 'bg-green-50/50 text-green-700 font-medium border border-green-100/50 shadow-sm' : 'text-gray-500 hover:bg-gray-50/50 hover:text-gray-900'}`}>
-              <div className="flex items-center space-x-3"><div className="w-1.5 h-1.5 rounded-full bg-green-400 shadow-sm"></div><span className="text-sm">Android</span></div>
-            </button>
-            <button onClick={() => { setActiveMenu('ios'); if(!sidebarOpen) setSidebarOpen(true); }} className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-colors ${activeMenu === 'ios' ? 'bg-blue-50/50 text-blue-700 font-medium border border-blue-100/50 shadow-sm' : 'text-gray-500 hover:bg-gray-50/50 hover:text-gray-900'}`}>
-              <div className="flex items-center space-x-3"><div className="w-1.5 h-1.5 rounded-full bg-blue-400 shadow-sm"></div><span className="text-sm">iOS</span></div>
-            </button>
+            <button onClick={() => setActiveMenu('dashboard')} className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl transition-colors ${activeMenu === 'dashboard' ? 'bg-gray-50/50 text-gray-900 font-medium border border-gray-200/50 shadow-sm' : 'text-gray-500 hover:bg-gray-50/50 hover:text-gray-900'}`}><Server className={`w-4 h-4 ${activeMenu === 'dashboard' ? 'text-gray-700' : ''}`} /><span className="text-sm">Deivce manager</span></button>
+            <button onClick={() => { setActiveMenu('android'); if(!sidebarOpen) setSidebarOpen(true); }} className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-colors ${activeMenu === 'android' ? 'bg-green-50/50 text-green-700 font-medium border border-green-100/50 shadow-sm' : 'text-gray-500 hover:bg-gray-50/50 hover:text-gray-900'}`}><div className="flex items-center space-x-3"><div className="w-1.5 h-1.5 rounded-full bg-green-400 shadow-sm"></div><span className="text-sm">Android</span></div></button>
+            <button onClick={() => { setActiveMenu('ios'); if(!sidebarOpen) setSidebarOpen(true); }} className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-colors ${activeMenu === 'ios' ? 'bg-blue-50/50 text-blue-700 font-medium border border-blue-100/50 shadow-sm' : 'text-gray-500 hover:bg-gray-50/50 hover:text-gray-900'}`}><div className="flex items-center space-x-3"><div className="w-1.5 h-1.5 rounded-full bg-blue-400 shadow-sm"></div><span className="text-sm">iOS</span></div></button>
             
-            <button onClick={() => setActiveMenu('usims')} className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl transition-colors ${activeMenu === 'usims' ? 'bg-purple-50/50 text-purple-700 font-medium border border-purple-100/50 shadow-sm' : 'text-gray-500 hover:bg-gray-50/50 hover:text-gray-900'}`}>
-              <CreditCard className={`w-4 h-4 ${activeMenu === 'usims' ? 'text-purple-600' : ''}`} />
-              <span className="text-sm">USIM manager</span>
-            </button>
+            <button onClick={() => setActiveMenu('usims')} className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl transition-colors ${activeMenu === 'usims' ? 'bg-purple-50/50 text-purple-700 font-medium border border-purple-100/50 shadow-sm' : 'text-gray-500 hover:bg-gray-50/50 hover:text-gray-900'}`}><CreditCard className={`w-4 h-4 ${activeMenu === 'usims' ? 'text-purple-600' : ''}`} /><span className="text-sm">USIM manager</span></button>
           </div>
         </aside>
 
@@ -822,7 +811,8 @@ export const DevicesDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
           {sidebarOpen ? <ChevronLeft className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
         </button>
 
-        <main className={`flex-1 overflow-hidden flex flex-col p-8 transition-all duration-300 ${!sidebarOpen ? 'ml-12' : ''}`}>
+        {/* relative z-10을 추가하여 배경에 묻히지 않도록 끌어올림 */}
+        <main className={`relative z-10 flex-1 overflow-hidden flex flex-col p-8 transition-all duration-300 ${!sidebarOpen ? 'ml-12' : ''}`}>
           
           {(activeMenu === 'dashboard' || activeMenu === 'android' || activeMenu === 'ios') && (
             <div className="animate-fade-in h-full flex flex-col">
@@ -849,7 +839,7 @@ export const DevicesDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
                 </div>
               </div>
 
-              <div className="flex flex-col space-y-3 bg-white p-4 rounded-2xl shadow-sm border border-gray-100 mb-6 shrink-0 animate-fade-in relative z-30">
+              <div className="flex flex-col space-y-3 bg-white/90 backdrop-blur-md p-4 rounded-2xl shadow-sm border border-gray-100/50 mb-6 shrink-0 animate-fade-in relative z-30">
                 <div className="flex justify-between items-center">
                   <div className="flex space-x-8">
                     <div className="flex flex-col"><span className="text-[10px] text-gray-500 uppercase tracking-wider font-bold">Total</span><span className="text-xl font-bold text-gray-800">{deviceSummary.total}</span></div><div className="w-px bg-gray-200 my-1"></div>
@@ -906,7 +896,7 @@ export const DevicesDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
                 </div>
               </div>
 
-              <div className="flex flex-col space-y-3 bg-white p-4 rounded-2xl shadow-sm border border-gray-100 mb-6 shrink-0 animate-fade-in relative z-30">
+              <div className="flex flex-col space-y-3 bg-white/90 backdrop-blur-md p-4 rounded-2xl shadow-sm border border-gray-100/50 mb-6 shrink-0 animate-fade-in relative z-30">
                 <div className="flex justify-between items-center">
                   <div className="flex space-x-8">
                     <div className="flex flex-col"><span className="text-[10px] text-gray-500 uppercase tracking-wider font-bold">Total</span><span className="text-xl font-bold text-gray-800">{usimSummary.total}</span></div><div className="w-px bg-gray-200 my-1"></div>
