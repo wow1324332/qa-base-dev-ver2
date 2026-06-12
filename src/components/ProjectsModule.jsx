@@ -320,22 +320,6 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
     });
     return () => unsubscribe();
   }, [userDocId, user]);
-
-  // 사이드바에서 날아온 "OPEN_EPIC" 신호 잡아서 바로 화면 전환하기
-  useEffect(() => {
-    const handleOpenEpic = (e) => {
-      const targetEpicKey = e.detail;
-      const targetEpic = epics.find(ep => ep.epicKey === targetEpicKey);
-      if (targetEpic) {
-        setActiveSpace(targetEpic.spaceKey);
-        setActiveMenu('epic');
-        setView('issues');
-        setActiveEpic(targetEpic.epicKey);
-      }
-    };
-    window.addEventListener('OPEN_EPIC', handleOpenEpic);
-    return () => window.removeEventListener('OPEN_EPIC', handleOpenEpic);
-  }, [epics]);
   
   const [issues, setIssues] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -362,6 +346,22 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
   const [epics, setEpics] = useState([]);
   const [epicModal, setEpicModal] = useState({ isOpen: false, isEdit: false });
   const [epicFormData, setEpicFormData] = useState({ id: '', spaceKey: '', name: '', epicKey: '', status: '예정', progress: 0 });
+
+    // 사이드바에서 날아온 "OPEN_EPIC" 신호 잡아서 바로 화면 전환하기
+  useEffect(() => {
+    const handleOpenEpic = (e) => {
+      const targetEpicKey = e.detail;
+      const targetEpic = epics.find(ep => ep.epicKey === targetEpicKey);
+      if (targetEpic) {
+        setActiveSpace(targetEpic.spaceKey);
+        setActiveMenu('epic');
+        setView('issues');
+        setActiveEpic(targetEpic.epicKey);
+      }
+    };
+    window.addEventListener('OPEN_EPIC', handleOpenEpic);
+    return () => window.removeEventListener('OPEN_EPIC', handleOpenEpic);
+  }, [epics]);
 
   const currentSpaceData = spaces.find(s => s.epicKey === activeSpace);
   const isType2 = currentSpaceData?.spaceType === 'Type 2';
