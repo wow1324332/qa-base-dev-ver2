@@ -794,7 +794,7 @@ export const ScheduleDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
         className="flex flex-1 overflow-hidden relative bg-[#f0f2f5] bg-cover bg-center bg-no-repeat"
         style={{ backgroundImage: "url('/project-bg.jpg')" }}
       >
-        <aside className={`bg-white/60 backdrop-blur-xl rounded-r-2xl shadow-[-5px_0_30px_rgba(0,0,0,0.02)] transition-all duration-300 ease-in-out flex flex-col justify-between z-10 overflow-hidden whitespace-nowrap ${sidebarOpen ? 'w-64 translate-x-0' : 'w-0 -translate-x-full'}`}>
+       <aside className={`bg-white/40 backdrop-blur-2xl border-y border-r border-white/60 rounded-r-2xl shadow-[10px_0_40px_-10px_rgba(0,0,0,0.1),inset_2px_2px_6px_rgba(255,255,255,0.9),inset_-3px_-3px_8px_rgba(0,0,0,0.04)] transition-all duration-300 ease-in-out flex flex-col justify-between z-10 overflow-hidden whitespace-nowrap ${sidebarOpen ? 'w-64 translate-x-0' : 'w-0 -translate-x-full'}`}>
           
           {/* 상단 메인 메뉴 */}
           <div className="p-4 space-y-1 w-64">
