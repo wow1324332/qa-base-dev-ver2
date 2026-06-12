@@ -150,7 +150,13 @@ export const SidebarFavorites = ({ db, user, onNavigate, sidebarOpen, currentMod
                     </div>
                   )}
                   <div className="h-px bg-gray-100 my-1 mx-2"></div>
-                  <button onClick={() => { setShowProjectPopup(false); onNavigate('projects'); }} className="w-full flex items-center space-x-2 px-3 py-2.5 rounded-xl hover:bg-gray-50 text-gray-600 transition-colors">
+                  <button onClick={(e) => { 
+                    e.stopPropagation(); 
+                    setShowProjectPopup(false); 
+                    onNavigate('projects'); 
+                    // 0.1초 뒤 프로젝트 보드 초기화 신호 발송
+                    setTimeout(() => window.dispatchEvent(new Event('RESET_PROJECTS')), 100);
+                  }} className="w-full flex items-center space-x-2 px-3 py-2.5 rounded-xl hover:bg-gray-50 text-gray-600 transition-colors">
                     <Kanban className="w-4 h-4 text-gray-400" />
                     <span className="text-sm font-medium">전체 프로젝트 보드 가기</span>
                   </button>
