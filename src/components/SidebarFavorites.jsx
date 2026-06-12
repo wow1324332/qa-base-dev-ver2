@@ -125,7 +125,7 @@ export const SidebarFavorites = ({ db, user, onNavigate, sidebarOpen, currentMod
 
               {/* 시네마틱 프로젝트 팝업 */}
               {isProjectMenu && showProjectPopup && !favEditMode && (
-                <div className="absolute bottom-14 left-0 w-56 bg-white/95 backdrop-blur-xl border border-gray-100/80 rounded-2xl shadow-[0_15px_40px_rgba(0,0,0,0.12)] p-2 z-[99999] animate-fade-in-up origin-bottom-left" onClick={e=>e.stopPropagation()}>
+                <div className="fixed bottom-24 left-6 w-52 bg-white/95 backdrop-blur-xl border border-gray-100/80 rounded-2xl shadow-[0_15px_40px_rgba(0,0,0,0.12)] p-2 z-[99999] animate-fade-in-up origin-bottom-left" onClick={e=>e.stopPropagation()}>
                   <div className="text-[10px] font-bold text-blue-500 px-3 py-2 uppercase tracking-wider flex items-center mb-1">
                     <Kanban className="w-3 h-3 mr-1.5" /> Favorite Epics
                   </div>
