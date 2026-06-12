@@ -746,11 +746,14 @@ const [pendingEpicKey, setPendingEpicKey] = useState(null);
                       <span className="text-xs font-bold text-gray-400">{epic.epicKey}</span>
                     </div>
                     
-                    {/* 3. 프로젝트명 + 테두리 없는 하트 버튼 나란히 배치 */}
+                    {/* 3. 프로젝트명 + 테두리 없는 시네마틱 체크 버튼 나란히 배치 */}
                     <div className="flex items-center mb-2">
                       <h3 className="text-lg font-bold text-gray-800 group-hover:text-blue-600 transition-colors truncate" title={epic.name}>{epic.name}</h3>
-                      <button onClick={(e) => { e.stopPropagation(); toggleFavoriteEpic(epic.epicKey); }} className="ml-2 flex items-center justify-center transition-transform hover:scale-110 focus:outline-none">
-                        <Heart className={`w-4.5 h-4.5 ${(favoriteEpics || []).includes(epic.epicKey) ? 'fill-red-500 text-red-500' : 'text-gray-300 hover:text-red-400'}`} />
+                      <button onClick={(e) => { e.stopPropagation(); toggleFavoriteEpic(epic.epicKey); }} className="ml-2 flex items-center justify-center transition-transform hover:scale-110 active:scale-95 focus:outline-none">
+                        <CheckCircle2 
+                          className={`w-[18px] h-[18px] transition-all duration-300 ${(favoriteEpics || []).includes(epic.epicKey) ? 'text-blue-600 fill-blue-50 drop-shadow-sm' : 'text-gray-300 hover:text-blue-400'}`} 
+                          strokeWidth={2.5} 
+                        />
                       </button>
                     </div>
                     <div className="w-full bg-gray-100 rounded-full h-1.5 mb-2 mt-4"><div className="bg-blue-500 h-1.5 rounded-full transition-all duration-1000" style={{width: `${epic.progress || 0}%`}}></div></div>
