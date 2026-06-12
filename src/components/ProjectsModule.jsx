@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { 
   Bug, Activity, CheckCircle2, AlertCircle, 
   ChevronUp, Equal, ChevronDown as ChevronDownIcon,
-  ChevronLeft, ChevronRight, LayoutDashboard, Server, Kanban, LogOut, Power, User, Plus, MonitorSmartphone, X, Edit, Filter, Search, ExternalLink, Minus, KeyRound, Calendar
+  ChevronLeft, ChevronRight, LayoutDashboard, Server, Kanban, LogOut, Power, User, Plus, MonitorSmartphone, X, Edit, Filter, Search, ExternalLink, Minus, KeyRound, Calendar, Heart
 } from 'lucide-react';
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getFirestore, collection, onSnapshot, doc, updateDoc, addDoc, deleteDoc, setDoc, getDoc } from "firebase/firestore";
@@ -292,6 +292,49 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
   
   const [activeSpace, setActiveSpace] = useState(null);
   const [activeEpic, setActiveEpic] = useState(null);
+
+  const [favoriteEpics, setFavoriteEpics] = useState([]);
+  const userDocId = user?.email || user?.uid || user?.id || user?.name || 'anonymous_user';
+
+  // 하트(에픽 즐겨찾기) 토글 함수
+  const toggleFavoriteEpic = async (epicKey) => {
+    let newFavs = [...favoriteEpics];
+    if (newFavs.includes(epicKey)) newFavs = newFavs.filter(k => k !== epicKey);
+    else newFavs.push(epicKey);
+
+    setFavoriteEpics(newFavs);
+    if (!user || userDocId === 'anonymous_user') return;
+    try { await setDoc(doc(db, 'user_preferences', userDocId), { favorite_epics: newFavs }, { merge: true }); } 
+    catch (error) { console.error(error); }
+  };
+
+  // 실시간 하트 데이터 불러오기
+  useEffect(() => {
+    if (!user || userDocId === 'anonymous_user') return;
+    const unsubscribe = onSnapshot(doc(db, 'user_preferences', userDocId), (docSnap) => {
+      if (docSnap.exists() && docSnap.data().favorite_epics) {
+        setFavoriteEpics(docSnap.data().favorite_epics);
+      }
+    });
+    return () => unsubscribe();
+  }, [userDocId, user]);
+
+  // 사이드바에서 날아온 "OPEN_EPIC" 신호 잡아서 바로 화면 전환하기
+  useEffect(() => {
+    const handleOpenEpic = (e) => {
+      const targetEpicKey = e.detail;
+      const targetEpic = epics.find(ep => ep.epicKey === targetEpicKey);
+      if (targetEpic) {
+        // 즉시 스페이스와 에픽을 활성화시키고 이슈 화면으로 전환!
+        setActiveSpace(targetEpic.spaceKey);
+        setActiveMenu('epic');
+        setView('issues');
+        setActiveEpic(targetEpic.epicKey);
+      }
+    };
+    window.addEventListener('OPEN_EPIC', handleOpenEpic);
+    return () => window.removeEventListener('OPEN_EPIC', handleOpenEpic);
+  }, [epics]);
   
   const [issues, setIssues] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -680,10 +723,15 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
               <div className="grid grid-cols-3 gap-6 overflow-y-auto no-scrollbar pb-6">
                 {filteredEpics.length > 0 ? filteredEpics.map(epic => (
                   <div key={epic.id} onClick={() => { setActiveEpic(epic.epicKey); setView('issues'); }} className="bg-white rounded-2xl p-6 border border-gray-200 shadow-md cursor-pointer hover-breath group relative">
-                    <div className="absolute top-5 right-5 flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
-                      <button onClick={(e) => { e.stopPropagation(); setEpicFormData(epic); setEpicModal({isOpen: true, isEdit: true}); }} className="p-1.5 bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-200 transition-colors border border-gray-200 shadow-sm"><Edit className="w-4 h-4"/></button>
+                    <div className={`absolute top-5 right-5 flex space-x-2 transition-opacity z-10 ${favoriteEpics.includes(epic.epicKey) ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
+                      <button onClick={(e) => { e.stopPropagation(); toggleFavoriteEpic(epic.epicKey); }} className="p-1.5 bg-white text-gray-600 rounded-lg hover:bg-red-50 transition-colors shadow-sm border border-gray-100">
+                        <Heart className={`w-4 h-4 ${favoriteEpics.includes(epic.epicKey) ? 'fill-red-500 text-red-500' : 'text-gray-300'}`} />
+                      </button>
+                      <button onClick={(e) => { e.stopPropagation(); setEpicFormData(epic); setEpicModal({isOpen: true, isEdit: true}); }} className="p-1.5 bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-200 transition-colors border border-gray-200 shadow-sm">
+                        <Edit className="w-4 h-4"/>
+                      </button>
                     </div>
-                    <div className="flex justify-between items-start mb-4 pr-10">
+                    <div className="flex justify-between items-start mb-4 pr-16">
                       <span className={`text-[10px] px-2 py-1 rounded-md border font-bold ${epic.status === '완료' ? 'bg-green-50 text-green-600 border-green-100' : epic.status === '진행중' ? 'bg-blue-50 text-blue-600 border-blue-100' : epic.status === 'HOLD' ? 'bg-orange-50 text-orange-600 border-orange-100' : 'bg-gray-50 text-gray-600 border-gray-100'}`}>{epic.status}</span>
                       <span className="text-xs font-bold text-gray-400">{epic.epicKey}</span>
                     </div>
