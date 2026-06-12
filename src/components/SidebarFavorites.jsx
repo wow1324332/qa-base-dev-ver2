@@ -11,17 +11,17 @@ export const SidebarFavorites = ({ db, user, onNavigate, sidebarOpen, currentMod
   ];
 
   const [favorites, setFavorites] = useState([]);
-  const [favoriteEpics, setFavoriteEpics] = useState([]); 
-  const [allEpics, setAllEpics] = useState([]); 
+  const [favoriteEpics, setFavoriteEpics] = useState([]); // 추가: 하트 누른 에픽들
+  const [allEpics, setAllEpics] = useState([]); // 추가: 에픽 이름 매핑용
   
   const [showAddFav, setShowAddFav] = useState(false);
-  const [showProjectPopup, setShowProjectPopup] = useState(false); 
+  const [showProjectPopup, setShowProjectPopup] = useState(false); // 추가: 프로젝트 팝업 상태
   const [favEditMode, setFavEditMode] = useState(false);
   const longPressTimer = useRef(null);
 
   const userDocId = user?.email || user?.uid || user?.id || user?.name || 'anonymous_user';
 
-  // 유저 즐겨찾기 실시간 데이터 연동
+  // 1. 유저 즐겨찾기 실시간 데이터 연동
   useEffect(() => {
     if (!user || !db || userDocId === 'anonymous_user') return;
     const docRef = doc(db, 'user_preferences', userDocId);
@@ -35,7 +35,7 @@ export const SidebarFavorites = ({ db, user, onNavigate, sidebarOpen, currentMod
     return () => unsubscribe();
   }, [userDocId, user, db]);
 
-  // 프로젝트 이름 매핑용 에픽 데이터 불러오기
+  // 2. 프로젝트 이름 매핑을 위해 에픽 데이터 불러오기
   useEffect(() => {
     if (!db) return;
     const epicsRef = collection(db, 'jira_epics');
@@ -65,51 +65,14 @@ export const SidebarFavorites = ({ db, user, onNavigate, sidebarOpen, currentMod
   const handleTouchStart = () => { longPressTimer.current = setTimeout(() => { setFavEditMode(true); setShowAddFav(false); setShowProjectPopup(false); }, 1500); };
   const handleTouchEnd = () => { if (longPressTimer.current) clearTimeout(longPressTimer.current); };
 
-
-  // 🌟 [핵심] 시네마틱 화면 전환 (커튼 효과) 함수 🌟
-  const triggerCinematicTransition = (targetId, afterNavAction = null) => {
-    // 이미 전환 중이면 무시 (버튼 다중 클릭 방지)
-    if (document.getElementById('cinematic-overlay')) return; 
-
-    // 1. 화면 전체를 덮는 커튼(div) 생성
-    const overlay = document.createElement('div');
-    overlay.id = 'cinematic-overlay';
-    // 배경색을 앱의 기본 배경색(#f8f9fa)과 맞추어 아주 자연스럽게 녹아들게 함
-    overlay.className = 'fixed inset-0 bg-[#f8f9fa] z-[9999999] transition-opacity duration-[300ms] ease-in-out pointer-events-auto opacity-0';
-    document.body.appendChild(overlay);
-
-    // 2. 커튼 내리기 (투명도 0 -> 100)
-    requestAnimationFrame(() => {
-      overlay.classList.replace('opacity-0', 'opacity-100');
-    });
-
-    // 3. 커튼이 다 내려오면(0.3초 뒤) 몰래 화면(컴포넌트)을 교체
-    setTimeout(() => {
-      onNavigate(targetId);
-
-      // 화면 교체 후 해야 할 추가 작업(에픽 열기, 초기화 등)이 있다면 실행
-      if (afterNavAction) {
-        setTimeout(() => afterNavAction(), 50);
-      }
-
-      // 4. 새 화면이 그려질 시간(0.1초)을 준 뒤, 다시 커튼 올리기 (투명도 100 -> 0)
-      setTimeout(() => {
-        overlay.classList.replace('opacity-100', 'opacity-0');
-        overlay.classList.replace('pointer-events-auto', 'pointer-events-none');
-
-        // 5. 애니메이션이 완전히 끝나면 DOM에서 삭제
-        setTimeout(() => overlay.remove(), 300);
-      }, 100);
-    }, 300);
-  };
-
-
-  // 추가: 특정 에픽으로 직행하는 함수 (커튼 애니메이션 탑재)
+  // 추가: 특정 에픽으로 직행하는 함수
   const openSpecificEpic = (epicKey) => {
     setShowProjectPopup(false);
-    triggerCinematicTransition('projects', () => {
+    onNavigate('projects'); // 먼저 프로젝트 화면으로 이동
+    // 0.1초 뒤 화면이 마운트된 후 이동하라는 신호(이벤트)를 발송
+    setTimeout(() => {
       window.dispatchEvent(new CustomEvent('OPEN_EPIC', { detail: epicKey }));
-    });
+    }, 100);
   };
 
   return (
@@ -125,7 +88,7 @@ export const SidebarFavorites = ({ db, user, onNavigate, sidebarOpen, currentMod
           if (!feature) return null;
           const Icon = feature.icon;
           const isCurrent = favId === currentModule;
-          const isProjectMenu = favId === 'projects';
+          const isProjectMenu = favId === 'projects'; // 프로젝트 보드인지 확인
 
           return (
             <div
@@ -138,10 +101,9 @@ export const SidebarFavorites = ({ db, user, onNavigate, sidebarOpen, currentMod
                   e.stopPropagation();
                   if (favEditMode) return;
                   if (isProjectMenu) {
-                    setShowProjectPopup(!showProjectPopup); 
+                    setShowProjectPopup(!showProjectPopup); // 프로젝트면 팝업 띄우기
                   } else {
-                    // [적용] 일반 메뉴 이동 시에도 커튼 애니메이션 작동
-                    if (!isCurrent) triggerCinematicTransition(favId);
+                    if (!isCurrent) onNavigate(favId);
                   }
                 }}
                 className={`p-3 rounded-2xl transition-all duration-300 relative ${
@@ -152,12 +114,7 @@ export const SidebarFavorites = ({ db, user, onNavigate, sidebarOpen, currentMod
                 title={feature.label}
               >
                 <Icon className={`w-5 h-5 ${favEditMode ? 'animate-pulse text-gray-400' : ''}`} />
-                {isProjectMenu && favoriteEpics.length > 0 && (
-                  <span className="absolute -top-1 -right-1 flex h-3.5 w-3.5">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-red-500 border-2 border-white"></span>
-                  </span>
-                )}
+                {/* 프로젝트 아이콘 우측 상단에 뱃지 표시 */}
               </button>
 
               {/* 시네마틱 프로젝트 팝업 */}
@@ -187,16 +144,15 @@ export const SidebarFavorites = ({ db, user, onNavigate, sidebarOpen, currentMod
                     </div>
                   )}
                   <div className="h-px bg-gray-100 my-1 mx-2"></div>
-                  {/* [적용] 전체 보드 가기 버튼에도 커튼 애니메이션 탑재 */}
                   <button onClick={(e) => { 
                     e.stopPropagation(); 
                     setShowProjectPopup(false); 
-                    triggerCinematicTransition('projects', () => {
-                      window.dispatchEvent(new Event('RESET_PROJECTS'));
-                    });
+                    onNavigate('projects'); 
+                    // 0.1초 뒤 프로젝트 보드 초기화 신호 발송
+                    setTimeout(() => window.dispatchEvent(new Event('RESET_PROJECTS')), 100);
                   }} className="w-full flex items-center space-x-2 px-3 py-2.5 rounded-xl hover:bg-gray-50 text-gray-600 transition-colors">
                     <Kanban className="w-4 h-4 text-gray-400" />
-                    <span className="text-sm font-medium">전체 프로젝트 보드 가기</span>
+                    <span className="text-sm font-medium">Space Board</span>
                   </button>
                 </div>
               )}
