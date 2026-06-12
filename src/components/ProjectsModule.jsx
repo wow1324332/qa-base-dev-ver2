@@ -298,7 +298,7 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
 
   // 하트(에픽 즐겨찾기) 토글 함수
   const toggleFavoriteEpic = async (epicKey) => {
-    let newFavs = [...favoriteEpics];
+    let newFavs = [...(favoriteEpics || [])]; // 방어 로직 추가
     if (newFavs.includes(epicKey)) newFavs = newFavs.filter(k => k !== epicKey);
     else newFavs.push(epicKey);
 
@@ -312,8 +312,10 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
   useEffect(() => {
     if (!user || userDocId === 'anonymous_user') return;
     const unsubscribe = onSnapshot(doc(db, 'user_preferences', userDocId), (docSnap) => {
-      if (docSnap.exists() && docSnap.data().favorite_epics) {
-        setFavoriteEpics(docSnap.data().favorite_epics);
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        // 파이어베이스 데이터가 배열이 아닐 경우(undefined 등) 무조건 빈 배열[]로 초기화
+        setFavoriteEpics(Array.isArray(data.favorite_epics) ? data.favorite_epics : []);
       }
     });
     return () => unsubscribe();
@@ -325,7 +327,6 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
       const targetEpicKey = e.detail;
       const targetEpic = epics.find(ep => ep.epicKey === targetEpicKey);
       if (targetEpic) {
-        // 즉시 스페이스와 에픽을 활성화시키고 이슈 화면으로 전환!
         setActiveSpace(targetEpic.spaceKey);
         setActiveMenu('epic');
         setView('issues');
@@ -723,9 +724,9 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
               <div className="grid grid-cols-3 gap-6 overflow-y-auto no-scrollbar pb-6">
                 {filteredEpics.length > 0 ? filteredEpics.map(epic => (
                   <div key={epic.id} onClick={() => { setActiveEpic(epic.epicKey); setView('issues'); }} className="bg-white rounded-2xl p-6 border border-gray-200 shadow-md cursor-pointer hover-breath group relative">
-                    <div className={`absolute top-5 right-5 flex space-x-2 transition-opacity z-10 ${favoriteEpics.includes(epic.epicKey) ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
+                    <div className={`absolute top-5 right-5 flex space-x-2 transition-opacity z-10 ${(favoriteEpics || []).includes(epic.epicKey) ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
                       <button onClick={(e) => { e.stopPropagation(); toggleFavoriteEpic(epic.epicKey); }} className="p-1.5 bg-white text-gray-600 rounded-lg hover:bg-red-50 transition-colors shadow-sm border border-gray-100">
-                        <Heart className={`w-4 h-4 ${favoriteEpics.includes(epic.epicKey) ? 'fill-red-500 text-red-500' : 'text-gray-300'}`} />
+                        <Heart className={`w-4 h-4 ${(favoriteEpics || []).includes(epic.epicKey) ? 'fill-red-500 text-red-500' : 'text-gray-300'}`} />
                       </button>
                       <button onClick={(e) => { e.stopPropagation(); setEpicFormData(epic); setEpicModal({isOpen: true, isEdit: true}); }} className="p-1.5 bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-200 transition-colors border border-gray-200 shadow-sm">
                         <Edit className="w-4 h-4"/>
