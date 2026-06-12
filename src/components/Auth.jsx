@@ -66,16 +66,20 @@ export const LoginScreen = ({ onLogin, onInstallApp }) => {
   };
 
   return (
-    <div className="w-screen h-screen bg-[url('/login-bg.jpg')] bg-cover bg-center flex items-center justify-end pr-8 md:pr-24 lg:pr-40 xl:pr-56 relative animate-simple-fade">
+      {/* 1. 최상위 배경: 우측 여백을 줘서 모달을 오른쪽으로 밀어냅니다 */}
+      <div className="w-screen h-screen bg-[url('/login-bg.png')] bg-cover bg-center flex items-center justify-end pr-12 lg:pr-48 xl:pr-[15%] 2xl:pr-[20%] relative animate-simple-fade">
+      
+      {/* 2. 앱 설치 버튼: 사이버네틱하고 고급스러운 블루 네온 톤으로 변경 */}
       <button 
         onClick={onInstallApp}
-        className="absolute top-8 right-8 flex items-center space-x-2 text-gray-500 hover:text-gray-800 transition-colors bg-white/50 px-4 py-2 rounded-full backdrop-blur hover-breath shadow-sm border border-gray-100"
+        className="absolute top-8 right-8 flex items-center space-x-2 text-blue-100 hover:text-white transition-all duration-300 bg-blue-900/30 hover:bg-blue-800/50 px-5 py-2.5 rounded-full backdrop-blur-md shadow-[0_0_15px_rgba(0,100,255,0.2)] border border-blue-400/30 hover:border-blue-400/60"
       >
         <Download className="w-4 h-4" />
-        <span className="text-xs font-medium tracking-wide">앱 설치</span>
+        <span className="text-xs font-bold tracking-wide">앱 설치</span>
       </button>
 
-      <div className="w-full max-w-[380px] bg-white/80 backdrop-blur-xl rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.08)] border border-white p-8 animate-fade-in relative z-10">
+      {/* 3. 로그인 모달: 사이즈를 줄이고 여백을 줄여서 날렵하게 변경 */}
+      <div className="w-full max-w-[320px] bg-white/80 backdrop-blur-xl rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.15)] border border-white/50 p-6 animate-fade-in relative z-10">
         <div className="flex justify-center mb-8">
           <AppLogo className="w-20 h-20" />
         </div>
