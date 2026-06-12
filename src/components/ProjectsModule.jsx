@@ -349,13 +349,29 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
 
 const [pendingEpicKey, setPendingEpicKey] = useState(null);
 
-  // 1. 사이드바에서 날아온 "OPEN_EPIC" 신호를 잡아서 일단 대기열에 저장만 해둠
-  useEffect(() => {
+    // 1. 사이드바에서 날아온 "OPEN_EPIC" 및 "RESET_PROJECTS" 신호 수신
+    useEffect(() => {
+    // 특정 에픽으로 직행하는 신호
     const handleOpenEpic = (e) => {
       setPendingEpicKey(e.detail);
     };
+
+    // 전체 프로젝트 보드로 초기화하는 신호
+    const handleResetProjects = () => {
+      setActiveSpace(null);
+      setActiveEpic(null);
+      setActiveMenu('space');
+      setView('spaces');
+      setPendingEpicKey(null); // 혹시 모를 대기열도 비움
+    };
+
     window.addEventListener('OPEN_EPIC', handleOpenEpic);
-    return () => window.removeEventListener('OPEN_EPIC', handleOpenEpic);
+    window.addEventListener('RESET_PROJECTS', handleResetProjects);
+
+    return () => {
+      window.removeEventListener('OPEN_EPIC', handleOpenEpic);
+      window.removeEventListener('RESET_PROJECTS', handleResetProjects);
+    };
   }, []);
 
   // 2. 대기열에 목적지가 있고 & 파이어베이스 데이터(epics) 로딩이 완료되면 즉시 화면 전환!
