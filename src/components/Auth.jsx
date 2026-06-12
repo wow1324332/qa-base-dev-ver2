@@ -66,7 +66,7 @@ export const LoginScreen = ({ onLogin, onInstallApp }) => {
   };
 
   return (
-    <div className="w-screen h-screen bg-[url('/login-bg.png')] bg-cover bg-center flex items-center justify-end pr-8 md:pr-24 lg:pr-40 xl:pr-56 relative animate-simple-fade">
+    <div className="w-screen h-screen bg-[url('/login-bg.jpg')] bg-cover bg-center flex items-center justify-end pr-8 md:pr-24 lg:pr-40 xl:pr-56 relative animate-simple-fade">
       <button 
         onClick={onInstallApp}
         className="absolute top-8 right-8 flex items-center space-x-2 text-gray-500 hover:text-gray-800 transition-colors bg-white/50 px-4 py-2 rounded-full backdrop-blur hover-breath shadow-sm border border-gray-100"
