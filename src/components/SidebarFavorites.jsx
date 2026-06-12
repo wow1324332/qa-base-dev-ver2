@@ -146,7 +146,7 @@ export const SidebarFavorites = ({ db, user, onNavigate, sidebarOpen, currentMod
                     </div>
                   ) : (
                     <div className="px-3 py-4 text-center">
-                      <span className="text-xs text-gray-400">프로젝트 보드에서 하트를<br/>눌러 즐겨찾기를 추가하세요!</span>
+                      <span className="text-xs text-gray-400">프로젝트 보드에서 체크를<br/>눌러 즐겨찾기를 추가하세요!</span>
                     </div>
                   )}
                   <div className="h-px bg-gray-100 my-1 mx-2"></div>
