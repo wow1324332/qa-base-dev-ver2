@@ -158,7 +158,7 @@ export const SidebarFavorites = ({ db, user, onNavigate, sidebarOpen, currentMod
                     setTimeout(() => window.dispatchEvent(new Event('RESET_PROJECTS')), 100);
                   }} className="w-full flex items-center space-x-2 px-3 py-2.5 rounded-xl hover:bg-gray-50 text-gray-600 transition-colors">
                     <Kanban className="w-4 h-4 text-gray-400" />
-                    <span className="text-sm font-medium">전체 프로젝트 보드 가기</span>
+                    <span className="text-sm font-medium">Go to Space Board</span>
                   </button>
                 </div>
               )}
