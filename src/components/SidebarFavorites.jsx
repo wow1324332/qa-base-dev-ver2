@@ -151,7 +151,7 @@ export const SidebarFavorites = ({ db, user, onNavigate, sidebarOpen, currentMod
                   )}
                   <div className="h-px bg-gray-100 my-1 mx-2"></div>
                   <button onClick={() => { setShowProjectPopup(false); onNavigate('projects'); }} className="w-full flex items-center space-x-2 px-3 py-2.5 rounded-xl hover:bg-gray-50 text-gray-600 transition-colors">
-                    <LayoutKanban className="w-4 h-4 text-gray-400" />
+                    <Kanban className="w-4 h-4 text-gray-400" />
                     <span className="text-sm font-medium">전체 프로젝트 보드 가기</span>
                   </button>
                 </div>
