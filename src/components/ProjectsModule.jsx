@@ -733,19 +733,26 @@ const [pendingEpicKey, setPendingEpicKey] = useState(null);
               <div className="grid grid-cols-3 gap-6 overflow-y-auto no-scrollbar pb-6">
                 {filteredEpics.length > 0 ? filteredEpics.map(epic => (
                   <div key={epic.id} onClick={() => { setActiveEpic(epic.epicKey); setView('issues'); }} className="bg-white rounded-2xl p-6 border border-gray-200 shadow-md cursor-pointer hover-breath group relative">
-                    <div className={`absolute top-5 right-5 flex space-x-2 transition-opacity z-10 ${(favoriteEpics || []).includes(epic.epicKey) ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
-                      <button onClick={(e) => { e.stopPropagation(); toggleFavoriteEpic(epic.epicKey); }} className="p-1.5 bg-white text-gray-600 rounded-lg hover:bg-red-50 transition-colors shadow-sm border border-gray-100">
-                        <Heart className={`w-4 h-4 ${(favoriteEpics || []).includes(epic.epicKey) ? 'fill-red-500 text-red-500' : 'text-gray-300'}`} />
-                      </button>
+                    {/* 1. 수정 버튼 (원래대로 우측 상단 배치, 마우스 오버 시에만 노출) */}
+                    <div className="absolute top-5 right-5 flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
                       <button onClick={(e) => { e.stopPropagation(); setEpicFormData(epic); setEpicModal({isOpen: true, isEdit: true}); }} className="p-1.5 bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-200 transition-colors border border-gray-200 shadow-sm">
                         <Edit className="w-4 h-4"/>
                       </button>
                     </div>
-                    <div className="flex justify-between items-start mb-4 pr-16">
+
+                    {/* 2. 상태 뱃지 & 에픽 키 (우측 간격 원래대로 복구) */}
+                    <div className="flex justify-between items-start mb-4 pr-10">
                       <span className={`text-[10px] px-2 py-1 rounded-md border font-bold ${epic.status === '완료' ? 'bg-green-50 text-green-600 border-green-100' : epic.status === '진행중' ? 'bg-blue-50 text-blue-600 border-blue-100' : epic.status === 'HOLD' ? 'bg-orange-50 text-orange-600 border-orange-100' : 'bg-gray-50 text-gray-600 border-gray-100'}`}>{epic.status}</span>
                       <span className="text-xs font-bold text-gray-400">{epic.epicKey}</span>
                     </div>
-                    <h3 className="text-lg font-bold text-gray-800 mb-2 group-hover:text-blue-600 transition-colors truncate" title={epic.name}>{epic.name}</h3>
+                    
+                    {/* 3. 프로젝트명 + 테두리 없는 하트 버튼 나란히 배치 */}
+                    <div className="flex items-center mb-2">
+                      <h3 className="text-lg font-bold text-gray-800 group-hover:text-blue-600 transition-colors truncate" title={epic.name}>{epic.name}</h3>
+                      <button onClick={(e) => { e.stopPropagation(); toggleFavoriteEpic(epic.epicKey); }} className="ml-2 flex items-center justify-center transition-transform hover:scale-110 focus:outline-none">
+                        <Heart className={`w-4.5 h-4.5 ${(favoriteEpics || []).includes(epic.epicKey) ? 'fill-red-500 text-red-500' : 'text-gray-300 hover:text-red-400'}`} />
+                      </button>
+                    </div>
                     <div className="w-full bg-gray-100 rounded-full h-1.5 mb-2 mt-4"><div className="bg-blue-500 h-1.5 rounded-full transition-all duration-1000" style={{width: `${epic.progress || 0}%`}}></div></div>
                     <div className="flex justify-between text-xs font-medium text-gray-500">
                       <span>결함 추적 중</span><span>{epic.progress || 0}% 완료</span>
