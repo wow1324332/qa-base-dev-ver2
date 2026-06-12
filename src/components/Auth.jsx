@@ -67,7 +67,7 @@ export const LoginScreen = ({ onLogin, onInstallApp }) => {
 
   // 1. 최상위 배경: 우측에 착 붙도록 여백(pr)을 적당히 조절했습니다.
   return (
-    <div className="w-screen h-screen bg-[url('/login-bg.png')] bg-cover bg-center flex items-center justify-end pr-8 md:pr-16 lg:pr-24 relative animate-simple-fade">
+    <div className="w-screen h-screen bg-[url('/login-bg.jpg')] bg-cover bg-center flex items-center justify-end pr-8 md:pr-16 lg:pr-24 relative animate-simple-fade">
       
       {/* 2. 앱 설치 버튼: 사이버네틱하고 고급스러운 블루 네온 톤 */}
       <button 
