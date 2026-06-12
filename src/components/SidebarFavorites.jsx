@@ -115,12 +115,6 @@ export const SidebarFavorites = ({ db, user, onNavigate, sidebarOpen, currentMod
               >
                 <Icon className={`w-5 h-5 ${favEditMode ? 'animate-pulse text-gray-400' : ''}`} />
                 {/* 프로젝트 아이콘 우측 상단에 뱃지 표시 */}
-                {isProjectMenu && favoriteEpics.length > 0 && (
-                  <span className="absolute -top-1 -right-1 flex h-3.5 w-3.5">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-red-500 border-2 border-white"></span>
-                  </span>
-                )}
               </button>
 
               {/* 시네마틱 프로젝트 팝업 */}
