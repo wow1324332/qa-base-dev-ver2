@@ -65,9 +65,9 @@ export const LoginScreen = ({ onLogin, onInstallApp }) => {
     onLogin({ id: 'guest', name: 'Guest', role: 'viewer', profileImage: null });
   };
 
+  // 1. 최상위 배경: 우측 여백을 줘서 모달을 오른쪽으로 밀어냅니다
   return (
-      {/* 1. 최상위 배경: 우측 여백을 줘서 모달을 오른쪽으로 밀어냅니다 */}
-      <div className="w-screen h-screen bg-[url('/login-bg.png')] bg-cover bg-center flex items-center justify-end pr-12 lg:pr-48 xl:pr-[15%] 2xl:pr-[20%] relative animate-simple-fade">
+    <div className="w-screen h-screen bg-[url('/login-bg.png')] bg-cover bg-center flex items-center justify-end pr-12 lg:pr-48 xl:pr-[15%] 2xl:pr-[20%] relative animate-simple-fade">
       
       {/* 2. 앱 설치 버튼: 사이버네틱하고 고급스러운 블루 네온 톤으로 변경 */}
       <button 
