@@ -347,21 +347,30 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
   const [epicModal, setEpicModal] = useState({ isOpen: false, isEdit: false });
   const [epicFormData, setEpicFormData] = useState({ id: '', spaceKey: '', name: '', epicKey: '', status: '예정', progress: 0 });
 
-    // 사이드바에서 날아온 "OPEN_EPIC" 신호 잡아서 바로 화면 전환하기
+const [pendingEpicKey, setPendingEpicKey] = useState(null);
+
+  // 1. 사이드바에서 날아온 "OPEN_EPIC" 신호를 잡아서 일단 대기열에 저장만 해둠
   useEffect(() => {
     const handleOpenEpic = (e) => {
-      const targetEpicKey = e.detail;
-      const targetEpic = epics.find(ep => ep.epicKey === targetEpicKey);
+      setPendingEpicKey(e.detail);
+    };
+    window.addEventListener('OPEN_EPIC', handleOpenEpic);
+    return () => window.removeEventListener('OPEN_EPIC', handleOpenEpic);
+  }, []);
+
+  // 2. 대기열에 목적지가 있고 & 파이어베이스 데이터(epics) 로딩이 완료되면 즉시 화면 전환!
+  useEffect(() => {
+    if (pendingEpicKey && epics.length > 0) {
+      const targetEpic = epics.find(ep => ep.epicKey === pendingEpicKey);
       if (targetEpic) {
         setActiveSpace(targetEpic.spaceKey);
         setActiveMenu('epic');
         setView('issues');
         setActiveEpic(targetEpic.epicKey);
+        setPendingEpicKey(null); // 안전하게 이동 후 대기열 비우기
       }
-    };
-    window.addEventListener('OPEN_EPIC', handleOpenEpic);
-    return () => window.removeEventListener('OPEN_EPIC', handleOpenEpic);
-  }, [epics]);
+    }
+  }, [pendingEpicKey, epics]);
 
   const currentSpaceData = spaces.find(s => s.epicKey === activeSpace);
   const isType2 = currentSpaceData?.spaceType === 'Type 2';
