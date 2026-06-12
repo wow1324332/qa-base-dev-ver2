@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Server, Calendar, User, Kanban, Plus, Minus, KeyRound, ChevronRight, LayoutKanban } from 'lucide-react';
+import { Server, Calendar, User, Kanban, Plus, Minus, KeyRound, ChevronRight } from 'lucide-react';
 import { doc, onSnapshot, setDoc, collection } from 'firebase/firestore';
 
 export const SidebarFavorites = ({ db, user, onNavigate, sidebarOpen, currentModule }) => {
