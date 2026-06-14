@@ -65,111 +65,112 @@ export const LoginScreen = ({ onLogin, onInstallApp }) => {
     onLogin({ id: 'guest', name: 'Guest', role: 'viewer', profileImage: null });
   };
 
-  // 1. 최상위 배경: 우측에 착 붙도록 여백(pr)을 적당히 조절했습니다.
+  // 1. 최상위 배경 컨테이너
   return (
-    <div className="w-screen h-screen bg-[url('/login-bg.jpg')] bg-cover bg-center flex items-center justify-end pr-8 md:pr-16 lg:pr-24 relative animate-simple-fade">
+    <div className="w-screen h-screen bg-[url('/login-bg.png')] bg-cover bg-center flex items-center justify-end pr-8 md:pr-16 lg:pr-24 relative animate-simple-fade overflow-hidden">
       
-      {/* 2. 앱 설치 버튼: 사이버네틱하고 고급스러운 블루 네온 톤 */}
+      {/* 2. 둥둥 떠다니는 배경 효과 (클릭 방해하지 않도록 pointer-events-none 추가) */}
+      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-gray-200/40 rounded-full mix-blend-multiply filter blur-3xl opacity-50 animate-pulse pointer-events-none"></div>
+      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-gray-300/40 rounded-full mix-blend-multiply filter blur-3xl opacity-50 animate-pulse pointer-events-none" style={{ animationDelay: '2s'}}></div>
+
+      {/* 3. 앱 설치 버튼 */}
       <button 
         onClick={onInstallApp}
-        className="absolute top-8 right-8 flex items-center space-x-2 text-blue-100 hover:text-white transition-all duration-300 bg-blue-900/30 hover:bg-blue-800/50 px-5 py-2.5 rounded-full backdrop-blur-md shadow-[0_0_15px_rgba(0,100,255,0.2)] border border-blue-400/30 hover:border-blue-400/60"
+        className="absolute top-8 right-8 flex items-center space-x-2 text-blue-100 hover:text-white transition-all duration-300 bg-blue-900/30 hover:bg-blue-800/50 px-5 py-2.5 rounded-full backdrop-blur-md shadow-[0_0_15px_rgba(0,100,255,0.2)] border border-blue-400/30 hover:border-blue-400/60 z-50"
       >
         <Download className="w-4 h-4" />
         <span className="text-xs font-bold tracking-wide">앱 설치</span>
       </button>
 
-        {/* 3. 로그인 모달 래퍼 (기존의 밝은 톤 + 은은한 흰색 숨쉬기 효과) */}
-        <div className="relative w-full max-w-[320px] animate-fade-in z-10">
+      {/* 4. 로그인 모달 래퍼 (숨쉬기 효과) */}
+      <div className="relative w-full max-w-[320px] animate-fade-in z-10">
         
         {/* ✨ 테두리 주변으로 퍼지는 은은한 흰색 숨쉬기 광원 */}
         <div className="absolute -inset-1.5 bg-white/40 rounded-[24px] blur-md animate-pulse pointer-events-none"></div>
         
-        {/* 🪟 원래의 밝은 톤을 유지하면서 아주 살짝만 투명한 모달 박스 */}
-        <div className="relative w-full bg-white/80 backdrop-blur-xl rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.15)] border border-white/60 p-6">
-
-        <div className="flex w-full mb-8 relative border-b border-gray-200">
-          <button 
-            type="button"
-            className={`flex-1 pb-3 text-sm font-medium transition-colors ${tab === 'login' ? 'text-gray-900' : 'text-gray-400 hover:text-gray-600'}`}
-            onClick={() => setTab('login')}
-          >
-            Login
-          </button>
-          <button 
-            type="button"
-            className={`flex-1 pb-3 text-sm font-medium transition-colors ${tab === 'create' ? 'text-gray-900' : 'text-gray-400 hover:text-gray-600'}`}
-            onClick={() => setTab('create')}
-          >
-            Create
-          </button>
-          <div className={`absolute bottom-0 h-[2px] bg-gray-800 w-1/2 transition-transform duration-300 ease-out ${tab === 'login' ? 'translate-x-0' : 'translate-x-full'}`}></div>
-        </div>
-
-        <form onSubmit={handleLogin} className="space-y-4">
-          <div>
-            <input 
-              type="text" 
-              placeholder="ID" 
-              value={id}
-              onChange={(e) => setId(e.target.value)}
-              className="w-full bg-gray-50/50 border border-gray-200 text-gray-800 text-sm rounded-xl px-4 py-3 outline-none focus:border-gray-400 focus:bg-white transition-all placeholder:text-gray-400 shadow-sm"
-            />
-          </div>
-          <div>
-            <input 
-              type="password" 
-              placeholder="Password" 
-              value={pw}
-              onChange={(e) => setPw(e.target.value)}
-              className="w-full bg-gray-50/50 border border-gray-200 text-gray-800 text-sm rounded-xl px-4 py-3 outline-none focus:border-gray-400 focus:bg-white transition-all placeholder:text-gray-400 shadow-sm"
-            />
-          </div>
+        {/* 🪟 약간 투명해진 글래스모피즘 모달 (bg-white/50 적용) */}
+        <div className="relative w-full bg-white/50 backdrop-blur-2xl rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.2)] border border-white/50 p-6">
           
-          {tab === 'create' && (
-            <div className="animate-fade-in">
+          <div className="flex w-full mb-8 relative border-b border-gray-300">
+            <button 
+              type="button"
+              className={`flex-1 pb-3 text-sm font-bold transition-colors ${tab === 'login' ? 'text-gray-900' : 'text-gray-500 hover:text-gray-800'}`}
+              onClick={() => setTab('login')}
+            >
+              Login
+            </button>
+            <button 
+              type="button"
+              className={`flex-1 pb-3 text-sm font-bold transition-colors ${tab === 'create' ? 'text-gray-900' : 'text-gray-500 hover:text-gray-800'}`}
+              onClick={() => setTab('create')}
+            >
+              Create
+            </button>
+            <div className={`absolute bottom-0 h-[2px] bg-gray-900 w-1/2 transition-transform duration-300 ease-out ${tab === 'login' ? 'translate-x-0' : 'translate-x-full'}`}></div>
+          </div>
+
+          <form onSubmit={handleLogin} className="space-y-4">
+            <div>
               <input 
                 type="text" 
-                placeholder="Name" 
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="w-full bg-gray-50/50 border border-gray-200 text-gray-800 text-sm rounded-xl px-4 py-3 outline-none focus:border-gray-400 focus:bg-white transition-all placeholder:text-gray-400 shadow-sm"
+                placeholder="ID" 
+                value={id}
+                onChange={(e) => setId(e.target.value)}
+                className="w-full bg-white/70 border border-white/50 text-gray-900 text-sm rounded-xl px-4 py-3 outline-none focus:border-gray-500 focus:bg-white/90 transition-all placeholder:text-gray-500 shadow-sm relative z-20"
               />
             </div>
-          )}
-
-          {tab === 'login' && (
-            <div className="flex items-center space-x-2 pt-1">
+            <div>
               <input 
-                type="checkbox" 
-                id="remember" 
-                checked={remember}
-                onChange={() => setRemember(!remember)}
-                className="w-4 h-4 rounded border-gray-300 text-gray-800 focus:ring-gray-800 accent-gray-800 cursor-pointer shadow-sm"
+                type="password" 
+                placeholder="Password" 
+                value={pw}
+                onChange={(e) => setPw(e.target.value)}
+                className="w-full bg-white/70 border border-white/50 text-gray-900 text-sm rounded-xl px-4 py-3 outline-none focus:border-gray-500 focus:bg-white/90 transition-all placeholder:text-gray-500 shadow-sm relative z-20"
               />
-              <label htmlFor="remember" className="text-xs text-gray-500 cursor-pointer select-none">로그인 기억하기</label>
             </div>
-          )}
+            
+            {tab === 'create' && (
+              <div className="animate-fade-in">
+                <input 
+                  type="text" 
+                  placeholder="Name" 
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="w-full bg-white/70 border border-white/50 text-gray-900 text-sm rounded-xl px-4 py-3 outline-none focus:border-gray-500 focus:bg-white/90 transition-all placeholder:text-gray-500 shadow-sm relative z-20"
+                />
+              </div>
+            )}
 
-          <div className="pt-4 space-y-3">
-            <button 
-              type="submit" 
-              className="w-full bg-gray-800 text-white text-sm font-medium py-3 rounded-xl hover:bg-gray-900 transition-colors shadow-lg shadow-gray-300"
-            >
-              {tab === 'login' ? '로그인' : '계정 생성'}
-            </button>
-            <button 
-              type="button" 
-              onClick={handleGuest}
-              className="w-full bg-white text-gray-600 border border-gray-200 text-sm font-medium py-3 rounded-xl hover:bg-gray-50 hover:text-gray-900 transition-colors shadow-sm"
-            >
-              게스트로 시작 (Viewer)
-            </button>
-          </div>
-        </form>
-      </div>
-      
-      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-gray-200/40 rounded-full mix-blend-multiply filter blur-3xl opacity-50 animate-pulse"></div>
-      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-gray-300/40 rounded-full mix-blend-multiply filter blur-3xl opacity-50 animate-pulse" style={{ animationDelay: '2s'}}></div>
+            {tab === 'login' && (
+              <div className="flex items-center space-x-2 pt-1 relative z-20">
+                <input 
+                  type="checkbox" 
+                  id="remember" 
+                  checked={remember}
+                  onChange={() => setRemember(!remember)}
+                  className="w-4 h-4 rounded border-gray-300 text-gray-800 focus:ring-gray-800 accent-gray-800 cursor-pointer shadow-sm"
+                />
+                <label htmlFor="remember" className="text-xs text-gray-700 font-medium cursor-pointer select-none">로그인 기억하기</label>
+              </div>
+            )}
+
+            <div className="pt-4 space-y-3 relative z-20">
+              <button 
+                type="submit" 
+                className="w-full bg-gray-900 text-white text-sm font-bold py-3 rounded-xl hover:bg-black transition-colors shadow-lg shadow-gray-400/30"
+              >
+                {tab === 'login' ? '로그인' : '계정 생성'}
+              </button>
+              <button 
+                type="button" 
+                onClick={handleGuest}
+                className="w-full bg-white/60 backdrop-blur-md text-gray-800 border border-white text-sm font-bold py-3 rounded-xl hover:bg-white transition-colors shadow-sm"
+              >
+                게스트로 시작 (Viewer)
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   );
