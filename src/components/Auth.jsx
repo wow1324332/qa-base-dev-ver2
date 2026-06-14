@@ -67,7 +67,7 @@ export const LoginScreen = ({ onLogin, onInstallApp }) => {
 
   // 1. 최상위 배경 컨테이너
   return (
-    <div className="w-screen h-screen bg-[url('/login-bg.png')] bg-cover bg-center flex items-center justify-end pr-8 md:pr-16 lg:pr-24 relative animate-simple-fade overflow-hidden">
+    <div className="w-screen h-screen bg-[url('/login-bg.jpg')] bg-cover bg-center flex items-center justify-end pr-8 md:pr-16 lg:pr-24 relative animate-simple-fade overflow-hidden">
       
       {/* 2. 둥둥 떠다니는 배경 효과 (클릭 방해하지 않도록 pointer-events-none 추가) */}
       <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-gray-200/40 rounded-full mix-blend-multiply filter blur-3xl opacity-50 animate-pulse pointer-events-none"></div>
