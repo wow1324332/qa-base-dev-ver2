@@ -157,10 +157,28 @@ export const LoginScreen = ({ onLogin, onInstallApp }) => {
                   type="checkbox" 
                   id="remember" 
                   checked={remember}
-                  onChange={() => setRemember(!remember)}
+                  onChange={(e) => {
+                    const isChecked = e.target.checked;
+                    setRemember(isChecked);
+                    // ✨ 핵심 해결 부분: 체크를 해제하는 즉시 저장된 정보를 삭제합니다.
+                    if (!isChecked) {
+                      localStorage.removeItem('qaBaseId');
+                      localStorage.removeItem('qaBasePw');
+                    }
+                  }}
                   className="w-4 h-4 rounded border-gray-300 text-gray-800 focus:ring-0 focus:outline-none accent-gray-800 cursor-pointer shadow-sm"
                 />
-                <label htmlFor="remember" className="text-xs text-gray-700 font-medium cursor-pointer select-none">로그인 기억하기</label>
+                <label htmlFor="remember" onClick={() => {
+                  // 라벨(글씨)을 클릭했을 때도 똑같이 작동하도록 동기화
+                  const newState = !remember;
+                  setRemember(newState);
+                  if (!newState) {
+                    localStorage.removeItem('qaBaseId');
+                    localStorage.removeItem('qaBasePw');
+                  }
+                }} className="text-xs text-gray-700 font-medium cursor-pointer select-none">
+                  로그인 기억하기
+                </label>
               </div>
             )}
 
