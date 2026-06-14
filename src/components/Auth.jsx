@@ -110,37 +110,47 @@ export const LoginScreen = ({ onLogin, onInstallApp }) => {
           </div>
 
           <form onSubmit={handleLogin} className="space-y-4">
-            <div>
+            
+            {/* 1. ID 입력 필드 */}
+            <div className="relative group z-20">
+              {/* ✨ 포커스 시 나타나는 부드러운 흰색 숨쉬기 광원 */}
+              <div className="absolute -inset-0.5 rounded-xl blur-[6px] transition-all duration-500 opacity-0 group-focus-within:opacity-100 group-focus-within:bg-white/60 group-focus-within:animate-pulse pointer-events-none"></div>
               <input 
                 type="text" 
                 placeholder="ID" 
                 value={id}
                 onChange={(e) => setId(e.target.value)}
-                className="w-full bg-white/70 border border-white/50 text-gray-900 text-sm rounded-xl px-4 py-3 outline-none focus:border-gray-500 focus:bg-white/90 transition-all placeholder:text-gray-500 shadow-sm relative z-20"
+                className="w-full relative bg-white/20 backdrop-blur-md border border-white/30 text-gray-900 text-sm font-semibold rounded-xl px-4 py-3 outline-none focus:outline-none focus:ring-0 focus:border-white/80 focus:bg-white/40 transition-all duration-300 placeholder:text-gray-600/70 shadow-inner caret-blue-600 selection:bg-blue-200 selection:text-blue-900"
               />
             </div>
-            <div>
+
+            {/* 2. Password 입력 필드 */}
+            <div className="relative group z-20">
+              <div className="absolute -inset-0.5 rounded-xl blur-[6px] transition-all duration-500 opacity-0 group-focus-within:opacity-100 group-focus-within:bg-white/60 group-focus-within:animate-pulse pointer-events-none"></div>
               <input 
                 type="password" 
                 placeholder="Password" 
                 value={pw}
                 onChange={(e) => setPw(e.target.value)}
-                className="w-full bg-white/70 border border-white/50 text-gray-900 text-sm rounded-xl px-4 py-3 outline-none focus:border-gray-500 focus:bg-white/90 transition-all placeholder:text-gray-500 shadow-sm relative z-20"
+                className="w-full relative bg-white/20 backdrop-blur-md border border-white/30 text-gray-900 text-sm font-semibold rounded-xl px-4 py-3 outline-none focus:outline-none focus:ring-0 focus:border-white/80 focus:bg-white/40 transition-all duration-300 placeholder:text-gray-600/70 shadow-inner caret-blue-600 selection:bg-blue-200 selection:text-blue-900"
               />
             </div>
             
+            {/* 3. 계정 생성 시 Name 입력 필드 */}
             {tab === 'create' && (
-              <div className="animate-fade-in">
+              <div className="relative group z-20 animate-fade-in">
+                <div className="absolute -inset-0.5 rounded-xl blur-[6px] transition-all duration-500 opacity-0 group-focus-within:opacity-100 group-focus-within:bg-white/60 group-focus-within:animate-pulse pointer-events-none"></div>
                 <input 
                   type="text" 
                   placeholder="Name" 
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full bg-white/70 border border-white/50 text-gray-900 text-sm rounded-xl px-4 py-3 outline-none focus:border-gray-500 focus:bg-white/90 transition-all placeholder:text-gray-500 shadow-sm relative z-20"
+                  className="w-full relative bg-white/20 backdrop-blur-md border border-white/30 text-gray-900 text-sm font-semibold rounded-xl px-4 py-3 outline-none focus:outline-none focus:ring-0 focus:border-white/80 focus:bg-white/40 transition-all duration-300 placeholder:text-gray-600/70 shadow-inner caret-blue-600 selection:bg-blue-200 selection:text-blue-900"
                 />
               </div>
             )}
 
+            {/* 4. 로그인 기억하기 체크박스 */}
             {tab === 'login' && (
               <div className="flex items-center space-x-2 pt-1 relative z-20">
                 <input 
@@ -148,12 +158,13 @@ export const LoginScreen = ({ onLogin, onInstallApp }) => {
                   id="remember" 
                   checked={remember}
                   onChange={() => setRemember(!remember)}
-                  className="w-4 h-4 rounded border-gray-300 text-gray-800 focus:ring-gray-800 accent-gray-800 cursor-pointer shadow-sm"
+                  className="w-4 h-4 rounded border-gray-300 text-gray-800 focus:ring-0 focus:outline-none accent-gray-800 cursor-pointer shadow-sm"
                 />
                 <label htmlFor="remember" className="text-xs text-gray-700 font-medium cursor-pointer select-none">로그인 기억하기</label>
               </div>
             )}
 
+            {/* 5. 하단 버튼 영역 */}
             <div className="pt-4 space-y-3 relative z-20">
               <button 
                 type="submit" 
@@ -164,7 +175,7 @@ export const LoginScreen = ({ onLogin, onInstallApp }) => {
               <button 
                 type="button" 
                 onClick={handleGuest}
-                className="w-full bg-white/60 backdrop-blur-md text-gray-800 border border-white text-sm font-bold py-3 rounded-xl hover:bg-white transition-colors shadow-sm"
+                className="w-full bg-white/60 backdrop-blur-md text-gray-800 border border-white/60 text-sm font-bold py-3 rounded-xl hover:bg-white/80 transition-colors shadow-sm"
               >
                 게스트로 시작 (Viewer)
               </button>
