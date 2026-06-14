@@ -78,8 +78,14 @@ export const LoginScreen = ({ onLogin, onInstallApp }) => {
         <span className="text-xs font-bold tracking-wide">앱 설치</span>
       </button>
 
-      {/* 3. 로그인 모달: 앱 로고를 삭제하여 위아래 높이를 대폭 줄였습니다. */}
-      <div className="w-full max-w-[320px] bg-white/80 backdrop-blur-xl rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.15)] border border-white/50 p-6 animate-fade-in relative z-10">
+        {/* 3. 로그인 모달 래퍼 (숨쉬기 광원 효과 + 투명한 글래스모피즘) */}
+        <div className="relative w-full max-w-[320px] animate-fade-in z-10 mt-16">
+        
+        {/* ✨ 마법의 숨쉬기 광원 */}
+        <div className="absolute -inset-2 bg-blue-500/30 rounded-[24px] blur-xl animate-pulse pointer-events-none"></div>
+        
+        {/* 🪟 실제 로그인 모달 박스 */}
+        <div className="relative w-full bg-white/25 backdrop-blur-lg rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.3)] border border-white/40 p-6">
 
         <div className="flex w-full mb-8 relative border-b border-gray-200">
           <button 
