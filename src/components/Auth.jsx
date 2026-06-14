@@ -10,6 +10,7 @@ export const LoginScreen = ({ onLogin, onInstallApp }) => {
   const [pw, setPw] = useState('');
   const [name, setName] = useState('');
   const [remember, setRemember] = useState(false);
+  const [isLoading, setIsLoading] = useState(false); // ✨ 로딩 상태 추가됨
 
   useEffect(() => {
     const savedId = localStorage.getItem('qaBaseId');
@@ -23,7 +24,9 @@ export const LoginScreen = ({ onLogin, onInstallApp }) => {
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    if (!id.trim() || !pw.trim()) return;
+    if (!id.trim() || !pw.trim() || isLoading) return; // ✨ 로딩 중 클릭 방지
+
+    setIsLoading(true); // ✨ 로딩 시작
 
     if (remember) {
       localStorage.setItem('qaBaseId', id);
@@ -50,6 +53,7 @@ export const LoginScreen = ({ onLogin, onInstallApp }) => {
         if (userData.role) userRole = userData.role;
         if (id.trim() === 'wow1324332' && pw === 'djslzja1!') userRole = 'admin';
         onLogin({ id: id.trim(), name: userName, role: userRole, profileImage: userData.profileImage || null });
+        setIsLoading(false); // ✨ 로딩 종료
         return;
       } else if (tab === 'create') {
          userRole = 'viewer';
@@ -59,6 +63,7 @@ export const LoginScreen = ({ onLogin, onInstallApp }) => {
       console.error("Error fetching user", error);
     }
     onLogin({ id: id.trim(), name: userName, role: userRole, profileImage: null });
+    setIsLoading(false); // ✨ 로딩 종료
   };
 
   const handleGuest = () => {
@@ -67,9 +72,9 @@ export const LoginScreen = ({ onLogin, onInstallApp }) => {
 
   // 1. 최상위 배경 컨테이너
   return (
-    <div className="w-screen h-screen bg-[url('/login-bg.jpg')] bg-cover bg-center flex items-center justify-end pr-8 md:pr-16 lg:pr-24 relative animate-simple-fade overflow-hidden">
+    <div className="w-screen h-screen bg-[url('/login-bg.png')] bg-cover bg-center flex items-center justify-end pr-8 md:pr-16 lg:pr-24 relative animate-simple-fade overflow-hidden">
       
-      {/* 2. 둥둥 떠다니는 배경 효과 (클릭 방해하지 않도록 pointer-events-none 추가) */}
+      {/* 2. 둥둥 떠다니는 배경 효과 */}
       <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-gray-200/40 rounded-full mix-blend-multiply filter blur-3xl opacity-50 animate-pulse pointer-events-none"></div>
       <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-gray-300/40 rounded-full mix-blend-multiply filter blur-3xl opacity-50 animate-pulse pointer-events-none" style={{ animationDelay: '2s'}}></div>
 
@@ -82,13 +87,10 @@ export const LoginScreen = ({ onLogin, onInstallApp }) => {
         <span className="text-xs font-bold tracking-wide">앱 설치</span>
       </button>
 
-      {/* 4. 로그인 모달 래퍼 (숨쉬기 효과) */}
+      {/* 4. 로그인 모달 래퍼 */}
       <div className="relative w-full max-w-[320px] animate-fade-in z-10">
-        
-        {/* ✨ 테두리 주변으로 퍼지는 은은한 흰색 숨쉬기 광원 */}
         <div className="absolute -inset-1.5 bg-white/40 rounded-[24px] blur-md animate-pulse pointer-events-none"></div>
         
-        {/* 🪟 약간 투명해진 글래스모피즘 모달 (bg-white/50 적용) */}
         <div className="relative w-full bg-white/50 backdrop-blur-2xl rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.2)] border border-white/50 p-6">
           
           <div className="flex w-full mb-8 relative border-b border-gray-300">
@@ -113,7 +115,6 @@ export const LoginScreen = ({ onLogin, onInstallApp }) => {
             
             {/* 1. ID 입력 필드 */}
             <div className="relative group z-20">
-              {/* ✨ 포커스 시 나타나는 부드러운 흰색 숨쉬기 광원 */}
               <div className="absolute -inset-0.5 rounded-xl blur-[6px] transition-all duration-500 opacity-0 group-focus-within:opacity-100 group-focus-within:bg-white/60 group-focus-within:animate-pulse pointer-events-none"></div>
               <input 
                 type="text" 
@@ -160,7 +161,6 @@ export const LoginScreen = ({ onLogin, onInstallApp }) => {
                   onChange={(e) => {
                     const isChecked = e.target.checked;
                     setRemember(isChecked);
-                    // ✨ 핵심 해결 부분: 체크를 해제하는 즉시 저장된 정보를 삭제합니다.
                     if (!isChecked) {
                       localStorage.removeItem('qaBaseId');
                       localStorage.removeItem('qaBasePw');
@@ -169,7 +169,6 @@ export const LoginScreen = ({ onLogin, onInstallApp }) => {
                   className="w-4 h-4 rounded border-gray-300 text-gray-800 focus:ring-0 focus:outline-none accent-gray-800 cursor-pointer shadow-sm"
                 />
                 <label htmlFor="remember" onClick={() => {
-                  // 라벨(글씨)을 클릭했을 때도 똑같이 작동하도록 동기화
                   const newState = !remember;
                   setRemember(newState);
                   if (!newState) {
@@ -186,9 +185,15 @@ export const LoginScreen = ({ onLogin, onInstallApp }) => {
             <div className="pt-4 space-y-3 relative z-20">
               <button 
                 type="submit" 
-                className="w-full bg-gray-900 text-white text-sm font-bold py-3 rounded-xl hover:bg-black transition-colors shadow-lg shadow-gray-400/30"
+                disabled={isLoading} // ✨ 로딩 시 버튼 클릭 차단
+                className={`w-full text-white text-sm font-bold py-3 rounded-xl transition-all shadow-lg ${
+                  isLoading 
+                    ? 'bg-gray-500 cursor-wait shadow-none' 
+                    : 'bg-gray-900 hover:bg-black shadow-gray-400/30'
+                }`}
               >
-                {tab === 'login' ? '로그인' : '계정 생성'}
+                {/* ✨ 로딩 중 문구 변경 */}
+                {isLoading ? '로그인 요청 중...' : (tab === 'login' ? '로그인' : '계정 생성')}
               </button>
               <button 
                 type="button" 
