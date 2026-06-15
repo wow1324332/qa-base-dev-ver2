@@ -72,7 +72,7 @@ export const LoginScreen = ({ onLogin, onInstallApp }) => {
 
   // 1. 최상위 컨테이너 (✨ animate-simple-fade 삭제 -> 배경 깜빡임 해결)
   return (
-    <div className="w-screen h-screen bg-[url('/login-bg.png')] bg-cover bg-center flex items-center justify-end pr-8 md:pr-16 lg:pr-24 relative overflow-hidden">
+    <div className="w-screen h-screen bg-[url('/login-bg.jpg')] bg-cover bg-center flex items-center justify-end pr-8 md:pr-16 lg:pr-24 relative overflow-hidden">
       
       {/* 2. 뒷배경 빛 둥둥 효과 (등장 애니메이션 동기화) */}
       <div className={`absolute top-1/4 left-1/4 w-96 h-96 bg-gray-200/40 rounded-full mix-blend-multiply filter blur-3xl transition-opacity duration-1000 ${showUI ? 'opacity-50' : 'opacity-0'} animate-pulse pointer-events-none`}></div>
