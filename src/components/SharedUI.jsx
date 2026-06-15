@@ -144,7 +144,7 @@ export const SplashScreen = ({ onComplete }) => {
 
   return (
     // 1. 로그인 화면(Auth.jsx)과 완전히 똑같은 정렬 속성 적용 (우측 밀착: justify-end pr-8...)
-    <div className="w-screen h-screen bg-[url('/login-bg.png')] bg-cover bg-center flex items-center justify-end pr-8 md:pr-16 lg:pr-24 relative animate-simple-fade overflow-hidden">
+    <div className="w-screen h-screen bg-[url('/login-bg.jpg')] bg-cover bg-center flex items-center justify-end pr-8 md:pr-16 lg:pr-24 relative animate-simple-fade overflow-hidden">
       
       {/* (옵션) 로그인 모달 자리에 은은하게 퍼져있는 푸른빛 */}
       <div className="absolute top-1/4 right-1/4 w-96 h-96 bg-blue-500/10 rounded-full mix-blend-screen filter blur-[100px] opacity-60 animate-pulse pointer-events-none"></div>
