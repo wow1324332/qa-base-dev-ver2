@@ -214,7 +214,7 @@ export const TransitionLoading = ({ title, onComplete }) => {
       {/* 띠의 시각적 하단인 약 bottom-[35%] 지점에 배치 */}
       <div className="absolute bottom-[32%] md:bottom-[35%] left-0 w-full px-12 md:px-32 lg:px-[20%] flex flex-col items-center">
         {/* 바깥쪽 어두운 트랙 */}
-        <div className="w-full h-[2px] bg-black/40 relative overflow-hidden shadow-inner backdrop-blur-sm border-b border-white/5">
+        <div className="w-full h-[8px] bg-black/40 relative overflow-hidden shadow-inner backdrop-blur-sm border-b border-white/5">
           {/* 안쪽 차오르는 은은한 화이트/실버 메탈릭 게이지 */}
           <div 
             className="absolute top-0 left-0 h-full bg-gradient-to-r from-gray-500 via-white to-gray-200 shadow-[0_0_12px_rgba(255,255,255,0.8)]"
