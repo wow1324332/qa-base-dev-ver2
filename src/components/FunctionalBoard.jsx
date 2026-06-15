@@ -74,15 +74,16 @@ export const FunctionalBoard = ({ user, onNavigate, onLogout, onShowProfileModal
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             
-            {/* 1. Devices 카드 (border border-gray-200 제거됨) */}
+            {/* 1. Devices 카드 */}
             <div 
               onClick={() => onNavigate('dashboard')}
               className="relative overflow-hidden bg-white/80 backdrop-blur-sm rounded-3xl p-8 cursor-pointer shadow-md hover-breath group"
             >
-              <div className="absolute inset-0 bg-[url('/Functioncard.jpg')] bg-cover bg-center opacity-[0.3] mix-blend-multiply transition-opacity duration-500 group-hover:opacity-[0.3] pointer-events-none"></div>
+              <div className="absolute inset-0 bg-[url('/Functioncard.jpg')] bg-cover bg-center opacity-[0.2] mix-blend-multiply transition-opacity duration-500 group-hover:opacity-[0.3] pointer-events-none"></div>
               
               <div className="relative z-10">
-                <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center mb-6 group-hover:bg-gray-800 transition-colors duration-500 shadow-sm border border-gray-100">
+                {/* 👇 아이콘 박스의 border 관련 속성을 제거했습니다. */}
+                <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center mb-6 group-hover:bg-gray-800 transition-colors duration-500 shadow-sm">
                   <Server className="w-6 h-6 text-gray-600 group-hover:text-white transition-colors duration-500" strokeWidth={1.5} />
                 </div>
                 <h3 className="text-xl font-medium text-gray-800 mb-2">Devices</h3>
@@ -92,15 +93,16 @@ export const FunctionalBoard = ({ user, onNavigate, onLogout, onShowProfileModal
               </div>
             </div>
             
-            {/* 2. Schedule 카드 (border border-gray-200 제거됨) */}
+            {/* 2. Schedule 카드 */}
             <div 
               onClick={() => onNavigate('schedule')}
               className="relative overflow-hidden bg-white/80 backdrop-blur-sm rounded-3xl p-8 cursor-pointer shadow-md hover-breath group"
             >
-              <div className="absolute inset-0 bg-[url('/Functioncard.jpg')] bg-cover bg-center opacity-[0.3] mix-blend-multiply transition-opacity duration-500 group-hover:opacity-[0.3] pointer-events-none"></div>
+              <div className="absolute inset-0 bg-[url('/Functioncard.jpg')] bg-cover bg-center opacity-[0.2] mix-blend-multiply transition-opacity duration-500 group-hover:opacity-[0.3] pointer-events-none"></div>
               
               <div className="relative z-10">
-                <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center mb-6 group-hover:bg-gray-800 transition-colors duration-500 shadow-sm border border-gray-100">
+                {/* 👇 아이콘 박스 테두리 제거 */}
+                <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center mb-6 group-hover:bg-gray-800 transition-colors duration-500 shadow-sm">
                   <Calendar className="w-6 h-6 text-gray-600 group-hover:text-white transition-colors duration-500" strokeWidth={1.5} />
                 </div>
                 <h3 className="text-xl font-medium text-gray-800 mb-2">Schedule</h3>
@@ -110,15 +112,16 @@ export const FunctionalBoard = ({ user, onNavigate, onLogout, onShowProfileModal
               </div>
             </div>
 
-            {/* 3. Projects 카드 (border border-gray-200 제거됨) */}
+            {/* 3. Projects 카드 */}
             <div 
               onClick={() => onNavigate('projects')}
               className="relative overflow-hidden bg-white/80 backdrop-blur-sm rounded-3xl p-8 cursor-pointer shadow-md hover-breath group"
             >
-              <div className="absolute inset-0 bg-[url('/Functioncard.jpg')] bg-cover bg-center opacity-[0.3] mix-blend-multiply transition-opacity duration-500 group-hover:opacity-[0.3] pointer-events-none"></div>
+              <div className="absolute inset-0 bg-[url('/Functioncard.jpg')] bg-cover bg-center opacity-[0.2] mix-blend-multiply transition-opacity duration-500 group-hover:opacity-[0.3] pointer-events-none"></div>
               
               <div className="relative z-10">
-                <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center mb-6 group-hover:bg-gray-800 transition-colors duration-500 shadow-sm border border-gray-100">
+                {/* 👇 아이콘 박스 테두리 제거 */}
+                <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center mb-6 group-hover:bg-gray-800 transition-colors duration-500 shadow-sm">
                   <Bug className="w-6 h-6 text-gray-600 group-hover:text-white transition-colors duration-500" strokeWidth={1.5} />
                 </div>
                 <h3 className="text-xl font-medium text-gray-800 mb-2 flex items-center">
@@ -130,15 +133,16 @@ export const FunctionalBoard = ({ user, onNavigate, onLogout, onShowProfileModal
               </div>
             </div>
 
-            {/* 4. Accounts 카드 (border border-gray-200 제거됨) */}
+            {/* 4. Accounts 카드 */}
             <div 
               onClick={() => onNavigate('accounts')}
               className="relative overflow-hidden bg-white/80 backdrop-blur-sm rounded-3xl p-8 cursor-pointer shadow-md hover-breath group"
             >
-              <div className="absolute inset-0 bg-[url('/Functioncard.jpg')] bg-cover bg-center opacity-[0.3] mix-blend-multiply transition-opacity duration-500 group-hover:opacity-[0.3] pointer-events-none"></div>
+              <div className="absolute inset-0 bg-[url('/Functioncard.jpg')] bg-cover bg-center opacity-[0.2] mix-blend-multiply transition-opacity duration-500 group-hover:opacity-[0.3] pointer-events-none"></div>
               
               <div className="relative z-10">
-                <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center mb-6 group-hover:bg-gray-800 transition-colors duration-500 shadow-sm border border-gray-100">
+                {/* 👇 아이콘 박스 테두리 제거 */}
+                <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center mb-6 group-hover:bg-gray-800 transition-colors duration-500 shadow-sm">
                   <KeyRound className="w-6 h-6 text-gray-600 group-hover:text-white transition-colors duration-500" strokeWidth={1.5} />
                 </div>
                 <h3 className="text-xl font-medium text-gray-800 mb-2">Accounts</h3>
