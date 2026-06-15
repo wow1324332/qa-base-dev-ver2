@@ -142,7 +142,7 @@ export const SplashScreen = ({ onComplete }) => {
   }, [onComplete]);
 
   return (
-    <div className="w-screen h-screen bg-[url('/login-bg.png')] bg-cover bg-center flex items-center justify-end pr-8 md:pr-16 lg:pr-24 relative overflow-hidden">
+    <div className="w-screen h-screen bg-[url('/login-bg.jpg')] bg-cover bg-center flex items-center justify-end pr-8 md:pr-16 lg:pr-24 relative overflow-hidden">
       
       {/* ✨ 퇴장 애니메이션: opacity-0, translate-y-4(아래로 이동), blur-sm(흐려짐) */}
       <div className={`relative w-full max-w-[320px] z-10 flex flex-col items-center justify-center transition-all duration-700 ease-out ${isExiting ? 'opacity-0 translate-y-4 blur-sm' : 'opacity-100 translate-y-0 blur-0'}`}>
