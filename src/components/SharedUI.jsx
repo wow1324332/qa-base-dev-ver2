@@ -126,46 +126,42 @@ export const CustomDatePicker = ({ value, onChange, disabled, alignRight }) => {
 };
 
 export const SplashScreen = ({ onComplete }) => {
-    // ✨ 로딩 바 애니메이션을 위한 상태값 추가
-    const [progress, setProgress] = useState(0);
+  const [progress, setProgress] = useState(0);
+  const [isExiting, setIsExiting] = useState(false); // ✨ 퇴장 상태를 관리하는 변수 추가
 
   useEffect(() => {
-    // 컴포넌트가 나타나자마자(0.1초 뒤) 로딩 바를 100%로 스르륵 채우기 시작
+    // 1. 화면 켜지면 게이지 채우기
     const progressTimer = setTimeout(() => setProgress(100), 100);
     
-    // 3초 뒤에 로그인 화면으로 넘기기
+    // ✨ 2. 완전히 끝나기 0.5초 전(2.5초 시점), 내용물을 부드럽게 숨기기 시작
+    const exitTimer = setTimeout(() => setIsExiting(true), 2500);
+    
+    // 3. 3초가 되면 다음 화면(Login)으로 진짜 넘기기
     const completeTimer = setTimeout(onComplete, 3000);
     
     return () => {
       clearTimeout(progressTimer);
+      clearTimeout(exitTimer);
       clearTimeout(completeTimer);
     };
   }, [onComplete]);
 
   return (
-    // 1. 로그인 화면(Auth.jsx)과 완전히 똑같은 정렬 속성 적용 (우측 밀착: justify-end pr-8...)
-    <div className="w-screen h-screen bg-[url('/login-bg.jpg')] bg-cover bg-center flex items-center justify-end pr-8 md:pr-16 lg:pr-24 relative animate-simple-fade overflow-hidden">
+    <div className="w-screen h-screen bg-[url('/login-bg.png')] bg-cover bg-center flex items-center justify-end pr-8 md:pr-16 lg:pr-24 relative overflow-hidden">
       
-      {/* (옵션) 로그인 모달 자리에 은은하게 퍼져있는 푸른빛 */}
       <div className="absolute top-1/4 right-1/4 w-96 h-96 bg-blue-500/10 rounded-full mix-blend-screen filter blur-[100px] opacity-60 animate-pulse pointer-events-none"></div>
       
-      {/* 2. 로그인 모달과 완전히 똑같은 너비(max-w-[320px]) 설정 & 배경(유리 패널) 삭제 */}
-      <div className="relative w-full max-w-[320px] animate-fade-in z-10 flex flex-col items-center justify-center">
+      {/* ✨ isExiting 상태에 따라 투명도(opacity)가 스르륵 0으로 변하는 애니메이션 적용 */}
+      <div className={`relative w-full max-w-[320px] z-10 flex flex-col items-center justify-center transition-opacity duration-500 ease-in-out ${isExiting ? 'opacity-0' : 'opacity-100 animate-fade-in'}`}>
         
-        {/* 앱 로고 */}
         <AppLogo className="w-28 h-28 mb-6 drop-shadow-[0_0_15px_rgba(255,255,255,0.2)]" />
-        
         <h1 className="text-3xl font-bold tracking-widest text-white mb-2 drop-shadow-md">QA BASE</h1>
         <p className="text-[10px] text-blue-200 tracking-widest font-medium opacity-80 uppercase">Quality Assurance Command Center</p>
         
-        {/* 3. 시네마틱 로딩 바 (상태값 progress에 따라 물리적으로 차오름) */}
         <div className="w-full max-w-[200px] h-1 bg-white/10 rounded-full mt-12 overflow-hidden shadow-inner relative border border-white/5">
           <div 
             className="absolute top-0 left-0 h-full bg-blue-500 rounded-full shadow-[0_0_12px_rgba(59,130,246,0.9)] transition-all ease-out"
-            style={{ 
-              width: `${progress}%`,           // 0% 에서 100% 로 변경됨
-              transitionDuration: '2800ms'     // 2.8초 동안 아주 부드럽게 차오름
-            }}
+            style={{ width: `${progress}%`, transitionDuration: '2800ms' }}
           ></div>
         </div>
         
