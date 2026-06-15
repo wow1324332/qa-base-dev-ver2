@@ -164,18 +164,68 @@ export const SplashScreen = ({ onComplete }) => {
 };
 
 export const TransitionLoading = ({ title, onComplete }) => {
+  const [progress, setProgress] = useState(0);
+  const [isExiting, setIsExiting] = useState(false);
+
   useEffect(() => {
-    const timer = setTimeout(onComplete, 1500);
-    return () => clearTimeout(timer);
+    // 1. 화면 켜지자마자 프로그레스 바 차오르기 시작
+    const progressTimer = setTimeout(() => setProgress(100), 50);
+    
+    // 2. 종료 직전(2초 시점)에 화면 전체를 부드럽게 페이드아웃
+    const exitTimer = setTimeout(() => setIsExiting(true), 2000);
+    
+    // 3. 2.5초 뒤 진짜 완료 처리하고 화면 넘김
+    const completeTimer = setTimeout(onComplete, 2500);
+
+    return () => {
+      clearTimeout(progressTimer);
+      clearTimeout(exitTimer);
+      clearTimeout(completeTimer);
+    };
   }, [onComplete]);
 
   return (
-    <div className="w-screen h-screen bg-[#f8f9fa] flex flex-col items-center justify-center animate-simple-fade absolute inset-0 z-50">
-      <div className="w-16 h-16 relative">
-        <div className="absolute inset-0 border-2 border-gray-200 rounded-full shadow-inner"></div>
-        <div className="absolute inset-0 border-2 border-gray-800 rounded-full border-t-transparent animate-spin"></div>
+    // 1. 배경 이미지 적용 및 페이드 인/아웃 트랜지션
+    <div className={`w-screen h-screen bg-[url('/board-loading-bg.jpg')] bg-cover bg-center fixed inset-0 z-50 flex items-center justify-center overflow-hidden transition-opacity duration-500 ease-in-out ${isExiting ? 'opacity-0' : 'opacity-100 animate-fade-in'}`}>
+      
+        {/* 2. 타이틀 & 소개 문구 영역 (중앙 띠 영역 내, 좌측 로고를 피해 우측으로 살짝 이동) */}
+      <div className="absolute left-[25%] md:left-[30%] top-1/2 -translate-y-1/2 flex flex-col items-start z-10 w-full max-w-2xl px-8">
+        
+        {/* 메인 타이틀 */}
+        <h1 className="text-4xl md:text-5xl font-extrabold tracking-[0.2em] text-white/90 drop-shadow-md mb-4 flex items-end">
+          QA BASE
+          <span className="animate-pulse text-3xl ml-1">...</span>
+        </h1>
+        
+        {/* 설명 문구 (작은 폰트, 적절한 줄바꿈, 좌측 세로선으로 시네마틱한 포인트 부여) */}
+        <p className="text-xs md:text-sm text-gray-300 tracking-widest font-light leading-relaxed border-l-2 border-white/20 pl-4 py-1">
+          Advanced Quality Assurance Platform. <br />
+          Synchronizing functional modules <br />
+          and empowering operational efficiency.
+        </p>
+        
+        {/* 현재 로딩중인 모듈 이름 표시 */}
+        <p className="mt-8 text-[10px] md:text-xs text-gray-400/80 tracking-[0.3em] uppercase animate-pulse">
+          {title} / Initializing...
+        </p>
       </div>
-      <p className="mt-6 text-sm text-gray-500 tracking-widest uppercase animate-pulse">{title} 로딩중...</p>
+
+      {/* 3. 시네마틱 로딩 바 (중앙 띠 영역의 하단부에 위치) */}
+      {/* 띠의 시각적 하단인 약 bottom-[35%] 지점에 배치 */}
+      <div className="absolute bottom-[32%] md:bottom-[35%] left-0 w-full px-12 md:px-32 lg:px-[20%] flex flex-col items-center">
+        {/* 바깥쪽 어두운 트랙 */}
+        <div className="w-full h-[2px] bg-black/40 relative overflow-hidden shadow-inner backdrop-blur-sm border-b border-white/5">
+          {/* 안쪽 차오르는 은은한 화이트/실버 메탈릭 게이지 */}
+          <div 
+            className="absolute top-0 left-0 h-full bg-gradient-to-r from-gray-500 via-white to-gray-200 shadow-[0_0_12px_rgba(255,255,255,0.8)]"
+            style={{ 
+              width: `${progress}%`, 
+              transition: 'width 2.4s cubic-bezier(0.25, 1, 0.5, 1)' 
+            }}
+          ></div>
+        </div>
+      </div>
+      
     </div>
   );
 };
