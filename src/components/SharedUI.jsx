@@ -210,14 +210,15 @@ export const TransitionLoading = ({ title, onComplete }) => {
         </p>
       </div>
 
-      {/* 3. 시네마틱 로딩 바 (중앙 띠 영역의 하단부에 위치) */}
-      {/* 띠의 시각적 하단인 약 bottom-[35%] 지점에 배치 */}
+        {/* 3. 시네마틱 로딩 바 (중앙 띠 영역의 하단부에 위치) */}
       <div className="absolute bottom-[32%] md:bottom-[35%] left-0 w-full px-12 md:px-32 lg:px-[20%] flex flex-col items-center">
-        {/* 바깥쪽 어두운 트랙 */}
-        <div className="w-full h-[8px] bg-black/40 relative overflow-hidden shadow-inner backdrop-blur-sm border-b border-white/5">
-          {/* 안쪽 차오르는 은은한 화이트/실버 메탈릭 게이지 */}
+        
+        {/* 👇 1. 바깥쪽 어두운 트랙 끝에 'rounded-full' 추가 */}
+        <div className="w-full h-2 bg-black/40 relative overflow-hidden shadow-inner backdrop-blur-sm border-b border-white/5 rounded-full">
+          
+          {/* 👇 2. 안쪽 차오르는 빛 게이지 끝에도 'rounded-full' 추가 */}
           <div 
-            className="absolute top-0 left-0 h-full bg-gradient-to-r from-gray-500 via-white to-gray-200 shadow-[0_0_12px_rgba(255,255,255,0.8)]"
+            className="absolute top-0 left-0 h-full bg-gradient-to-r from-gray-500 via-white to-gray-200 shadow-[0_0_12px_rgba(255,255,255,0.8)] rounded-full"
             style={{ 
               width: `${progress}%`, 
               transition: 'width 2.4s cubic-bezier(0.25, 1, 0.5, 1)' 
