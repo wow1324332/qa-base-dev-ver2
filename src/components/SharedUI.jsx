@@ -244,7 +244,7 @@ export const TransitionLoading = ({ title, onComplete }) => {
         </div>
 
         <div className="absolute bottom-[32%] md:bottom-[35%] left-0 w-full px-12 md:px-32 lg:px-[20%] flex flex-col items-center">
-          <div className="w-full h-2 bg-black/40 relative overflow-hidden shadow-inner backdrop-blur-sm border-b border-white/5 rounded-full">
+          <div className="w-full h-1 bg-black/40 relative overflow-hidden shadow-inner backdrop-blur-sm border-b border-white/5 rounded-full">
             <div 
               className="absolute top-0 left-0 h-full bg-gradient-to-r from-gray-500 via-white to-gray-200 shadow-[0_0_12px_rgba(255,255,255,0.8)] rounded-full"
               style={{ 
