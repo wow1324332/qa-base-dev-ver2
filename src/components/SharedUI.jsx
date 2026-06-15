@@ -186,28 +186,28 @@ export const TransitionLoading = ({ title, onComplete }) => {
         return {
           mainTitle: 'DEVICES',
           description: (
-            <>Centralized Device Management. <br />Monitoring hardware status <br />and resource allocation.</>
+            <>복잡한 디바이스 관리. <br />한눈에 파악하고 한눈에 정리하세요. <br />쉽고 빠르게 기록하고 관리하자!</>
           )
         };
       case 'Schedule Manager':
         return {
           mainTitle: 'SCHEDULE',
           description: (
-            <>Strategic Schedule Coordination. <br />Tracking project timelines <br />and milestone synchronizations.</>
+            <>QA 스케쥴 관리를 한눈에 파악하자. <br />빠르고 간단한 일정 관리. <br />QA Base에서 일정 관리하세요!</>
           )
         };
       case 'Projects Board':
         return {
           mainTitle: 'PROJECTS',
           description: (
-            <>Comprehensive Project Tracking. <br />Visualizing issue lifecycles <br />and epic progressions.</>
+            <>JIRA api 연동으로 이슈를 실시간 관리 하세요! <br />대량의 이슈 처리도 한눈에 편리하게! <br />지금 프로젝트를 만들고 관리해보세요!.</>
           )
         };
       case 'Accounts Vault':
         return {
           mainTitle: 'ACCOUNTS',
           description: (
-            <>Encrypted Credential Management. <br />Securing test accounts <br />and access privileges.</>
+            <>엉성한 계정 관리는 이제 그만! <br />철저한 보안으로 계정을 관리하세요. <br />QA Base로 쉽고 간편하게 계정을 관리하자!</>
           )
         };
       case 'Functional Board':
@@ -215,7 +215,7 @@ export const TransitionLoading = ({ title, onComplete }) => {
         return {
           mainTitle: 'QA BASE',
           description: (
-            <>Advanced Quality Assurance Platform. <br />Synchronizing functional modules <br />and empowering operational efficiency.</>
+            <>QA Base로 검증을 업그레이드 해보자!. <br />다중 플랫폼의 고충을 덜어내, <br />검증 진행의 속도도 Up! 효율도 Up!.</>
           )
         };
     }
@@ -244,7 +244,7 @@ export const TransitionLoading = ({ title, onComplete }) => {
         </div>
 
         <div className="absolute bottom-[32%] md:bottom-[35%] left-0 w-full px-12 md:px-32 lg:px-[20%] flex flex-col items-center">
-          <div className="w-full h-1 bg-black/40 relative overflow-hidden shadow-inner backdrop-blur-sm border-b border-white/5 rounded-full">
+          <div className="w-1/2 h-1 bg-black/40 relative overflow-hidden shadow-inner backdrop-blur-sm border-b border-white/5 rounded-full">
             <div 
               className="absolute top-0 left-0 h-full bg-gradient-to-r from-gray-500 via-white to-gray-200 shadow-[0_0_12px_rgba(255,255,255,0.8)] rounded-full"
               style={{ 
