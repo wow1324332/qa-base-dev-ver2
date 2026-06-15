@@ -10,7 +10,16 @@ export const LoginScreen = ({ onLogin, onInstallApp }) => {
   const [pw, setPw] = useState('');
   const [name, setName] = useState('');
   const [remember, setRemember] = useState(false);
-  const [isLoading, setIsLoading] = useState(false); // ✨ 로딩 상태 추가됨
+  const [isLoading, setIsLoading] = useState(false);
+  
+  // ✨ 화면 교체 시 이질감을 없애는 UI 등장 애니메이션 트리거
+  const [showUI, setShowUI] = useState(false); 
+
+  useEffect(() => {
+    // 컴포넌트 마운트 후 아주 짧은 딜레이(50ms) 뒤에 UI를 스르륵 띄움
+    const timer = setTimeout(() => setShowUI(true), 50);
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     const savedId = localStorage.getItem('qaBaseId');
@@ -24,9 +33,8 @@ export const LoginScreen = ({ onLogin, onInstallApp }) => {
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    if (!id.trim() || !pw.trim() || isLoading) return; // ✨ 로딩 중 클릭 방지
-
-    setIsLoading(true); // ✨ 로딩 시작
+    if (!id.trim() || !pw.trim() || isLoading) return;
+    setIsLoading(true);
 
     if (remember) {
       localStorage.setItem('qaBaseId', id);
@@ -38,11 +46,7 @@ export const LoginScreen = ({ onLogin, onInstallApp }) => {
 
     let userRole = 'user';
     let userName = name || id;
-
-    if (id.trim() === 'wow1324332' && pw === 'djslzja1!') {
-      userRole = 'admin';
-      userName = 'ADMIN';
-    }
+    if (id.trim() === 'wow1324332' && pw === 'djslzja1!') { userRole = 'admin'; userName = 'ADMIN'; }
 
     try {
       const userRef = doc(db, 'users', id.trim());
@@ -53,155 +57,76 @@ export const LoginScreen = ({ onLogin, onInstallApp }) => {
         if (userData.role) userRole = userData.role;
         if (id.trim() === 'wow1324332' && pw === 'djslzja1!') userRole = 'admin';
         onLogin({ id: id.trim(), name: userName, role: userRole, profileImage: userData.profileImage || null });
-        setIsLoading(false); // ✨ 로딩 종료
+        setIsLoading(false);
         return;
       } else if (tab === 'create') {
          userRole = 'viewer';
          await setDoc(userRef, { name: userName, role: userRole, status: 'pending' });
       }
-    } catch (error) {
-      console.error("Error fetching user", error);
-    }
+    } catch (error) { console.error("Error fetching user", error); }
     onLogin({ id: id.trim(), name: userName, role: userRole, profileImage: null });
-    setIsLoading(false); // ✨ 로딩 종료
+    setIsLoading(false);
   };
 
-  const handleGuest = () => {
-    onLogin({ id: 'guest', name: 'Guest', role: 'viewer', profileImage: null });
-  };
+  const handleGuest = () => onLogin({ id: 'guest', name: 'Guest', role: 'viewer', profileImage: null });
 
-  // 1. 최상위 배경 컨테이너
+  // 1. 최상위 컨테이너 (✨ animate-simple-fade 삭제 -> 배경 깜빡임 해결)
   return (
-    <div className="w-screen h-screen bg-[url('/login-bg.jpg')] bg-cover bg-center flex items-center justify-end pr-8 md:pr-16 lg:pr-24 relative animate-simple-fade overflow-hidden">
+    <div className="w-screen h-screen bg-[url('/login-bg.png')] bg-cover bg-center flex items-center justify-end pr-8 md:pr-16 lg:pr-24 relative overflow-hidden">
       
-      {/* 2. 둥둥 떠다니는 배경 효과 */}
-      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-gray-200/40 rounded-full mix-blend-multiply filter blur-3xl opacity-50 animate-pulse pointer-events-none"></div>
-      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-gray-300/40 rounded-full mix-blend-multiply filter blur-3xl opacity-50 animate-pulse pointer-events-none" style={{ animationDelay: '2s'}}></div>
+      {/* 2. 뒷배경 빛 둥둥 효과 (등장 애니메이션 동기화) */}
+      <div className={`absolute top-1/4 left-1/4 w-96 h-96 bg-gray-200/40 rounded-full mix-blend-multiply filter blur-3xl transition-opacity duration-1000 ${showUI ? 'opacity-50' : 'opacity-0'} animate-pulse pointer-events-none`}></div>
+      <div className={`absolute bottom-1/4 right-1/4 w-96 h-96 bg-gray-300/40 rounded-full mix-blend-multiply filter blur-3xl transition-opacity duration-1000 ${showUI ? 'opacity-50' : 'opacity-0'} animate-pulse pointer-events-none`} style={{ animationDelay: '2s'}}></div>
 
-      {/* 3. 앱 설치 버튼 */}
+      {/* 3. 앱 설치 버튼 (위에서 아래로 떨어지듯 등장) */}
       <button 
         onClick={onInstallApp}
-        className="absolute top-8 right-8 flex items-center space-x-2 text-blue-100 hover:text-white transition-all duration-300 bg-blue-900/30 hover:bg-blue-800/50 px-5 py-2.5 rounded-full backdrop-blur-md shadow-[0_0_15px_rgba(0,100,255,0.2)] border border-blue-400/30 hover:border-blue-400/60 z-50"
+        className={`absolute top-8 right-8 flex items-center space-x-2 text-blue-100 hover:text-white transition-all duration-700 ease-out delay-300 bg-blue-900/30 hover:bg-blue-800/50 px-5 py-2.5 rounded-full backdrop-blur-md shadow-[0_0_15px_rgba(0,100,255,0.2)] border border-blue-400/30 hover:border-blue-400/60 z-50 ${showUI ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4'}`}
       >
         <Download className="w-4 h-4" />
         <span className="text-xs font-bold tracking-wide">앱 설치</span>
       </button>
 
-      {/* 4. 로그인 모달 래퍼 */}
-      <div className="relative w-full max-w-[320px] animate-fade-in z-10">
+      {/* ✨ 4. 로그인 모달 등장 애니메이션 (아래에서 위로 올라오면서 선명해짐) */}
+      <div className={`relative w-full max-w-[320px] z-10 transition-all duration-[800ms] ease-[cubic-bezier(0.16,1,0.3,1)] ${showUI ? 'opacity-100 translate-y-0 blur-0 scale-100' : 'opacity-0 translate-y-8 blur-sm scale-95'}`}>
+        
         <div className="absolute -inset-1.5 bg-white/40 rounded-[24px] blur-md animate-pulse pointer-events-none"></div>
         
         <div className="relative w-full bg-white/50 backdrop-blur-2xl rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.2)] border border-white/50 p-6">
-          
           <div className="flex w-full mb-8 relative border-b border-gray-300">
-            <button 
-              type="button"
-              className={`flex-1 pb-3 text-sm font-bold transition-colors ${tab === 'login' ? 'text-gray-900' : 'text-gray-500 hover:text-gray-800'}`}
-              onClick={() => setTab('login')}
-            >
-              Login
-            </button>
-            <button 
-              type="button"
-              className={`flex-1 pb-3 text-sm font-bold transition-colors ${tab === 'create' ? 'text-gray-900' : 'text-gray-500 hover:text-gray-800'}`}
-              onClick={() => setTab('create')}
-            >
-              Create
-            </button>
+            <button type="button" className={`flex-1 pb-3 text-sm font-bold transition-colors ${tab === 'login' ? 'text-gray-900' : 'text-gray-500 hover:text-gray-800'}`} onClick={() => setTab('login')}>Login</button>
+            <button type="button" className={`flex-1 pb-3 text-sm font-bold transition-colors ${tab === 'create' ? 'text-gray-900' : 'text-gray-500 hover:text-gray-800'}`} onClick={() => setTab('create')}>Create</button>
             <div className={`absolute bottom-0 h-[2px] bg-gray-900 w-1/2 transition-transform duration-300 ease-out ${tab === 'login' ? 'translate-x-0' : 'translate-x-full'}`}></div>
           </div>
 
           <form onSubmit={handleLogin} className="space-y-4">
-            
-            {/* 1. ID 입력 필드 */}
             <div className="relative group z-20">
               <div className="absolute -inset-0.5 rounded-xl blur-[6px] transition-all duration-500 opacity-0 group-focus-within:opacity-100 group-focus-within:bg-white/60 group-focus-within:animate-pulse pointer-events-none"></div>
-              <input 
-                type="text" 
-                placeholder="ID" 
-                value={id}
-                onChange={(e) => setId(e.target.value)}
-                className="w-full relative bg-white/20 backdrop-blur-md border border-white/30 text-gray-900 text-sm font-semibold rounded-xl px-4 py-3 outline-none focus:outline-none focus:ring-0 focus:border-white/80 focus:bg-white/40 transition-all duration-300 placeholder:text-gray-600/70 shadow-inner caret-blue-600 selection:bg-blue-200 selection:text-blue-900"
-              />
+              <input type="text" placeholder="ID" value={id} onChange={(e) => setId(e.target.value)} className="w-full relative bg-white/20 backdrop-blur-md border border-white/30 text-gray-900 text-sm font-semibold rounded-xl px-4 py-3 outline-none focus:outline-none focus:ring-0 focus:border-white/80 focus:bg-white/40 transition-all duration-300 placeholder:text-gray-600/70 shadow-inner caret-blue-600 selection:bg-blue-200 selection:text-blue-900" />
             </div>
 
-            {/* 2. Password 입력 필드 */}
             <div className="relative group z-20">
               <div className="absolute -inset-0.5 rounded-xl blur-[6px] transition-all duration-500 opacity-0 group-focus-within:opacity-100 group-focus-within:bg-white/60 group-focus-within:animate-pulse pointer-events-none"></div>
-              <input 
-                type="password" 
-                placeholder="Password" 
-                value={pw}
-                onChange={(e) => setPw(e.target.value)}
-                className="w-full relative bg-white/20 backdrop-blur-md border border-white/30 text-gray-900 text-sm font-semibold rounded-xl px-4 py-3 outline-none focus:outline-none focus:ring-0 focus:border-white/80 focus:bg-white/40 transition-all duration-300 placeholder:text-gray-600/70 shadow-inner caret-blue-600 selection:bg-blue-200 selection:text-blue-900"
-              />
+              <input type="password" placeholder="Password" value={pw} onChange={(e) => setPw(e.target.value)} className="w-full relative bg-white/20 backdrop-blur-md border border-white/30 text-gray-900 text-sm font-semibold rounded-xl px-4 py-3 outline-none focus:outline-none focus:ring-0 focus:border-white/80 focus:bg-white/40 transition-all duration-300 placeholder:text-gray-600/70 shadow-inner caret-blue-600 selection:bg-blue-200 selection:text-blue-900" />
             </div>
             
-            {/* 3. 계정 생성 시 Name 입력 필드 */}
             {tab === 'create' && (
               <div className="relative group z-20 animate-fade-in">
                 <div className="absolute -inset-0.5 rounded-xl blur-[6px] transition-all duration-500 opacity-0 group-focus-within:opacity-100 group-focus-within:bg-white/60 group-focus-within:animate-pulse pointer-events-none"></div>
-                <input 
-                  type="text" 
-                  placeholder="Name" 
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className="w-full relative bg-white/20 backdrop-blur-md border border-white/30 text-gray-900 text-sm font-semibold rounded-xl px-4 py-3 outline-none focus:outline-none focus:ring-0 focus:border-white/80 focus:bg-white/40 transition-all duration-300 placeholder:text-gray-600/70 shadow-inner caret-blue-600 selection:bg-blue-200 selection:text-blue-900"
-                />
+                <input type="text" placeholder="Name" value={name} onChange={(e) => setName(e.target.value)} className="w-full relative bg-white/20 backdrop-blur-md border border-white/30 text-gray-900 text-sm font-semibold rounded-xl px-4 py-3 outline-none focus:outline-none focus:ring-0 focus:border-white/80 focus:bg-white/40 transition-all duration-300 placeholder:text-gray-600/70 shadow-inner caret-blue-600 selection:bg-blue-200 selection:text-blue-900" />
               </div>
             )}
 
-            {/* 4. 로그인 기억하기 체크박스 */}
             {tab === 'login' && (
               <div className="flex items-center space-x-2 pt-1 relative z-20">
-                <input 
-                  type="checkbox" 
-                  id="remember" 
-                  checked={remember}
-                  onChange={(e) => {
-                    const isChecked = e.target.checked;
-                    setRemember(isChecked);
-                    if (!isChecked) {
-                      localStorage.removeItem('qaBaseId');
-                      localStorage.removeItem('qaBasePw');
-                    }
-                  }}
-                  className="w-4 h-4 rounded border-gray-300 text-gray-800 focus:ring-0 focus:outline-none accent-gray-800 cursor-pointer shadow-sm"
-                />
-                <label htmlFor="remember" onClick={() => {
-                  const newState = !remember;
-                  setRemember(newState);
-                  if (!newState) {
-                    localStorage.removeItem('qaBaseId');
-                    localStorage.removeItem('qaBasePw');
-                  }
-                }} className="text-xs text-gray-700 font-medium cursor-pointer select-none">
-                  로그인 기억하기
-                </label>
+                <input type="checkbox" id="remember" checked={remember} onChange={(e) => { const isChecked = e.target.checked; setRemember(isChecked); if (!isChecked) { localStorage.removeItem('qaBaseId'); localStorage.removeItem('qaBasePw'); } }} className="w-4 h-4 rounded border-gray-300 text-gray-800 focus:ring-0 focus:outline-none accent-gray-800 cursor-pointer shadow-sm" />
+                <label htmlFor="remember" onClick={() => { const newState = !remember; setRemember(newState); if (!newState) { localStorage.removeItem('qaBaseId'); localStorage.removeItem('qaBasePw'); } }} className="text-xs text-gray-700 font-medium cursor-pointer select-none">로그인 기억하기</label>
               </div>
             )}
 
-            {/* 5. 하단 버튼 영역 */}
             <div className="pt-4 space-y-3 relative z-20">
-              <button 
-                type="submit" 
-                disabled={isLoading} // ✨ 로딩 시 버튼 클릭 차단
-                className={`w-full text-white text-sm font-bold py-3 rounded-xl transition-all shadow-lg ${
-                  isLoading 
-                    ? 'bg-gray-500 cursor-wait shadow-none' 
-                    : 'bg-gray-900 hover:bg-black shadow-gray-400/30'
-                }`}
-              >
-                {/* ✨ 로딩 중 문구 변경 */}
-                {isLoading ? '로그인 요청 중...' : (tab === 'login' ? '로그인' : '계정 생성')}
-              </button>
-              <button 
-                type="button" 
-                onClick={handleGuest}
-                className="w-full bg-white/60 backdrop-blur-md text-gray-800 border border-white/60 text-sm font-bold py-3 rounded-xl hover:bg-white/80 transition-colors shadow-sm"
-              >
-                게스트로 시작 (Viewer)
-              </button>
+              <button type="submit" disabled={isLoading} className={`w-full text-white text-sm font-bold py-3 rounded-xl transition-all shadow-lg ${isLoading ? 'bg-gray-500 cursor-wait shadow-none' : 'bg-gray-900 hover:bg-black shadow-gray-400/30'}`}>{isLoading ? '로그인 요청 중...' : (tab === 'login' ? '로그인' : '계정 생성')}</button>
+              <button type="button" onClick={handleGuest} className="w-full bg-white/60 backdrop-blur-md text-gray-800 border border-white/60 text-sm font-bold py-3 rounded-xl hover:bg-white/80 transition-colors shadow-sm">게스트로 시작 (Viewer)</button>
             </div>
           </form>
         </div>
