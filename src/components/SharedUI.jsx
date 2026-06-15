@@ -168,13 +168,8 @@ export const TransitionLoading = ({ title, onComplete }) => {
   const [isExiting, setIsExiting] = useState(false);
 
   useEffect(() => {
-    // 1. 화면 켜지자마자 프로그레스 바 차오르기 시작
     const progressTimer = setTimeout(() => setProgress(100), 50);
-    
-    // ✨ 2. 2.0초 시점: 게이지가 다 차면 '글씨와 바'만 퇴장 애니메이션 시작
     const exitTimer = setTimeout(() => setIsExiting(true), 2000);
-    
-    // ✨ 3. 2.4초 시점: 내용물이 완전히 증발하면, 0.1초의 여운만 남기고 바로 다음 화면으로 교체
     const completeTimer = setTimeout(onComplete, 2400);
 
     return () => {
@@ -184,30 +179,70 @@ export const TransitionLoading = ({ title, onComplete }) => {
     };
   }, [onComplete]);
 
+  // ✨ 넘어가는 목적지(title)에 따라 타이틀과 설명 문구를 다르게 반환하는 함수
+  const getScreenContent = () => {
+    switch (title) {
+      case 'Devices Dashboard':
+        return {
+          mainTitle: 'DEVICE LAB',
+          description: (
+            <>Centralized Device Management. <br />Monitoring hardware status <br />and resource allocation.</>
+          )
+        };
+      case 'Schedule Manager':
+        return {
+          mainTitle: 'TIME OPS',
+          description: (
+            <>Strategic Schedule Coordination. <br />Tracking project timelines <br />and milestone synchronizations.</>
+          )
+        };
+      case 'Projects Board':
+        return {
+          mainTitle: 'PROJECT NEXUS',
+          description: (
+            <>Comprehensive Project Tracking. <br />Visualizing issue lifecycles <br />and epic progressions.</>
+          )
+        };
+      case 'Accounts Vault':
+        return {
+          mainTitle: 'SECURE VAULT',
+          description: (
+            <>Encrypted Credential Management. <br />Securing test accounts <br />and access privileges.</>
+          )
+        };
+      case 'Functional Board':
+      default:
+        return {
+          mainTitle: 'QA BASE',
+          description: (
+            <>Advanced Quality Assurance Platform. <br />Synchronizing functional modules <br />and empowering operational efficiency.</>
+          )
+        };
+    }
+  };
+
+  const { mainTitle, description } = getScreenContent();
+
   return (
-    // 1. 최상위 부모: 더 이상 투명해지거나 하얗게 변하지 않습니다! (배경 깜빡임, 섬광 원천 차단)
     <div className="w-screen h-screen bg-[url('/board-loading-bg.jpg')] bg-cover bg-center fixed inset-0 z-[100] overflow-hidden animate-fade-in opacity-100">
 
-      {/* 2. 내용물 래퍼: 퇴장(isExiting) 시 배경은 가만히 놔두고, 글씨와 로딩바만 안개처럼 흩어집니다. */}
       <div className={`absolute inset-0 z-20 transition-all duration-400 ease-out flex ${isExiting ? 'opacity-0 -translate-y-4 blur-sm' : 'opacity-100 translate-y-0 blur-0'}`}>
         
-        {/* 타이틀 & 소개 문구 영역 */}
         <div className="absolute left-[25%] md:left-[30%] top-1/2 -translate-y-1/2 flex flex-col items-start w-full max-w-2xl px-8">
+          {/* ✨ 동적으로 변하는 메인 타이틀 */}
           <h1 className="text-4xl md:text-5xl font-extrabold tracking-[0.2em] text-white/90 drop-shadow-md mb-4 flex items-end">
-            QA BASE
+            {mainTitle}
             <span className="animate-pulse text-3xl ml-1">...</span>
           </h1>
+          {/* ✨ 동적으로 변하는 설명 문구 */}
           <p className="text-xs md:text-sm text-gray-300 tracking-widest font-light leading-relaxed border-l-2 border-white/20 pl-4 py-1">
-            Advanced Quality Assurance Platform. <br />
-            Synchronizing functional modules <br />
-            and empowering operational efficiency.
+            {description}
           </p>
           <p className="mt-8 text-[10px] md:text-xs text-gray-400/80 tracking-[0.3em] uppercase animate-pulse">
             {title} / Initializing...
           </p>
         </div>
 
-        {/* 로딩 바 영역 (라운딩 및 두께 h-2 유지) */}
         <div className="absolute bottom-[32%] md:bottom-[35%] left-0 w-full px-12 md:px-32 lg:px-[20%] flex flex-col items-center">
           <div className="w-full h-2 bg-black/40 relative overflow-hidden shadow-inner backdrop-blur-sm border-b border-white/5 rounded-full">
             <div 
