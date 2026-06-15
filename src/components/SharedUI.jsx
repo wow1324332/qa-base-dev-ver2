@@ -184,28 +184,28 @@ export const TransitionLoading = ({ title, onComplete }) => {
     switch (title) {
       case 'Devices Dashboard':
         return {
-          mainTitle: 'DEVICE LAB',
+          mainTitle: 'DEVICES',
           description: (
             <>Centralized Device Management. <br />Monitoring hardware status <br />and resource allocation.</>
           )
         };
       case 'Schedule Manager':
         return {
-          mainTitle: 'TIME OPS',
+          mainTitle: 'SCHEDULE',
           description: (
             <>Strategic Schedule Coordination. <br />Tracking project timelines <br />and milestone synchronizations.</>
           )
         };
       case 'Projects Board':
         return {
-          mainTitle: 'PROJECT NEXUS',
+          mainTitle: 'PROJECTS',
           description: (
             <>Comprehensive Project Tracking. <br />Visualizing issue lifecycles <br />and epic progressions.</>
           )
         };
       case 'Accounts Vault':
         return {
-          mainTitle: 'SECURE VAULT',
+          mainTitle: 'ACCOUNTS',
           description: (
             <>Encrypted Credential Management. <br />Securing test accounts <br />and access privileges.</>
           )
