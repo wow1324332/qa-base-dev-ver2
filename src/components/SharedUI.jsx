@@ -132,14 +132,27 @@ export const SplashScreen = ({ onComplete }) => {
   }, [onComplete]);
 
   return (
-    <div className="w-screen h-screen bg-cinematic flex flex-col items-center justify-center animate-simple-fade">
-      <div className="animate-fade-in flex flex-col items-center">
-        <AppLogo className="w-32 h-32 mb-6 relative z-10" />
-        <h1 className="text-4xl font-light tracking-widest text-gray-800 mb-2">QA BASE</h1>
-        <p className="text-sm text-gray-500 tracking-wider">Quality Assurance Command Center</p>
-        <div className="w-48 h-1 bg-gray-200 rounded-full mt-12 overflow-hidden">
-          <div className="h-full bg-gray-600 rounded-full w-full origin-left animate-[scaleX_3s_ease-in-out]"></div>
+    // 1. 로그인 화면과 동일한 배경 이미지 적용 및 어두운 분위기 연출
+    <div className="w-screen h-screen bg-[url('/login-bg.jpg')] bg-cover bg-center flex flex-col items-center justify-center animate-simple-fade relative overflow-hidden">
+      
+      {/* ✨ 뒷배경에 은은하게 퍼지는 푸른빛 네온 효과 */}
+      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-500/20 rounded-full mix-blend-screen filter blur-[100px] opacity-60 animate-pulse pointer-events-none"></div>
+      
+      {/* 2. 글래스모피즘(반투명 유리) 패널 안에 로고와 텍스트 배치 */}
+      <div className="animate-fade-in flex flex-col items-center relative z-10 bg-white/10 backdrop-blur-xl px-16 py-14 rounded-3xl border border-white/20 shadow-[0_20px_60px_rgba(0,0,0,0.5)]">
+        
+        {/* 앱 로고 */}
+        <AppLogo className="w-32 h-32 mb-6 drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]" />
+        
+        <h1 className="text-4xl font-bold tracking-widest text-white mb-2 drop-shadow-md">QA BASE</h1>
+        <p className="text-sm text-blue-200 tracking-widest font-medium opacity-80">Quality Assurance Command Center</p>
+        
+        {/* 3. 사이버네틱 네온 블루 프로그레스 바 */}
+        <div className="w-56 h-1.5 bg-gray-900/60 rounded-full mt-12 overflow-hidden shadow-inner relative border border-white/10">
+          {/* 차오르는 파란색 게이지 */}
+          <div className="absolute top-0 left-0 h-full bg-blue-500 rounded-full w-full origin-left animate-[scaleX_3s_ease-in-out] shadow-[0_0_12px_rgba(59,130,246,0.9)]"></div>
         </div>
+        
       </div>
     </div>
   );
