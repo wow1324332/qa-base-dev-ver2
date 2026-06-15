@@ -171,11 +171,11 @@ export const TransitionLoading = ({ title, onComplete }) => {
     // 1. 화면 켜지자마자 프로그레스 바 차오르기 시작
     const progressTimer = setTimeout(() => setProgress(100), 50);
     
-    // ✨ 2. 2초 시점: 게이지가 꽉 차면 퇴장 애니메이션 시작 (내용물은 사라지고 배경은 밝아짐)
+    // ✨ 2. 2.0초 시점: 게이지가 다 차면 '글씨와 바'만 퇴장 애니메이션 시작
     const exitTimer = setTimeout(() => setIsExiting(true), 2000);
     
-    // ✨ 3. 2.5초 시점: 화면이 완벽하게 덮이면 실제 보드 화면으로 컴포넌트 교체
-    const completeTimer = setTimeout(onComplete, 2500);
+    // ✨ 3. 2.4초 시점: 내용물이 완전히 증발하면, 0.1초의 여운만 남기고 바로 다음 화면으로 교체
+    const completeTimer = setTimeout(onComplete, 2400);
 
     return () => {
       clearTimeout(progressTimer);
@@ -185,16 +185,11 @@ export const TransitionLoading = ({ title, onComplete }) => {
   }, [onComplete]);
 
   return (
-    // 1. 최상위 부모: 더 이상 투명(opacity-0)해지지 않고 굳건히 자리를 지킵니다.
-    <div className="w-screen h-screen bg-[url('/board-loading-bg.jpg')] bg-cover bg-center fixed inset-0 z-[100] overflow-hidden animate-fade-in">
-      
-      {/* ✨ 2. 마법의 크로스페이드 장막: 
-          퇴장할 때, 다음 화면(기능 보드)의 바탕색인 #f8f9fa 로 화면을 부드럽게 물들입니다. 
-          이렇게 하면 컴포넌트가 교체되는 찰나의 순간을 유저가 전혀 눈치채지 못합니다! */}
-      <div className={`absolute inset-0 bg-[#f8f9fa] transition-opacity duration-500 ease-in-out z-10 ${isExiting ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}></div>
+    // 1. 최상위 부모: 더 이상 투명해지거나 하얗게 변하지 않습니다! (배경 깜빡임, 섬광 원천 차단)
+    <div className="w-screen h-screen bg-[url('/board-loading-bg.jpg')] bg-cover bg-center fixed inset-0 z-[100] overflow-hidden animate-fade-in opacity-100">
 
-      {/* 3. 내용물 래퍼: 퇴장 시 글씨와 로딩바가 안개 속으로 흩어지듯 살짝 위로 떠오르며 사라집니다. */}
-      <div className={`absolute inset-0 z-20 transition-all duration-500 ease-out flex ${isExiting ? 'opacity-0 -translate-y-4 blur-sm' : 'opacity-100 translate-y-0 blur-0'}`}>
+      {/* 2. 내용물 래퍼: 퇴장(isExiting) 시 배경은 가만히 놔두고, 글씨와 로딩바만 안개처럼 흩어집니다. */}
+      <div className={`absolute inset-0 z-20 transition-all duration-400 ease-out flex ${isExiting ? 'opacity-0 -translate-y-4 blur-sm' : 'opacity-100 translate-y-0 blur-0'}`}>
         
         {/* 타이틀 & 소개 문구 영역 */}
         <div className="absolute left-[25%] md:left-[30%] top-1/2 -translate-y-1/2 flex flex-col items-start w-full max-w-2xl px-8">
@@ -219,7 +214,6 @@ export const TransitionLoading = ({ title, onComplete }) => {
               className="absolute top-0 left-0 h-full bg-gradient-to-r from-gray-500 via-white to-gray-200 shadow-[0_0_12px_rgba(255,255,255,0.8)] rounded-full"
               style={{ 
                 width: `${progress}%`, 
-                // 게이지 차오르는 시간을 2.4초에서 2.0초로 변경하여 퇴장 애니메이션과 싱크를 맞춤
                 transition: 'width 2.0s cubic-bezier(0.25, 1, 0.5, 1)' 
               }}
             ></div>
