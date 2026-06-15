@@ -127,18 +127,13 @@ export const CustomDatePicker = ({ value, onChange, disabled, alignRight }) => {
 
 export const SplashScreen = ({ onComplete }) => {
   const [progress, setProgress] = useState(0);
-  const [isExiting, setIsExiting] = useState(false); // ✨ 퇴장 상태를 관리하는 변수 추가
+  const [isExiting, setIsExiting] = useState(false);
 
   useEffect(() => {
-    // 1. 화면 켜지면 게이지 채우기
     const progressTimer = setTimeout(() => setProgress(100), 100);
-    
-    // ✨ 2. 완전히 끝나기 0.5초 전(2.5초 시점), 내용물을 부드럽게 숨기기 시작
-    const exitTimer = setTimeout(() => setIsExiting(true), 2500);
-    
-    // 3. 3초가 되면 다음 화면(Login)으로 진짜 넘기기
+    // ✨ 2.4초부터 퇴장(가라앉으며 흐려짐) 시작
+    const exitTimer = setTimeout(() => setIsExiting(true), 2400);
     const completeTimer = setTimeout(onComplete, 3000);
-    
     return () => {
       clearTimeout(progressTimer);
       clearTimeout(exitTimer);
@@ -147,12 +142,10 @@ export const SplashScreen = ({ onComplete }) => {
   }, [onComplete]);
 
   return (
-    <div className="w-screen h-screen bg-[url('/login-bg.jpg')] bg-cover bg-center flex items-center justify-end pr-8 md:pr-16 lg:pr-24 relative overflow-hidden">
+    <div className="w-screen h-screen bg-[url('/login-bg.png')] bg-cover bg-center flex items-center justify-end pr-8 md:pr-16 lg:pr-24 relative overflow-hidden">
       
-      <div className="absolute top-1/4 right-1/4 w-96 h-96 bg-blue-500/10 rounded-full mix-blend-screen filter blur-[100px] opacity-60 animate-pulse pointer-events-none"></div>
-      
-      {/* ✨ isExiting 상태에 따라 투명도(opacity)가 스르륵 0으로 변하는 애니메이션 적용 */}
-      <div className={`relative w-full max-w-[320px] z-10 flex flex-col items-center justify-center transition-opacity duration-500 ease-in-out ${isExiting ? 'opacity-0' : 'opacity-100 animate-fade-in'}`}>
+      {/* ✨ 퇴장 애니메이션: opacity-0, translate-y-4(아래로 이동), blur-sm(흐려짐) */}
+      <div className={`relative w-full max-w-[320px] z-10 flex flex-col items-center justify-center transition-all duration-700 ease-out ${isExiting ? 'opacity-0 translate-y-4 blur-sm' : 'opacity-100 translate-y-0 blur-0'}`}>
         
         <AppLogo className="w-28 h-28 mb-6 drop-shadow-[0_0_15px_rgba(255,255,255,0.2)]" />
         <h1 className="text-3xl font-bold tracking-widest text-white mb-2 drop-shadow-md">QA BASE</h1>
