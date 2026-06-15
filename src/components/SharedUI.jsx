@@ -126,31 +126,47 @@ export const CustomDatePicker = ({ value, onChange, disabled, alignRight }) => {
 };
 
 export const SplashScreen = ({ onComplete }) => {
+    // ✨ 로딩 바 애니메이션을 위한 상태값 추가
+    const [progress, setProgress] = useState(0);
+
   useEffect(() => {
-    const timer = setTimeout(onComplete, 3000);
-    return () => clearTimeout(timer);
+    // 컴포넌트가 나타나자마자(0.1초 뒤) 로딩 바를 100%로 스르륵 채우기 시작
+    const progressTimer = setTimeout(() => setProgress(100), 100);
+    
+    // 3초 뒤에 로그인 화면으로 넘기기
+    const completeTimer = setTimeout(onComplete, 3000);
+    
+    return () => {
+      clearTimeout(progressTimer);
+      clearTimeout(completeTimer);
+    };
   }, [onComplete]);
 
   return (
-    // 1. 로그인 화면과 동일한 배경 이미지 적용 및 어두운 분위기 연출
-    <div className="w-screen h-screen bg-[url('/login-bg.jpg')] bg-cover bg-center flex flex-col items-center justify-center animate-simple-fade relative overflow-hidden">
+    // 1. 로그인 화면(Auth.jsx)과 완전히 똑같은 정렬 속성 적용 (우측 밀착: justify-end pr-8...)
+    <div className="w-screen h-screen bg-[url('/login-bg.png')] bg-cover bg-center flex items-center justify-end pr-8 md:pr-16 lg:pr-24 relative animate-simple-fade overflow-hidden">
       
-      {/* ✨ 뒷배경에 은은하게 퍼지는 푸른빛 네온 효과 */}
-      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-500/20 rounded-full mix-blend-screen filter blur-[100px] opacity-60 animate-pulse pointer-events-none"></div>
+      {/* (옵션) 로그인 모달 자리에 은은하게 퍼져있는 푸른빛 */}
+      <div className="absolute top-1/4 right-1/4 w-96 h-96 bg-blue-500/10 rounded-full mix-blend-screen filter blur-[100px] opacity-60 animate-pulse pointer-events-none"></div>
       
-      {/* 2. 글래스모피즘(반투명 유리) 패널 안에 로고와 텍스트 배치 */}
-      <div className="animate-fade-in flex flex-col items-center relative z-10 bg-white/10 backdrop-blur-xl px-16 py-14 rounded-3xl border border-white/20 shadow-[0_20px_60px_rgba(0,0,0,0.5)]">
+      {/* 2. 로그인 모달과 완전히 똑같은 너비(max-w-[320px]) 설정 & 배경(유리 패널) 삭제 */}
+      <div className="relative w-full max-w-[320px] animate-fade-in z-10 flex flex-col items-center justify-center">
         
         {/* 앱 로고 */}
-        <AppLogo className="w-32 h-32 mb-6 drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]" />
+        <AppLogo className="w-28 h-28 mb-6 drop-shadow-[0_0_15px_rgba(255,255,255,0.2)]" />
         
-        <h1 className="text-4xl font-bold tracking-widest text-white mb-2 drop-shadow-md">QA BASE</h1>
-        <p className="text-sm text-blue-200 tracking-widest font-medium opacity-80">Quality Assurance Command Center</p>
+        <h1 className="text-3xl font-bold tracking-widest text-white mb-2 drop-shadow-md">QA BASE</h1>
+        <p className="text-[10px] text-blue-200 tracking-widest font-medium opacity-80 uppercase">Quality Assurance Command Center</p>
         
-        {/* 3. 사이버네틱 네온 블루 프로그레스 바 */}
-        <div className="w-56 h-1.5 bg-gray-900/60 rounded-full mt-12 overflow-hidden shadow-inner relative border border-white/10">
-          {/* 차오르는 파란색 게이지 */}
-          <div className="absolute top-0 left-0 h-full bg-blue-500 rounded-full w-full origin-left animate-[scaleX_3s_ease-in-out] shadow-[0_0_12px_rgba(59,130,246,0.9)]"></div>
+        {/* 3. 시네마틱 로딩 바 (상태값 progress에 따라 물리적으로 차오름) */}
+        <div className="w-full max-w-[200px] h-1 bg-white/10 rounded-full mt-12 overflow-hidden shadow-inner relative border border-white/5">
+          <div 
+            className="absolute top-0 left-0 h-full bg-blue-500 rounded-full shadow-[0_0_12px_rgba(59,130,246,0.9)] transition-all ease-out"
+            style={{ 
+              width: `${progress}%`,           // 0% 에서 100% 로 변경됨
+              transitionDuration: '2800ms'     // 2.8초 동안 아주 부드럽게 차오름
+            }}
+          ></div>
         </div>
         
       </div>
