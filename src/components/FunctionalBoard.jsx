@@ -74,16 +74,13 @@ export const FunctionalBoard = ({ user, onNavigate, onLogout, onShowProfileModal
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             
-            {/* ✨ 1. Devices 카드 수정 */}
+            {/* 1. Devices 카드 (border border-gray-200 제거됨) */}
             <div 
               onClick={() => onNavigate('dashboard')}
-              // 👇 className에 relative와 overflow-hidden을 추가하여 이미지가 모서리를 넘어가지 않게 합니다.
-              className="relative overflow-hidden bg-white/80 backdrop-blur-sm rounded-3xl p-8 cursor-pointer border border-gray-200 shadow-md hover-breath group"
+              className="relative overflow-hidden bg-white/80 backdrop-blur-sm rounded-3xl p-8 cursor-pointer shadow-md hover-breath group"
             >
-              {/* 👇 올리신 Functioncard.jpg 배경을 깔아주는 코드입니다. */}
               <div className="absolute inset-0 bg-[url('/Functioncard.jpg')] bg-cover bg-center opacity-[0.2] mix-blend-multiply transition-opacity duration-500 group-hover:opacity-[0.3] pointer-events-none"></div>
               
-              {/* 👇 기존 내용물들을 묶어서 배경보다 위에 표시되게(z-10) 합니다. */}
               <div className="relative z-10">
                 <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center mb-6 group-hover:bg-gray-800 transition-colors duration-500 shadow-sm border border-gray-100">
                   <Server className="w-6 h-6 text-gray-600 group-hover:text-white transition-colors duration-500" strokeWidth={1.5} />
@@ -95,10 +92,10 @@ export const FunctionalBoard = ({ user, onNavigate, onLogout, onShowProfileModal
               </div>
             </div>
             
-            {/* ✨ 2. Schedule 카드 수정 */}
+            {/* 2. Schedule 카드 (border border-gray-200 제거됨) */}
             <div 
               onClick={() => onNavigate('schedule')}
-              className="relative overflow-hidden bg-white/80 backdrop-blur-sm rounded-3xl p-8 cursor-pointer border border-gray-200 shadow-md hover-breath group"
+              className="relative overflow-hidden bg-white/80 backdrop-blur-sm rounded-3xl p-8 cursor-pointer shadow-md hover-breath group"
             >
               <div className="absolute inset-0 bg-[url('/Functioncard.jpg')] bg-cover bg-center opacity-[0.2] mix-blend-multiply transition-opacity duration-500 group-hover:opacity-[0.3] pointer-events-none"></div>
               
@@ -113,10 +110,10 @@ export const FunctionalBoard = ({ user, onNavigate, onLogout, onShowProfileModal
               </div>
             </div>
 
-            {/* ✨ 3. Projects 카드 수정 */}
+            {/* 3. Projects 카드 (border border-gray-200 제거됨) */}
             <div 
               onClick={() => onNavigate('projects')}
-              className="relative overflow-hidden bg-white/80 backdrop-blur-sm rounded-3xl p-8 cursor-pointer border border-gray-200 shadow-md hover-breath group"
+              className="relative overflow-hidden bg-white/80 backdrop-blur-sm rounded-3xl p-8 cursor-pointer shadow-md hover-breath group"
             >
               <div className="absolute inset-0 bg-[url('/Functioncard.jpg')] bg-cover bg-center opacity-[0.2] mix-blend-multiply transition-opacity duration-500 group-hover:opacity-[0.3] pointer-events-none"></div>
               
@@ -133,10 +130,10 @@ export const FunctionalBoard = ({ user, onNavigate, onLogout, onShowProfileModal
               </div>
             </div>
 
-            {/* ✨ 4. Accounts 카드 수정 */}
+            {/* 4. Accounts 카드 (border border-gray-200 제거됨) */}
             <div 
               onClick={() => onNavigate('accounts')}
-              className="relative overflow-hidden bg-white/80 backdrop-blur-sm rounded-3xl p-8 cursor-pointer border border-gray-200 shadow-md hover-breath group"
+              className="relative overflow-hidden bg-white/80 backdrop-blur-sm rounded-3xl p-8 cursor-pointer shadow-md hover-breath group"
             >
               <div className="absolute inset-0 bg-[url('/Functioncard.jpg')] bg-cover bg-center opacity-[0.2] mix-blend-multiply transition-opacity duration-500 group-hover:opacity-[0.3] pointer-events-none"></div>
               
