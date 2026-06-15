@@ -73,58 +73,82 @@ export const FunctionalBoard = ({ user, onNavigate, onLogout, onShowProfileModal
           <p className="text-sm text-gray-500 mb-10">사용할 QA 기능을 선택하세요.</p>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            
+            {/* ✨ 1. Devices 카드 수정 */}
             <div 
               onClick={() => onNavigate('dashboard')}
-              className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 cursor-pointer border border-gray-200 shadow-md hover-breath group"
+              // 👇 className에 relative와 overflow-hidden을 추가하여 이미지가 모서리를 넘어가지 않게 합니다.
+              className="relative overflow-hidden bg-white/80 backdrop-blur-sm rounded-3xl p-8 cursor-pointer border border-gray-200 shadow-md hover-breath group"
             >
-              <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center mb-6 group-hover:bg-gray-800 transition-colors duration-500 shadow-sm border border-gray-100">
-                <Server className="w-6 h-6 text-gray-600 group-hover:text-white transition-colors duration-500" strokeWidth={1.5} />
+              {/* 👇 올리신 Functioncard.jpg 배경을 깔아주는 코드입니다. */}
+              <div className="absolute inset-0 bg-[url('/Functioncard.jpg')] bg-cover bg-center opacity-[0.2] mix-blend-multiply transition-opacity duration-500 group-hover:opacity-[0.3] pointer-events-none"></div>
+              
+              {/* 👇 기존 내용물들을 묶어서 배경보다 위에 표시되게(z-10) 합니다. */}
+              <div className="relative z-10">
+                <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center mb-6 group-hover:bg-gray-800 transition-colors duration-500 shadow-sm border border-gray-100">
+                  <Server className="w-6 h-6 text-gray-600 group-hover:text-white transition-colors duration-500" strokeWidth={1.5} />
+                </div>
+                <h3 className="text-xl font-medium text-gray-800 mb-2">Devices</h3>
+                <p className="text-sm text-gray-500 leading-relaxed">
+                  검증용 시료 보유 현황을 조회하고<br/>상태 및 대여 현황을 관리하세요.
+                </p>
               </div>
-              <h3 className="text-xl font-medium text-gray-800 mb-2">Devices</h3>
-              <p className="text-sm text-gray-500 leading-relaxed">
-                검증용 시료 보유 현황을 조회하고<br/>상태 및 대여 현황을 관리하세요.
-              </p>
             </div>
             
+            {/* ✨ 2. Schedule 카드 수정 */}
             <div 
               onClick={() => onNavigate('schedule')}
-              className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 cursor-pointer border border-gray-200 shadow-md hover-breath group"
+              className="relative overflow-hidden bg-white/80 backdrop-blur-sm rounded-3xl p-8 cursor-pointer border border-gray-200 shadow-md hover-breath group"
             >
-              <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center mb-6 group-hover:bg-gray-800 transition-colors duration-500 shadow-sm border border-gray-100">
-                <Calendar className="w-6 h-6 text-gray-600 group-hover:text-white transition-colors duration-500" strokeWidth={1.5} />
+              <div className="absolute inset-0 bg-[url('/Functioncard.jpg')] bg-cover bg-center opacity-[0.2] mix-blend-multiply transition-opacity duration-500 group-hover:opacity-[0.3] pointer-events-none"></div>
+              
+              <div className="relative z-10">
+                <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center mb-6 group-hover:bg-gray-800 transition-colors duration-500 shadow-sm border border-gray-100">
+                  <Calendar className="w-6 h-6 text-gray-600 group-hover:text-white transition-colors duration-500" strokeWidth={1.5} />
+                </div>
+                <h3 className="text-xl font-medium text-gray-800 mb-2">Schedule</h3>
+                <p className="text-sm text-gray-500 leading-relaxed">
+                  검증 일정을 캘린더로 확인하고<br/>칸반 보드로 진행 현황을 관리하세요.
+                </p>
               </div>
-              <h3 className="text-xl font-medium text-gray-800 mb-2">Schedule</h3>
-              <p className="text-sm text-gray-500 leading-relaxed">
-                검증 일정을 캘린더로 확인하고<br/>칸반 보드로 진행 현황을 관리하세요.
-              </p>
             </div>
 
+            {/* ✨ 3. Projects 카드 수정 */}
             <div 
               onClick={() => onNavigate('projects')}
-              className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 cursor-pointer border border-gray-200 shadow-md hover-breath group"
+              className="relative overflow-hidden bg-white/80 backdrop-blur-sm rounded-3xl p-8 cursor-pointer border border-gray-200 shadow-md hover-breath group"
             >
-              <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center mb-6 group-hover:bg-gray-800 transition-colors duration-500 shadow-sm border border-gray-100">
-                <Bug className="w-6 h-6 text-gray-600 group-hover:text-white transition-colors duration-500" strokeWidth={1.5} />
+              <div className="absolute inset-0 bg-[url('/Functioncard.jpg')] bg-cover bg-center opacity-[0.2] mix-blend-multiply transition-opacity duration-500 group-hover:opacity-[0.3] pointer-events-none"></div>
+              
+              <div className="relative z-10">
+                <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center mb-6 group-hover:bg-gray-800 transition-colors duration-500 shadow-sm border border-gray-100">
+                  <Bug className="w-6 h-6 text-gray-600 group-hover:text-white transition-colors duration-500" strokeWidth={1.5} />
+                </div>
+                <h3 className="text-xl font-medium text-gray-800 mb-2 flex items-center">
+                  Projects <span className="ml-2 text-[10px] bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full font-bold tracking-wider border border-blue-200 shadow-sm">JIRA</span>
+                </h3>
+                <p className="text-sm text-gray-500 leading-relaxed">
+                  JIRA 스페이스와 연동하여<br/>개발결함 추적 및 통계를 관리하세요.
+                </p>
               </div>
-              <h3 className="text-xl font-medium text-gray-800 mb-2 flex items-center">
-                Projects <span className="ml-2 text-[10px] bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full font-bold tracking-wider border border-blue-200 shadow-sm">JIRA</span>
-              </h3>
-              <p className="text-sm text-gray-500 leading-relaxed">
-                JIRA 스페이스와 연동하여<br/>개발결함 추적 및 통계를 관리하세요.
-              </p>
             </div>
 
+            {/* ✨ 4. Accounts 카드 수정 */}
             <div 
               onClick={() => onNavigate('accounts')}
-              className="bg-white/80 backdrop-blur-sm rounded-3xl p-8 cursor-pointer border border-gray-200 shadow-md hover-breath group"
+              className="relative overflow-hidden bg-white/80 backdrop-blur-sm rounded-3xl p-8 cursor-pointer border border-gray-200 shadow-md hover-breath group"
             >
-              <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center mb-6 group-hover:bg-gray-800 transition-colors duration-500 shadow-sm border border-gray-100">
-                <KeyRound className="w-6 h-6 text-gray-600 group-hover:text-white transition-colors duration-500" strokeWidth={1.5} />
+              <div className="absolute inset-0 bg-[url('/Functioncard.jpg')] bg-cover bg-center opacity-[0.2] mix-blend-multiply transition-opacity duration-500 group-hover:opacity-[0.3] pointer-events-none"></div>
+              
+              <div className="relative z-10">
+                <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center mb-6 group-hover:bg-gray-800 transition-colors duration-500 shadow-sm border border-gray-100">
+                  <KeyRound className="w-6 h-6 text-gray-600 group-hover:text-white transition-colors duration-500" strokeWidth={1.5} />
+                </div>
+                <h3 className="text-xl font-medium text-gray-800 mb-2">Accounts</h3>
+                <p className="text-sm text-gray-500 leading-relaxed">
+                  강력한 보안의 테스트용 계정들을<br/>빠르고 안전하게 관리하세요.
+                </p>
               </div>
-              <h3 className="text-xl font-medium text-gray-800 mb-2">Accounts</h3>
-              <p className="text-sm text-gray-500 leading-relaxed">
-                강력한 보안의 테스트용 계정들을<br/>빠르고 안전하게 관리하세요.
-              </p>
             </div>
 
           </div>
