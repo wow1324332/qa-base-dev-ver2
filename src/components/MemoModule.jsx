@@ -89,7 +89,15 @@ export const MemoDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
   };
 
   const handleUpdateMemo = async (id, updateData) => {
-    await updateDoc(doc(db, 'memos', id), { ...updateData, updatedAt: serverTimestamp() });
+    const payload = { ...updateData };
+    
+    // ✅ 전달된 데이터가 오직 '접기/펼치기(isFolded)' 상태 변경 하나뿐이라면, 
+    // 최근 수정 시간(updatedAt)을 갱신하지 않아서 순서가 바뀌지 않도록 방어합니다.
+    if (!(Object.keys(updateData).length === 1 && 'isFolded' in updateData)) {
+      payload.updatedAt = serverTimestamp();
+    }
+    
+    await updateDoc(doc(db, 'memos', id), payload);
   };
 
   const handleDeleteMemo = async (id) => {
