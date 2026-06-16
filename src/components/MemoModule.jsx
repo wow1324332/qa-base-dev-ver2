@@ -251,16 +251,14 @@ const MemoCard = ({ memo, onUpdate, onDelete, onFocus }) => {
   const theme = MEMO_COLORS.find(c => c.id === memo.colorId) || MEMO_COLORS[0];
 
   return (
-    // ✅ 1. isolate 추가: CSS 그리드가 absolute 요소를 강제로 찢어버리는 버그를 원천 차단합니다.
     <div className={`relative w-full group ${memo.isFolded ? 'z-10' : 'z-[60]'}`}>
       
-      {/* --- 상단 제목 --- */}
+      {/* ✅ 1. 상단 제목: 테두리(border) 관련 클래스를 싹 지우고, onDoubleClick 도 제거했습니다. */}
       <div 
-        onDoubleClick={onFocus}
-        className={`p-5 backdrop-blur-md transition-all cursor-pointer ${theme.bg} ${theme.border} 
+        className={`p-5 backdrop-blur-md transition-all cursor-default ${theme.bg} 
           ${memo.isFolded 
-            ? 'rounded-2xl border shadow-sm hover:shadow-md hover:-translate-y-0.5' 
-            : 'rounded-t-2xl border-t border-x border-b-0 shadow-[0_-5px_15px_rgba(0,0,0,0.05)]'}`}
+            ? 'rounded-2xl shadow-sm hover:shadow-md hover:-translate-y-0.5' 
+            : 'rounded-t-2xl shadow-[0_-5px_15px_rgba(0,0,0,0.05)]'}`}
       >
         <div className="flex justify-between items-center">
           <input 
@@ -274,7 +272,8 @@ const MemoCard = ({ memo, onUpdate, onDelete, onFocus }) => {
               WebkitMaskImage: 'linear-gradient(to right, black calc(100% - 24px), transparent 100%)',
               maskImage: 'linear-gradient(to right, black calc(100% - 24px), transparent 100%)'
             }}
-            onDoubleClick={(e) => e.stopPropagation()}
+            // 제목 input에서 더블클릭 이벤트가 위로 전파되지 않도록 차단
+            onDoubleClick={(e) => e.stopPropagation()} 
           />
           <div className={`flex items-center space-x-1 shrink-0 ml-2 transition-opacity ${memo.isFolded ? 'opacity-0 group-hover:opacity-100' : 'opacity-100'}`}>
             <button onClick={(e) => { e.stopPropagation(); onUpdate({ isFolded: !memo.isFolded }); }} className={`p-1 rounded hover:bg-black/5 ${theme.text}`}>
@@ -284,17 +283,16 @@ const MemoCard = ({ memo, onUpdate, onDelete, onFocus }) => {
         </div>
       </div>
 
-      {/* --- 하단 내용 (드롭다운) --- */}
+      {/* ✅ 2. 하단 내용: 여기에만 onDoubleClick={onFocus} 를 남겨두어, 내용 영역을 클릭할 때만 팝업이 뜹니다. */}
       {!memo.isFolded && (
         <div 
           onDoubleClick={onFocus}
-          // ✅ 2. 배경 불투명도 강화: bg-white/95 를 덮어씌워 아래쪽 메모의 글자가 비쳐서 박살 나 보이는 현상을 완벽히 가립니다.
-          className={`absolute top-full left-0 w-full p-5 pt-2 rounded-b-2xl border-b border-x shadow-[0_20px_40px_-10px_rgba(0,0,0,0.2)] backdrop-blur-2xl cursor-pointer animate-fast-fade bg-white/95 ${theme.border}`}
+          // 내용 영역도 테두리가 거슬릴 수 있어 border 속성을 제거하고 은은한 그림자만 남겼습니다.
+          className={`absolute top-full left-0 w-full p-5 pt-2 rounded-b-2xl shadow-[0_20px_40px_-10px_rgba(0,0,0,0.2)] backdrop-blur-2xl cursor-text animate-fast-fade bg-white/95`}
         >
           <div className="relative">
-            {/* ✅ 3. 픽셀 고정: vh 단위의 계산 오류를 막고 안전하게 최대 200px(약 10줄)까지만 커진 후 예쁘게 스크롤되도록 고정했습니다. */}
             <div 
-              className={`text-xs leading-relaxed outline-none min-h-[60px] max-h-[45vh] overflow-y-auto no-scrollbar break-words whitespace-pre-wrap ${theme.text}`}
+              className={`text-xs leading-relaxed outline-none min-h-[60px] max-h-[35vh] overflow-y-auto no-scrollbar break-words whitespace-pre-wrap ${theme.text}`}
               dangerouslySetInnerHTML={{ __html: memo.content || '<p className="text-gray-400 italic">내용이 없습니다. 더블클릭하여 편집하세요.</p>' }}
             />
           </div>
