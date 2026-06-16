@@ -261,8 +261,13 @@ const MemoCard = ({ memo, onUpdate, onDelete, onFocus }) => {
           onChange={(e) => onUpdate({ title: e.target.value })}
           placeholder="제목 없음"
           readOnly={memo.isFolded} 
-          // ✅ truncate 클래스를 추가하여 영역을 넘어가면 자동으로 '...' 처리되도록 만들었습니다.
-          className={`truncate bg-transparent outline-none font-bold text-sm w-full placeholder:text-gray-400 ${theme.text} ${memo.isFolded ? 'pointer-events-none' : ''}`}
+          // ✅ 1. className에서 truncate 단어를 지워줍니다.
+          className={`bg-transparent outline-none font-bold text-sm w-full placeholder:text-gray-400 ${theme.text} ${memo.isFolded ? 'pointer-events-none' : ''}`}
+          // ✅ 2. style 속성을 추가하여 끝부분이 투명해지는 마스크(그라데이션) 효과를 줍니다.
+          style={{
+          WebkitMaskImage: memo.isFolded ? 'linear-gradient(to right, black calc(100% - 24px), transparent 100%)' : 'none',
+          maskImage: memo.isFolded ? 'linear-gradient(to right, black calc(100% - 24px), transparent 100%)' : 'none'
+          }}
           onDoubleClick={(e) => e.stopPropagation()}
         />
         <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0 ml-2">
