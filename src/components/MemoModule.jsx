@@ -253,10 +253,9 @@ const MemoCard = ({ memo, onUpdate, onDelete, onFocus }) => {
   return (
     <div className={`relative w-full group ${memo.isFolded ? 'z-10' : 'z-[60]'}`}>
       
-      {/* --- 상단 제목 구역 (클릭 시 폴딩, 더블클릭 시 팝업 모달) --- */}
+      {/* --- 상단 제목 구역 --- */}
       <div 
         onClick={() => onUpdate({ isFolded: !memo.isFolded })}
-        // ✅ 1. 제목 영역 더블클릭 시 편집 모달창(onFocus)을 띄웁니다.
         onDoubleClick={(e) => {
           e.stopPropagation(); 
           onFocus(); 
@@ -289,38 +288,31 @@ const MemoCard = ({ memo, onUpdate, onDelete, onFocus }) => {
               readOnly={memo.isFolded} 
               className={`col-start-1 row-start-1 w-full min-w-0 bg-transparent outline-none font-bold text-sm placeholder:text-gray-400 ${theme.text} ${memo.isFolded ? 'pointer-events-none' : ''}`}
               onClick={(e) => e.stopPropagation()} 
-              // ✅ 2. 텍스트 입력창에서 더블클릭 시 이벤트가 부모로 넘어가 팝업이 뜨도록 e.stopPropagation()을 지웠습니다.
             />
           </div>
         </div>
       </div>
 
-      {/* --- 하단 내용 영역 (펼치면 즉시 텍스트 입력 가능) --- */}
+      {/* --- 하단 내용 영역 --- */}
       {!memo.isFolded && (
         <div 
-          // ✅ 3. 하단 영역 전체에 걸려있던 더블클릭 모달 호출을 제거했습니다.
-          className={`absolute top-full left-0 w-full p-5 pt-2 rounded-b-2xl shadow-[0_20px_40px_-10px_rgba(0,0,0,0.2)] backdrop-blur-2xl bg-white/95 animate-fast-fade`}
+          // ✅ 1. 부모 껍데기에 있던 패딩(p-5)을 제거하여 스크롤바가 가장자리에 붙을 수 있게 열어줍니다.
+          className="absolute top-full left-0 w-full rounded-b-2xl shadow-[0_20px_40px_-10px_rgba(0,0,0,0.2)] backdrop-blur-2xl bg-white/95 animate-fast-fade overflow-hidden"
         >
-          <div className="relative">
-            
-            {/* ✅ 4. HTML 표시용 div 대신, 즉시 편집이 가능한 자동 높이 조절 textarea로 교체했습니다. */}
-            <div className={`grid min-h-[60px] max-h-[35vh] overflow-y-auto no-scrollbar ${theme.text}`}>
-              
-              {/* 투명 뼈대 (글을 쓸 때마다 내용물의 높이를 실시간으로 늘려줍니다) */}
-              <div className="invisible col-start-1 row-start-1 text-xs leading-relaxed break-words whitespace-pre-wrap pointer-events-none">
-                {memo.content ? memo.content + '\n' : '내용이 없습니다. 클릭하여 편집하세요.\n'}
-              </div>
-              
-              {/* 실제 텍스트 입력창 (투명 뼈대 위에 딱 맞춰 겹쳐집니다) */}
-              <textarea 
-                value={memo.content || ''}
-                onChange={(e) => onUpdate({ content: e.target.value })}
-                placeholder="내용이 없습니다. 클릭하여 편집하세요."
-                className="col-start-1 row-start-1 w-full h-full bg-transparent resize-none outline-none text-xs leading-relaxed break-words whitespace-pre-wrap cursor-text"
-              />
-              
-            </div>
-
+          {/* ✅ 2. 패딩을 스크롤 영역 안으로 옮기고, 스크롤바를 완전히 숨기는 Tailwind 클래스를 추가했습니다. */}
+          <div 
+            className={`max-h-[35vh] overflow-y-auto p-5 pt-2 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] ${theme.text}`}
+          >
+            {/* ✅ 3 & 4. 일반 textarea를 버리고 HTML과 완벽 호환되는 contentEditable div로 교체했습니다. */}
+            <div 
+              contentEditable={true}
+              suppressContentEditableWarning={true}
+              // ✅ 5. 글을 치는 동안에는 간섭하지 않고, 입력을 마치고 다른 곳을 클릭할 때 한 번에 저장합니다. (커서 튐 방지)
+              onBlur={(e) => onUpdate({ content: e.currentTarget.innerHTML })}
+              dangerouslySetInnerHTML={{ __html: memo.content || '' }}
+              data-placeholder="내용이 없습니다. 클릭하여 편집하세요."
+              className="outline-none text-xs leading-relaxed min-h-[60px] break-words whitespace-pre-wrap cursor-text empty:before:content-[attr(data-placeholder)] empty:before:text-gray-400 empty:before:italic empty:before:pointer-events-none"
+            />
           </div>
         </div>
       )}
