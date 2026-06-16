@@ -30,9 +30,10 @@ export const MemoDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
     if (!user) return;
 
     // 카테고리 구독
-    const qCategories = query(collection(db, 'memoCategories'), where('userId', '==', user.id || user.email));
-    const unsubCat = onSnapshot(qCategories, (snap) => {
-      setCategories(snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => a.createdAt - b.createdAt));
+    const qMemos = query(collection(db, 'memos'), where('userId', '==', user.id || user.email));
+    const unsubMemo = onSnapshot(qMemos, (snap) => {
+      // ✅ b.updatedAt - a.updatedAt 부분을 b.createdAt - a.createdAt 으로 변경합니다.
+      setMemos(snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => b.createdAt - a.createdAt));
     });
 
     // 메모 구독
