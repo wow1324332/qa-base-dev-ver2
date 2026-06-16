@@ -6,7 +6,8 @@ import { FunctionalBoard } from './components/FunctionalBoard';
 import { DevicesDashboard } from './components/DevicesModule';
 import { ScheduleDashboard } from './components/ScheduleModule';
 import { ProjectsDashboard } from './components/ProjectsModule';
-import { AccountsDashboard } from './components/AccountsModule'; // [추가] AccountsModule 임포트
+import { AccountsDashboard } from './components/AccountsModule';
+import { MemoDashboard } from './components/MemoModule';
 
 export default function App() {
   const [screen, setScreen] = useState(() => {
