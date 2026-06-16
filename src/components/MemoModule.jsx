@@ -251,42 +251,46 @@ const MemoCard = ({ memo, onUpdate, onDelete, onFocus }) => {
   const theme = MEMO_COLORS.find(c => c.id === memo.colorId) || MEMO_COLORS[0];
 
   return (
-    <div 
-      onDoubleClick={onFocus}
-      className={`break-inside-avoid mb-6 rounded-2xl p-5 border shadow-sm transition-all duration-300 cursor-pointer hover:shadow-md hover:-translate-y-0.5 backdrop-blur-md ${theme.bg} ${theme.border} group`}
-    >
-      <div className={`flex justify-between items-center ${memo.isFolded ? 'mb-0' : 'mb-3'}`}>
-        <input 
-          type="text" 
-          value={memo.title} 
-          onChange={(e) => onUpdate({ title: e.target.value })}
-          placeholder="제목 없음"
-          readOnly={memo.isFolded} 
-          className={`bg-transparent outline-none font-bold text-sm w-full placeholder:text-gray-400 ${theme.text} ${memo.isFolded ? 'pointer-events-none' : ''}`}
-          // ✅ memo.isFolded 조건을 지우고 항상 그라데이션이 적용되도록 변경했습니다.
-          style={{
-            WebkitMaskImage: 'linear-gradient(to right, black calc(100% - 24px), transparent 100%)',
-            maskImage: 'linear-gradient(to right, black calc(100% - 24px), transparent 100%)'
-          }}
-          onDoubleClick={(e) => e.stopPropagation()}
-        />
-        <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0 ml-2">
-          <button onClick={(e) => { e.stopPropagation(); onUpdate({ isFolded: !memo.isFolded }); }} className={`p-1 rounded hover:bg-black/5 ${theme.text}`}>
-            {memo.isFolded ? <Maximize2 className="w-3.5 h-3.5" /> : <Minimize2 className="w-3.5 h-3.5" />}
-          </button>
-        </div>
-      </div>
-
-      {!memo.isFolded && (
-        <div className="relative">
-          <div 
-            className={`text-xs leading-relaxed outline-none min-h-[60px] max-h-[300px] overflow-hidden ${theme.text}`}
-            dangerouslySetInnerHTML={{ __html: memo.content || '<p className="text-gray-400 italic">내용이 없습니다. 더블클릭하여 편집하세요.</p>' }}
+    // ✅ 1. 뼈대 래퍼: 그리드 레이아웃에서 다른 메모가 밀리지 않도록 고정된 높이(62px)를 차지합니다.
+    <div className="relative break-inside-avoid mb-6" style={{ height: '62px' }}>
+      
+      {/* ✅ 2. 실제 카드: absolute로 공중에 띄우고, 펼쳤을 때 스케일(크기)과 그림자, Z-index를 키워 아래 요소를 덮어버리게 만듭니다. */}
+      <div 
+        onDoubleClick={onFocus}
+        className={`absolute top-0 left-0 w-full rounded-2xl p-5 border transition-all duration-300 cursor-pointer group backdrop-blur-2xl ${theme.bg} ${theme.border} ${memo.isFolded ? 'z-10 shadow-sm hover:z-20 hover:shadow-md hover:-translate-y-0.5' : 'z-50 shadow-[0_20px_40px_-15px_rgba(0,0,0,0.2)] scale-[1.02]'}`}
+      >
+        <div className={`flex justify-between items-center ${memo.isFolded ? 'mb-0' : 'mb-3'}`}>
+          <input 
+            type="text" 
+            value={memo.title} 
+            onChange={(e) => onUpdate({ title: e.target.value })}
+            placeholder="제목 없음"
+            readOnly={memo.isFolded} 
+            className={`bg-transparent outline-none font-bold text-sm w-full placeholder:text-gray-400 ${theme.text} ${memo.isFolded ? 'pointer-events-none' : ''}`}
+            style={{
+              WebkitMaskImage: 'linear-gradient(to right, black calc(100% - 24px), transparent 100%)',
+              maskImage: 'linear-gradient(to right, black calc(100% - 24px), transparent 100%)'
+            }}
+            onDoubleClick={(e) => e.stopPropagation()}
           />
-          {/* 긴 글 그라데이션 가림 처리 */}
-          <div className={`absolute bottom-0 w-full h-8 bg-gradient-to-t from-${theme.bg.split('/')[0].replace('bg-', '')}-50 to-transparent pointer-events-none mix-blend-overlay`}></div>
+          <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0 ml-2">
+            <button onClick={(e) => { e.stopPropagation(); onUpdate({ isFolded: !memo.isFolded }); }} className={`p-1 rounded hover:bg-black/5 ${theme.text}`}>
+              {memo.isFolded ? <Maximize2 className="w-3.5 h-3.5" /> : <Minimize2 className="w-3.5 h-3.5" />}
+            </button>
+          </div>
         </div>
-      )}
+
+        {!memo.isFolded && (
+          <div className="relative">
+            <div 
+              className={`text-xs leading-relaxed outline-none min-h-[60px] max-h-[300px] overflow-hidden ${theme.text}`}
+              dangerouslySetInnerHTML={{ __html: memo.content || '<p className="text-gray-400 italic">내용이 없습니다. 더블클릭하여 편집하세요.</p>' }}
+            />
+            {/* 긴 글 그라데이션 가림 처리 */}
+            <div className={`absolute bottom-0 w-full h-8 bg-gradient-to-t from-white/60 to-transparent pointer-events-none mix-blend-overlay`}></div>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
