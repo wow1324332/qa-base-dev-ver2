@@ -263,22 +263,22 @@ const MemoCard = ({ memo, onUpdate, onDelete, onFocus }) => {
       >
         <div className="flex justify-between items-center">
           
-          {/* ✅ 글자 수에 맞춰 자동으로 크기가 변하는 마법의 입력창 구조 */}
-          <div className="grid max-w-full overflow-hidden">
-            {/* 1. 투명 뼈대: 실제 텍스트 길이에 맞춰 부모 요소의 너비를 늘려줍니다. */}
+          {/* ✅ 글자 크기에 맞춰 진공 포장되는 제목 입력칸 */}
+          <div className="inline-grid max-w-full overflow-hidden">
+            {/* 1. 투명 뼈대 */}
             <span className="invisible whitespace-pre col-start-1 row-start-1 font-bold text-sm pointer-events-none">
               {memo.title || '제목 없음'}
             </span>
             
-            {/* 2. 실제 입력창: 투명 뼈대와 완벽하게 동일한 크기로 바로 위에 겹쳐집니다. */}
+            {/* 2. 실제 입력창 (size={1}과 min-w-0이 핵심입니다) */}
             <input 
               type="text" 
+              size={1} 
               value={memo.title} 
               onChange={(e) => onUpdate({ title: e.target.value })}
               placeholder="제목 없음"
               readOnly={memo.isFolded} 
-              // w-full을 남겨두지만, 이제 부모 요소(투명 뼈대)의 크기만큼만 커집니다.
-              className={`col-start-1 row-start-1 w-full bg-transparent outline-none font-bold text-sm placeholder:text-gray-400 ${theme.text} ${memo.isFolded ? 'pointer-events-none' : ''}`}
+              className={`col-start-1 row-start-1 w-full min-w-0 bg-transparent outline-none font-bold text-sm placeholder:text-gray-400 ${theme.text} ${memo.isFolded ? 'pointer-events-none' : ''}`}
               style={{
                 WebkitMaskImage: 'linear-gradient(to right, black calc(100% - 24px), transparent 100%)',
                 maskImage: 'linear-gradient(to right, black calc(100% - 24px), transparent 100%)'
