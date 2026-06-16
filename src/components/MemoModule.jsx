@@ -256,13 +256,14 @@ const MemoCard = ({ memo, onUpdate, onDelete, onFocus }) => {
     >
       <div className={`flex justify-between items-center ${memo.isFolded ? 'mb-0' : 'mb-3'}`}>
         <input 
-         type="text" 
-         value={memo.title} 
-         onChange={(e) => onUpdate({ title: e.target.value })}
-         placeholder="제목 없음"
-         readOnly={memo.isFolded} // ✅ 1. 접혀있을 땐 읽기 전용으로 변경하여 수정 방지
-         className={`bg-transparent outline-none font-bold text-sm w-full placeholder:text-gray-400 ${theme.text} ${memo.isFolded ? 'pointer-events-none' : ''}`} // ✅ 2. 접혀있을 땐 마우스 포인터 이벤트를 무시하여 입력 커서(I빔) 숨김
-         onDoubleClick={(e) => e.stopPropagation()}
+          type="text" 
+          value={memo.title} 
+          onChange={(e) => onUpdate({ title: e.target.value })}
+          placeholder="제목 없음"
+          readOnly={memo.isFolded} 
+          // ✅ truncate 클래스를 추가하여 영역을 넘어가면 자동으로 '...' 처리되도록 만들었습니다.
+          className={`truncate bg-transparent outline-none font-bold text-sm w-full placeholder:text-gray-400 ${theme.text} ${memo.isFolded ? 'pointer-events-none' : ''}`}
+          onDoubleClick={(e) => e.stopPropagation()}
         />
         <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0 ml-2">
           <button onClick={(e) => { e.stopPropagation(); onUpdate({ isFolded: !memo.isFolded }); }} className={`p-1 rounded hover:bg-black/5 ${theme.text}`}>
