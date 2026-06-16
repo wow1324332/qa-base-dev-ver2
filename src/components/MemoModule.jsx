@@ -251,7 +251,8 @@ const MemoCard = ({ memo, onUpdate, onDelete, onFocus }) => {
   const theme = MEMO_COLORS.find(c => c.id === memo.colorId) || MEMO_COLORS[0];
 
   return (
-    <div className={`relative w-full group ${memo.isFolded ? 'z-10' : 'z-[60]'}`}>
+    // ✅ 2번 문제 해결: focus-within과 hover를 적용하여 마우스를 올리거나 클릭 중인 메모가 무조건 화면 최상단(z-[80])으로 올라오도록 만들었습니다.
+    <div className={`relative w-full group transition-all duration-300 ${memo.isFolded ? 'z-10 hover:z-20' : 'z-[60] hover:z-[70] focus-within:z-[80]'}`}>
       
       {/* --- 상단 제목 구역 --- */}
       <div 
@@ -286,7 +287,7 @@ const MemoCard = ({ memo, onUpdate, onDelete, onFocus }) => {
               onChange={(e) => onUpdate({ title: e.target.value })}
               placeholder="제목 없음"
               readOnly={memo.isFolded} 
-              className={`col-start-1 row-start-1 w-full min-w-0 bg-transparent outline-none font-bold text-sm placeholder:text-gray-400 ${theme.text} ${memo.isFolded ? 'pointer-events-none' : ''}`}
+              className={`col-start-1 row-start-1 w-full min-w-0 bg-transparent outline-none focus:outline-none focus:ring-0 font-bold text-sm placeholder:text-gray-400 ${theme.text} ${memo.isFolded ? 'pointer-events-none' : ''}`}
               onClick={(e) => e.stopPropagation()} 
             />
           </div>
@@ -295,24 +296,21 @@ const MemoCard = ({ memo, onUpdate, onDelete, onFocus }) => {
 
       {/* --- 하단 내용 영역 --- */}
       {!memo.isFolded && (
-        <div 
-          // ✅ 1. 부모 껍데기에 있던 패딩(p-5)을 제거하여 스크롤바가 가장자리에 붙을 수 있게 열어줍니다.
-          className="absolute top-full left-0 w-full rounded-b-2xl shadow-[0_20px_40px_-10px_rgba(0,0,0,0.2)] backdrop-blur-2xl bg-white/95 animate-fast-fade overflow-hidden"
-        >
-          {/* ✅ 2. 패딩을 스크롤 영역 안으로 옮기고, 스크롤바를 완전히 숨기는 Tailwind 클래스를 추가했습니다. */}
-          <div 
-            className={`max-h-[35vh] overflow-y-auto p-5 pt-2 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] ${theme.text}`}
-          >
-            {/* ✅ 3 & 4. 일반 textarea를 버리고 HTML과 완벽 호환되는 contentEditable div로 교체했습니다. */}
+        <div className="absolute top-full left-0 w-full rounded-b-2xl shadow-[0_20px_40px_-10px_rgba(0,0,0,0.2)] backdrop-blur-2xl bg-white/95 animate-fast-fade overflow-hidden">
+          <div className={`max-h-[35vh] overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] ${theme.text}`}>
+            
+            {/* ✅ 1번 문제 해결: 껍데기에 있던 패딩(p-5)을 텍스트 입력창 내부로 옮겼습니다. 이제 하얀색 드롭다운 영역 전체가 하나의 거대한 텍스트 필드로 작동하여 빈 공간 어디를 눌러도 커서가 즉시 잡힙니다. */}
+            {/* ✅ 보너스 디테일: spellCheck={false} 를 추가하여 의미 없는 글자를 칠 때 나타나는 브라우저 기본 빨간색 밑줄을 깔끔하게 제거했습니다. */}
             <div 
               contentEditable={true}
               suppressContentEditableWarning={true}
-              // ✅ 5. 글을 치는 동안에는 간섭하지 않고, 입력을 마치고 다른 곳을 클릭할 때 한 번에 저장합니다. (커서 튐 방지)
+              spellCheck={false} 
               onBlur={(e) => onUpdate({ content: e.currentTarget.innerHTML })}
               dangerouslySetInnerHTML={{ __html: memo.content || '' }}
               data-placeholder="내용이 없습니다. 클릭하여 편집하세요."
-              className="outline-none text-xs leading-relaxed min-h-[60px] break-words whitespace-pre-wrap cursor-text empty:before:content-[attr(data-placeholder)] empty:before:text-gray-400 empty:before:italic empty:before:pointer-events-none"
+              className="w-full min-h-[100px] p-5 pt-2 outline-none focus:outline-none focus:ring-0 text-xs leading-relaxed break-words whitespace-pre-wrap cursor-text empty:before:content-[attr(data-placeholder)] empty:before:text-gray-400 empty:before:italic empty:before:pointer-events-none"
             />
+
           </div>
         </div>
       )}
