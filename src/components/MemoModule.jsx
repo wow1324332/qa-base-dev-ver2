@@ -301,7 +301,9 @@ const MemoCard = ({ memo, onUpdate, onDelete, onFocus }) => {
           </div>
         </div>
       )}
-      };
+</div>
+  );
+};
 
 // --- 서브 컴포넌트: 포커스 모드 모달 (커스텀 에디터 포함) ---
 const FocusMemoModal = ({ memo, onUpdate, onClose, onDelete }) => {
