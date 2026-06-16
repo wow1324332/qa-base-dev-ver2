@@ -253,7 +253,7 @@ const MemoCard = ({ memo, onUpdate, onDelete, onFocus }) => {
   return (
     <div className={`relative w-full group ${memo.isFolded ? 'z-10' : 'z-[60]'}`}>
       
-      {/* ✅ 1. 제목 구역 자체를 버튼화: onClick 이벤트를 추가하고 마우스를 cursor-pointer 로 변경했습니다. */}
+      {/* --- 상단 제목 구역 (버튼화) --- */}
       <div 
         onClick={() => onUpdate({ isFolded: !memo.isFolded })}
         className={`p-5 backdrop-blur-md transition-all cursor-pointer ${theme.bg} 
@@ -262,23 +262,32 @@ const MemoCard = ({ memo, onUpdate, onDelete, onFocus }) => {
             : 'rounded-t-2xl shadow-[0_-5px_15px_rgba(0,0,0,0.05)]'}`}
       >
         <div className="flex justify-between items-center">
-          <input 
-            type="text" 
-            value={memo.title} 
-            onChange={(e) => onUpdate({ title: e.target.value })}
-            placeholder="제목 없음"
-            readOnly={memo.isFolded} 
-            className={`bg-transparent outline-none font-bold text-sm w-full placeholder:text-gray-400 ${theme.text} ${memo.isFolded ? 'pointer-events-none' : ''}`}
-            style={{
-              WebkitMaskImage: 'linear-gradient(to right, black calc(100% - 24px), transparent 100%)',
-              maskImage: 'linear-gradient(to right, black calc(100% - 24px), transparent 100%)'
-            }}
-            // ✅ 2. 텍스트 입력 방어: 펼쳐져 있을 때 글씨를 클릭해서 수정하려다가 
-            // 메모가 닫혀버리는 불상사를 막기 위해 이벤트 전파(stopPropagation)를 차단합니다.
-            onClick={(e) => e.stopPropagation()} 
-            onDoubleClick={(e) => e.stopPropagation()} 
-          />
-          {/* ✅ 3. 삭제됨: 기존에 있던 Maximize/Minimize 버튼 코드는 완전히 날렸습니다. */}
+          
+          {/* ✅ 글자 수에 맞춰 자동으로 크기가 변하는 마법의 입력창 구조 */}
+          <div className="grid max-w-full overflow-hidden">
+            {/* 1. 투명 뼈대: 실제 텍스트 길이에 맞춰 부모 요소의 너비를 늘려줍니다. */}
+            <span className="invisible whitespace-pre col-start-1 row-start-1 font-bold text-sm pointer-events-none">
+              {memo.title || '제목 없음'}
+            </span>
+            
+            {/* 2. 실제 입력창: 투명 뼈대와 완벽하게 동일한 크기로 바로 위에 겹쳐집니다. */}
+            <input 
+              type="text" 
+              value={memo.title} 
+              onChange={(e) => onUpdate({ title: e.target.value })}
+              placeholder="제목 없음"
+              readOnly={memo.isFolded} 
+              // w-full을 남겨두지만, 이제 부모 요소(투명 뼈대)의 크기만큼만 커집니다.
+              className={`col-start-1 row-start-1 w-full bg-transparent outline-none font-bold text-sm placeholder:text-gray-400 ${theme.text} ${memo.isFolded ? 'pointer-events-none' : ''}`}
+              style={{
+                WebkitMaskImage: 'linear-gradient(to right, black calc(100% - 24px), transparent 100%)',
+                maskImage: 'linear-gradient(to right, black calc(100% - 24px), transparent 100%)'
+              }}
+              onClick={(e) => e.stopPropagation()} 
+              onDoubleClick={(e) => e.stopPropagation()} 
+            />
+          </div>
+
         </div>
       </div>
 
