@@ -251,10 +251,10 @@ const MemoCard = ({ memo, onUpdate, onDelete, onFocus }) => {
   const theme = MEMO_COLORS.find(c => c.id === memo.colorId) || MEMO_COLORS[0];
 
   return (
-    // ✅ 1. 뼈대: 이 요소는 제목 높이만큼만 그리드 공간을 차지하며 절대 높이가 변하지 않습니다.
-    <div className={`relative break-inside-avoid mb-6 group ${memo.isFolded ? 'z-10' : 'z-50'}`}>
+    // ✅ 1. isolate 추가: CSS 그리드가 absolute 요소를 강제로 찢어버리는 버그를 원천 차단합니다.
+    <div className={`relative break-inside-avoid mb-6 group isolate ${memo.isFolded ? 'z-10' : 'z-[60]'}`}>
       
-      {/* ✅ 2. 상단 제목 (항상 보임) */}
+      {/* --- 상단 제목 --- */}
       <div 
         onDoubleClick={onFocus}
         className={`p-5 backdrop-blur-md transition-all cursor-pointer ${theme.bg} ${theme.border} 
@@ -284,24 +284,23 @@ const MemoCard = ({ memo, onUpdate, onDelete, onFocus }) => {
         </div>
       </div>
 
-      {/* ✅ 3. 하단 내용 (펼쳐질 때만 드롭다운처럼 아래로 튀어나와 덮음) */}
+      {/* --- 하단 내용 (드롭다운) --- */}
       {!memo.isFolded && (
         <div 
           onDoubleClick={onFocus}
-          className={`absolute top-full left-0 w-full p-5 pt-2 rounded-b-2xl border-b border-x shadow-[0_15px_30px_-5px_rgba(0,0,0,0.15)] backdrop-blur-md cursor-pointer animate-fast-fade ${theme.bg} ${theme.border}`}
+          // ✅ 2. 배경 불투명도 강화: bg-white/95 를 덮어씌워 아래쪽 메모의 글자가 비쳐서 박살 나 보이는 현상을 완벽히 가립니다.
+          className={`absolute top-full left-0 w-full p-5 pt-2 rounded-b-2xl border-b border-x shadow-[0_20px_40px_-10px_rgba(0,0,0,0.2)] backdrop-blur-2xl cursor-pointer animate-fast-fade bg-white/95 ${theme.border}`}
         >
           <div className="relative">
-            {/* ✅ overflow-hidden -> overflow-y-auto 로 변경하여 세로 스크롤 생성 */}
-            {/* ✅ no-scrollbar 를 추가하여 스크롤바를 숨긴 채 마우스 휠로만 넘기도록 깔끔하게 처리 */}
-            {/* ✅ break-words 를 추가하여 텍스트가 가로로 잘리지 않고 줄바꿈되도록 보호 */}
+            {/* ✅ 3. 픽셀 고정: vh 단위의 계산 오류를 막고 안전하게 최대 200px(약 10줄)까지만 커진 후 예쁘게 스크롤되도록 고정했습니다. */}
             <div 
-              className={`text-xs leading-relaxed outline-none min-h-[60px] max-h-[25vh] overflow-y-auto no-scrollbar break-words ${theme.text}`}
+              className={`text-xs leading-relaxed outline-none min-h-[60px] max-h-[200px] overflow-y-auto no-scrollbar break-words whitespace-pre-wrap ${theme.text}`}
               dangerouslySetInnerHTML={{ __html: memo.content || '<p className="text-gray-400 italic">내용이 없습니다. 더블클릭하여 편집하세요.</p>' }}
             />
           </div>
         </div>
       )}
-</div>
+    </div>
   );
 };
 
