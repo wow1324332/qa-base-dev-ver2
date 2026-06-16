@@ -261,31 +261,35 @@ const MemoCard = ({ memo, onUpdate, onDelete, onFocus }) => {
             ? 'rounded-2xl shadow-sm hover:shadow-md hover:-translate-y-0.5' 
             : 'rounded-t-2xl shadow-[0_-5px_15px_rgba(0,0,0,0.05)]'}`}
       >
-        <div className="flex justify-between items-center">
+        <div className="flex items-center w-full">
           
-          {/* ✅ 글자 크기에 맞춰 진공 포장되는 제목 입력칸 */}
-          <div className="inline-grid max-w-full overflow-hidden">
-            {/* 1. 투명 뼈대 */}
-            <span className="invisible whitespace-pre col-start-1 row-start-1 font-bold text-sm pointer-events-none">
-              {memo.title || '제목 없음'}
-            </span>
-            
-            {/* 2. 실제 입력창 (size={1}과 min-w-0이 핵심입니다) */}
-            <input 
-              type="text" 
-              size={1} 
-              value={memo.title} 
-              onChange={(e) => onUpdate({ title: e.target.value })}
-              placeholder="제목 없음"
-              readOnly={memo.isFolded} 
-              className={`col-start-1 row-start-1 w-full min-w-0 bg-transparent outline-none font-bold text-sm placeholder:text-gray-400 ${theme.text} ${memo.isFolded ? 'pointer-events-none' : ''}`}
-              style={{
-                WebkitMaskImage: 'linear-gradient(to right, black calc(100% - 24px), transparent 100%)',
-                maskImage: 'linear-gradient(to right, black calc(100% - 24px), transparent 100%)'
-              }}
-              onClick={(e) => e.stopPropagation()} 
-              onDoubleClick={(e) => e.stopPropagation()} 
-            />
+          {/* ✅ 1. 마스크 전용 넓은 껍데기: 가로 전체(flex-1)를 차지하며, 이 껍데기의 오른쪽 끝만 흐려집니다. */}
+          <div 
+            className="flex-1 overflow-hidden"
+            style={{
+              WebkitMaskImage: 'linear-gradient(to right, black calc(100% - 24px), transparent 100%)',
+              maskImage: 'linear-gradient(to right, black calc(100% - 24px), transparent 100%)'
+            }}
+          >
+            {/* ✅ 2. 글자 크기에 맞춰 진공 포장되는 제목 입력칸 */}
+            <div className="inline-grid max-w-full">
+              <span className="invisible whitespace-pre col-start-1 row-start-1 font-bold text-sm pointer-events-none">
+                {memo.title || '제목 없음'}
+              </span>
+              
+              <input 
+                type="text" 
+                size={1} 
+                value={memo.title} 
+                onChange={(e) => onUpdate({ title: e.target.value })}
+                placeholder="제목 없음"
+                readOnly={memo.isFolded} 
+                // 💡 input에 있던 style(그라데이션) 속성을 제거했습니다!
+                className={`col-start-1 row-start-1 w-full min-w-0 bg-transparent outline-none font-bold text-sm placeholder:text-gray-400 ${theme.text} ${memo.isFolded ? 'pointer-events-none' : ''}`}
+                onClick={(e) => e.stopPropagation()} 
+                onDoubleClick={(e) => e.stopPropagation()} 
+              />
+            </div>
           </div>
 
         </div>
