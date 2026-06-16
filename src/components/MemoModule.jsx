@@ -265,8 +265,8 @@ const MemoCard = ({ memo, onUpdate, onDelete, onFocus }) => {
           className={`bg-transparent outline-none font-bold text-sm w-full placeholder:text-gray-400 ${theme.text} ${memo.isFolded ? 'pointer-events-none' : ''}`}
           // ✅ 2. style 속성을 추가하여 끝부분이 투명해지는 마스크(그라데이션) 효과를 줍니다.
           style={{
-          WebkitMaskImage: memo.isFolded ? 'linear-gradient(to right, black calc(100% - 24px), transparent 100%)' : 'none',
-          maskImage: memo.isFolded ? 'linear-gradient(to right, black calc(100% - 24px), transparent 100%)' : 'none'
+          WebkitMaskImage: 'linear-gradient(to right, black calc(100% - 24px), transparent 100%)' : 'none',
+          maskImage: 'linear-gradient(to right, black calc(100% - 24px), transparent 100%)' : 'none'
           }}
           onDoubleClick={(e) => e.stopPropagation()}
         />
