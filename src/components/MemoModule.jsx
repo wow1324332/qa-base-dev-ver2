@@ -294,7 +294,7 @@ const MemoCard = ({ memo, onUpdate, onDelete, onFocus }) => {
           <div className="relative">
             {/* ✅ 3. 픽셀 고정: vh 단위의 계산 오류를 막고 안전하게 최대 200px(약 10줄)까지만 커진 후 예쁘게 스크롤되도록 고정했습니다. */}
             <div 
-              className={`text-xs leading-relaxed outline-none min-h-[60px] max-h-[200px] overflow-y-auto no-scrollbar break-words whitespace-pre-wrap ${theme.text}`}
+              className={`text-xs leading-relaxed outline-none min-h-[60px] max-h-[60vh] overflow-y-auto no-scrollbar break-words whitespace-pre-wrap ${theme.text}`}
               dangerouslySetInnerHTML={{ __html: memo.content || '<p className="text-gray-400 italic">내용이 없습니다. 더블클릭하여 편집하세요.</p>' }}
             />
           </div>
