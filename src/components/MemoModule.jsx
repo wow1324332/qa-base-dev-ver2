@@ -291,17 +291,17 @@ const MemoCard = ({ memo, onUpdate, onDelete, onFocus }) => {
           className={`absolute top-full left-0 w-full p-5 pt-2 rounded-b-2xl border-b border-x shadow-[0_15px_30px_-5px_rgba(0,0,0,0.15)] backdrop-blur-md cursor-pointer animate-fast-fade ${theme.bg} ${theme.border}`}
         >
           <div className="relative">
+            {/* ✅ overflow-hidden -> overflow-y-auto 로 변경하여 세로 스크롤 생성 */}
+            {/* ✅ no-scrollbar 를 추가하여 스크롤바를 숨긴 채 마우스 휠로만 넘기도록 깔끔하게 처리 */}
+            {/* ✅ break-words 를 추가하여 텍스트가 가로로 잘리지 않고 줄바꿈되도록 보호 */}
             <div 
-              className={`text-xs leading-relaxed outline-none min-h-[60px] max-h-[300px] overflow-hidden ${theme.text}`}
+              className={`text-xs leading-relaxed outline-none min-h-[60px] max-h-[300px] overflow-y-auto no-scrollbar break-words ${theme.text}`}
               dangerouslySetInnerHTML={{ __html: memo.content || '<p className="text-gray-400 italic">내용이 없습니다. 더블클릭하여 편집하세요.</p>' }}
             />
-            {/* 긴 글 가림 처리 */}
           </div>
         </div>
       )}
-    </div>
-  );
-};
+      };
 
 // --- 서브 컴포넌트: 포커스 모드 모달 (커스텀 에디터 포함) ---
 const FocusMemoModal = ({ memo, onUpdate, onClose, onDelete }) => {
