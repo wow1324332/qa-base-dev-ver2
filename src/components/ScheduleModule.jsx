@@ -261,7 +261,7 @@ const ProjectModal = ({ isOpen, onClose, formData, setFormData, onSubmit, isView
               </div>
               <div>
                 <label className="text-xs font-medium text-gray-500 mb-1 block">종료일</label>
-                <CustomDatePicker disabled={isViewer} value={formData.endDate} onChange={val=>setFormData({...formData, endDate: val})} alignRight />
+                <CustomDatePicker disabled={isViewer} value={formData.endDate} onChange={val=>setFormData({...formData, endDate: val})} />
               </div>
             </div>
             
