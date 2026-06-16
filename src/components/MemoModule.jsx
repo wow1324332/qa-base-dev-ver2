@@ -253,19 +253,22 @@ const MemoCard = ({ memo, onUpdate, onDelete, onFocus }) => {
   return (
     <div className={`relative w-full group ${memo.isFolded ? 'z-10' : 'z-[60]'}`}>
       
-      {/* --- 상단 제목 구역 (버튼화) --- */}
+      {/* --- 상단 제목 구역 (클릭 시 폴딩, 더블클릭 시 팝업 모달) --- */}
       <div 
         onClick={() => onUpdate({ isFolded: !memo.isFolded })}
+        // ✅ 1. 제목 영역 더블클릭 시 편집 모달창(onFocus)을 띄웁니다.
+        onDoubleClick={(e) => {
+          e.stopPropagation(); 
+          onFocus(); 
+        }}
         className={`p-5 backdrop-blur-md transition-all cursor-pointer ${theme.bg} 
           ${memo.isFolded 
             ? 'rounded-2xl shadow-sm hover:shadow-md hover:-translate-y-0.5' 
             : 'rounded-t-2xl shadow-[0_-5px_15px_rgba(0,0,0,0.05)]'}`}
       >
-        {/* ✅ 1. Flex를 제거하고, 무조건 가로 전체(w-full)를 고정으로 차지하는 마스크 블록 */}
         <div 
           className="w-full block overflow-hidden"
           style={{
-            // 0%부터 시작함을 명시하고 반복(repeat)을 막아, 짧은 글자에 마스크가 침범하는 버그를 원천 차단합니다.
             WebkitMaskImage: 'linear-gradient(to right, rgba(0,0,0,1) 0%, rgba(0,0,0,1) calc(100% - 24px), rgba(0,0,0,0) 100%)',
             maskImage: 'linear-gradient(to right, rgba(0,0,0,1) 0%, rgba(0,0,0,1) calc(100% - 24px), rgba(0,0,0,0) 100%)',
             WebkitMaskSize: '100% 100%',
@@ -273,14 +276,10 @@ const MemoCard = ({ memo, onUpdate, onDelete, onFocus }) => {
             maskRepeat: 'no-repeat'
           }}
         >
-          {/* ✅ 2. 글자 크기에 맞춰 진공 포장되는 제목 입력칸 */}
           <div className="inline-grid max-w-full align-middle">
-            {/* 투명 뼈대 */}
             <span className="invisible whitespace-pre col-start-1 row-start-1 font-bold text-sm pointer-events-none">
               {memo.title || '제목 없음'}
             </span>
-            
-            {/* 실제 입력창 */}
             <input 
               type="text" 
               size={1} 
@@ -290,23 +289,38 @@ const MemoCard = ({ memo, onUpdate, onDelete, onFocus }) => {
               readOnly={memo.isFolded} 
               className={`col-start-1 row-start-1 w-full min-w-0 bg-transparent outline-none font-bold text-sm placeholder:text-gray-400 ${theme.text} ${memo.isFolded ? 'pointer-events-none' : ''}`}
               onClick={(e) => e.stopPropagation()} 
-              onDoubleClick={(e) => e.stopPropagation()} 
+              // ✅ 2. 텍스트 입력창에서 더블클릭 시 이벤트가 부모로 넘어가 팝업이 뜨도록 e.stopPropagation()을 지웠습니다.
             />
           </div>
         </div>
       </div>
 
-      {/* --- 하단 내용 영역 --- */}
+      {/* --- 하단 내용 영역 (펼치면 즉시 텍스트 입력 가능) --- */}
       {!memo.isFolded && (
         <div 
-          onDoubleClick={onFocus}
-          className={`absolute top-full left-0 w-full p-5 pt-2 rounded-b-2xl shadow-[0_20px_40px_-10px_rgba(0,0,0,0.2)] backdrop-blur-2xl cursor-text animate-fast-fade bg-white/95`}
+          // ✅ 3. 하단 영역 전체에 걸려있던 더블클릭 모달 호출을 제거했습니다.
+          className={`absolute top-full left-0 w-full p-5 pt-2 rounded-b-2xl shadow-[0_20px_40px_-10px_rgba(0,0,0,0.2)] backdrop-blur-2xl bg-white/95 animate-fast-fade`}
         >
           <div className="relative">
-            <div 
-              className={`text-xs leading-relaxed outline-none min-h-[60px] max-h-[35vh] overflow-y-auto no-scrollbar break-words whitespace-pre-wrap ${theme.text}`}
-              dangerouslySetInnerHTML={{ __html: memo.content || '<p className="text-gray-400 italic">내용이 없습니다. 더블클릭하여 편집하세요.</p>' }}
-            />
+            
+            {/* ✅ 4. HTML 표시용 div 대신, 즉시 편집이 가능한 자동 높이 조절 textarea로 교체했습니다. */}
+            <div className={`grid min-h-[60px] max-h-[35vh] overflow-y-auto no-scrollbar ${theme.text}`}>
+              
+              {/* 투명 뼈대 (글을 쓸 때마다 내용물의 높이를 실시간으로 늘려줍니다) */}
+              <div className="invisible col-start-1 row-start-1 text-xs leading-relaxed break-words whitespace-pre-wrap pointer-events-none">
+                {memo.content ? memo.content + '\n' : '내용이 없습니다. 클릭하여 편집하세요.\n'}
+              </div>
+              
+              {/* 실제 텍스트 입력창 (투명 뼈대 위에 딱 맞춰 겹쳐집니다) */}
+              <textarea 
+                value={memo.content || ''}
+                onChange={(e) => onUpdate({ content: e.target.value })}
+                placeholder="내용이 없습니다. 클릭하여 편집하세요."
+                className="col-start-1 row-start-1 w-full h-full bg-transparent resize-none outline-none text-xs leading-relaxed break-words whitespace-pre-wrap cursor-text"
+              />
+              
+            </div>
+
           </div>
         </div>
       )}
