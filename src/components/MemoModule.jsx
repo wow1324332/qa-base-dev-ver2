@@ -295,7 +295,7 @@ const MemoCard = ({ memo, onUpdate, onDelete, onFocus }) => {
             {/* ✅ no-scrollbar 를 추가하여 스크롤바를 숨긴 채 마우스 휠로만 넘기도록 깔끔하게 처리 */}
             {/* ✅ break-words 를 추가하여 텍스트가 가로로 잘리지 않고 줄바꿈되도록 보호 */}
             <div 
-              className={`text-xs leading-relaxed outline-none min-h-[60px] max-h-[300px] overflow-y-auto no-scrollbar break-words ${theme.text}`}
+              className={`text-xs leading-relaxed outline-none min-h-[60px] max-h-[25vh] overflow-y-auto no-scrollbar break-words ${theme.text}`}
               dangerouslySetInnerHTML={{ __html: memo.content || '<p className="text-gray-400 italic">내용이 없습니다. 더블클릭하여 편집하세요.</p>' }}
             />
           </div>
