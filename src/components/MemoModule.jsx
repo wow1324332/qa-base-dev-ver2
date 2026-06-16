@@ -289,7 +289,7 @@ const MemoCard = ({ memo, onUpdate, onDelete, onFocus }) => {
         <div 
           onDoubleClick={onFocus}
           // ✅ 2. 배경 불투명도 강화: bg-white/95 를 덮어씌워 아래쪽 메모의 글자가 비쳐서 박살 나 보이는 현상을 완벽히 가립니다.
-          className={`absolute top-full left-0 w-full p-5 pt-2 rounded-b-2xl border-b border-x shadow-[0_20px_40px_-10px_rgba(0,0,0,0.2)] backdrop-blur-2xl cursor-pointer animate-fast-fade bg-white/95 ${theme.border}`}
+          className={`absolute top-full left-0 w-full mb-12 p-5 pt-2 rounded-b-2xl border-b border-x shadow-[0_20px_40px_-10px_rgba(0,0,0,0.2)] backdrop-blur-2xl cursor-pointer animate-fast-fade bg-white/95 ${theme.border}`}
         >
           <div className="relative">
             {/* ✅ 3. 픽셀 고정: vh 단위의 계산 오류를 막고 안전하게 최대 200px(약 10줄)까지만 커진 후 예쁘게 스크롤되도록 고정했습니다. */}
