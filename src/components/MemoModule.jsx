@@ -21,9 +21,9 @@ export const MemoDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
   const [memos, setMemos] = useState([]);
   const [categories, setCategories] = useState([]);
   const [activeCategory, setActiveCategory] = useState('All');
-  
-  // 포커스(더블클릭) 모드 상태
   const [focusedMemo, setFocusedMemo] = useState(null);
+  const [showCategoryModal, setShowCategoryModal] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState('');
 
   // 1. 데이터 불러오기 (카테고리 및 메모)
   useEffect(() => {
@@ -45,14 +45,20 @@ export const MemoDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
   }, [user]);
 
   // 2. 카테고리 관리 로직
-  const handleAddCategory = async () => {
-    const name = window.prompt('새 카테고리 이름을 입력하세요:');
-    if (!name?.trim()) return;
+  const handleAddCategory = () => {
+    setNewCategoryName('');
+    setShowCategoryModal(true);
+  };
+
+  const submitCategory = async (e) => {
+    e.preventDefault();
+    if (!newCategoryName.trim()) return;
     await addDoc(collection(db, 'memoCategories'), {
       userId: user.id || user.email,
-      name: name.trim(),
+      name: newCategoryName.trim(),
       createdAt: serverTimestamp()
     });
+    setShowCategoryModal(false);
   };
 
   const handleDeleteCategory = async (catId) => {
@@ -191,6 +197,33 @@ export const MemoDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
         </main>
       </div>
 
+      {showCategoryModal && (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 animate-fast-fade">
+          <div className="absolute inset-0 bg-gray-900/40 backdrop-blur-sm" onClick={() => setShowCategoryModal(false)}></div>
+          <div className="relative w-full max-w-sm bg-white rounded-2xl shadow-2xl p-6 border border-gray-100 animate-scale-up">
+            <button onClick={() => setShowCategoryModal(false)} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"><X className="w-5 h-5"/></button>
+            <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center">
+              <Folder className="w-5 h-5 mr-2 text-gray-600" />
+              새 카테고리 추가
+            </h3>
+            <form onSubmit={submitCategory}>
+              <input 
+                type="text" 
+                autoFocus
+                value={newCategoryName} 
+                onChange={(e) => setNewCategoryName(e.target.value)}
+                placeholder="카테고리 이름"
+                className="w-full bg-gray-50 border border-gray-200 text-sm rounded-lg px-3 py-2.5 outline-none focus:border-gray-800 transition-colors mb-5"
+              />
+              <div className="flex space-x-2">
+                <button type="button" onClick={() => setShowCategoryModal(false)} className="flex-1 bg-gray-100 text-gray-600 text-sm font-medium py-2.5 rounded-xl hover:bg-gray-200 transition-colors border border-gray-200 shadow-sm">취소</button>
+                <button type="submit" className="flex-1 bg-gray-800 text-white text-sm font-medium py-2.5 rounded-xl hover:bg-gray-900 transition-colors shadow-md">추가</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+      
       {/* --- 포커스 모드 (더블클릭 시 팝업) --- */}
       {focusedMemo && (
         <FocusMemoModal 
