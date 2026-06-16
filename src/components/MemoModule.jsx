@@ -246,7 +246,7 @@ const MemoCard = ({ memo, onUpdate, onDelete, onFocus }) => {
       onDoubleClick={onFocus}
       className={`break-inside-avoid mb-6 rounded-2xl p-5 border shadow-sm transition-all duration-300 cursor-pointer hover:shadow-md hover:-translate-y-0.5 backdrop-blur-md ${theme.bg} ${theme.border} group`}
     >
-      <div className="flex justify-between items-start mb-3">
+      <div className={`flex justify-between items-center ${memo.isFolded ? 'mb-0' : 'mb-3'}`}>
         <input 
           type="text" 
           value={memo.title} 
