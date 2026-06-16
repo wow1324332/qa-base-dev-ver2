@@ -192,7 +192,7 @@ export const MemoDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
           </div>
 
           {/* Masonry Grid 형태의 컬럼 레이아웃 */}
-          <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-6 max-w-7xl mx-auto">
+<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 max-w-7xl mx-auto items-start">
             {displayedMemos.map(memo => (
               <MemoCard 
                 key={memo.id} 
@@ -252,7 +252,7 @@ const MemoCard = ({ memo, onUpdate, onDelete, onFocus }) => {
 
   return (
     // ✅ 1. isolate 추가: CSS 그리드가 absolute 요소를 강제로 찢어버리는 버그를 원천 차단합니다.
-    <div className={`relative break-inside-avoid mb-6 group isolate ${memo.isFolded ? 'z-10' : 'z-[60]'}`}>
+    <div className={`relative w-full group ${memo.isFolded ? 'z-10' : 'z-[60]'}`}>
       
       {/* --- 상단 제목 --- */}
       <div 
