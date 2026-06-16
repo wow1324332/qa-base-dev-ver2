@@ -251,39 +251,53 @@ const MemoCard = ({ memo, onUpdate, onDelete, onFocus }) => {
   const theme = MEMO_COLORS.find(c => c.id === memo.colorId) || MEMO_COLORS[0];
 
   return (
-    <div 
-      onDoubleClick={onFocus}
-      className={`break-inside-avoid mb-6 rounded-2xl p-5 border shadow-sm transition-all duration-300 cursor-pointer hover:shadow-md hover:-translate-y-0.5 backdrop-blur-md ${theme.bg} ${theme.border} group relative`}
-    >
-      <div className={`flex justify-between items-center ${memo.isFolded ? 'mb-0' : 'mb-3'}`}>
-        <input 
-          type="text" 
-          value={memo.title} 
-          onChange={(e) => onUpdate({ title: e.target.value })}
-          placeholder="제목 없음"
-          readOnly={memo.isFolded} 
-          className={`bg-transparent outline-none font-bold text-sm w-full placeholder:text-gray-400 ${theme.text} ${memo.isFolded ? 'pointer-events-none' : ''}`}
-          style={{
-            WebkitMaskImage: 'linear-gradient(to right, black calc(100% - 24px), transparent 100%)',
-            maskImage: 'linear-gradient(to right, black calc(100% - 24px), transparent 100%)'
-          }}
-          onDoubleClick={(e) => e.stopPropagation()}
-        />
-        <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0 ml-2">
-          <button onClick={(e) => { e.stopPropagation(); onUpdate({ isFolded: !memo.isFolded }); }} className={`p-1 rounded hover:bg-black/5 ${theme.text}`}>
-            {memo.isFolded ? <Maximize2 className="w-3.5 h-3.5" /> : <Minimize2 className="w-3.5 h-3.5" />}
-          </button>
+    // ✅ 1. 뼈대: 이 요소는 제목 높이만큼만 그리드 공간을 차지하며 절대 높이가 변하지 않습니다.
+    <div className={`relative break-inside-avoid mb-6 group ${memo.isFolded ? 'z-10' : 'z-50'}`}>
+      
+      {/* ✅ 2. 상단 제목 (항상 보임) */}
+      <div 
+        onDoubleClick={onFocus}
+        className={`p-5 backdrop-blur-md transition-all cursor-pointer ${theme.bg} ${theme.border} 
+          ${memo.isFolded 
+            ? 'rounded-2xl border shadow-sm hover:shadow-md hover:-translate-y-0.5' 
+            : 'rounded-t-2xl border-t border-x border-b-0 shadow-[0_-5px_15px_rgba(0,0,0,0.05)]'}`}
+      >
+        <div className="flex justify-between items-center">
+          <input 
+            type="text" 
+            value={memo.title} 
+            onChange={(e) => onUpdate({ title: e.target.value })}
+            placeholder="제목 없음"
+            readOnly={memo.isFolded} 
+            className={`bg-transparent outline-none font-bold text-sm w-full placeholder:text-gray-400 ${theme.text} ${memo.isFolded ? 'pointer-events-none' : ''}`}
+            style={{
+              WebkitMaskImage: 'linear-gradient(to right, black calc(100% - 24px), transparent 100%)',
+              maskImage: 'linear-gradient(to right, black calc(100% - 24px), transparent 100%)'
+            }}
+            onDoubleClick={(e) => e.stopPropagation()}
+          />
+          <div className={`flex items-center space-x-1 shrink-0 ml-2 transition-opacity ${memo.isFolded ? 'opacity-0 group-hover:opacity-100' : 'opacity-100'}`}>
+            <button onClick={(e) => { e.stopPropagation(); onUpdate({ isFolded: !memo.isFolded }); }} className={`p-1 rounded hover:bg-black/5 ${theme.text}`}>
+              {memo.isFolded ? <Maximize2 className="w-3.5 h-3.5" /> : <Minimize2 className="w-3.5 h-3.5" />}
+            </button>
+          </div>
         </div>
       </div>
 
+      {/* ✅ 3. 하단 내용 (펼쳐질 때만 드롭다운처럼 아래로 튀어나와 덮음) */}
       {!memo.isFolded && (
-        <div className="relative animate-fast-fade">
-          <div 
-            className={`text-xs leading-relaxed outline-none min-h-[60px] max-h-[300px] overflow-hidden ${theme.text}`}
-            dangerouslySetInnerHTML={{ __html: memo.content || '<p className="text-gray-400 italic">내용이 없습니다. 더블클릭하여 편집하세요.</p>' }}
-          />
-          {/* 긴 글 가림 처리 */}
-          <div className={`absolute bottom-0 w-full h-8 bg-gradient-to-t from-white/60 to-transparent pointer-events-none mix-blend-overlay`}></div>
+        <div 
+          onDoubleClick={onFocus}
+          className={`absolute top-full left-0 w-full p-5 pt-2 rounded-b-2xl border-b border-x shadow-[0_15px_30px_-5px_rgba(0,0,0,0.15)] backdrop-blur-md cursor-pointer animate-fast-fade ${theme.bg} ${theme.border}`}
+        >
+          <div className="relative">
+            <div 
+              className={`text-xs leading-relaxed outline-none min-h-[60px] max-h-[300px] overflow-hidden ${theme.text}`}
+              dangerouslySetInnerHTML={{ __html: memo.content || '<p className="text-gray-400 italic">내용이 없습니다. 더블클릭하여 편집하세요.</p>' }}
+            />
+            {/* 긴 글 가림 처리 */}
+            <div className={`absolute bottom-0 w-full h-8 bg-gradient-to-t from-white/60 to-transparent pointer-events-none mix-blend-overlay`}></div>
+          </div>
         </div>
       )}
     </div>
