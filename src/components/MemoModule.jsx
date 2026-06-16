@@ -261,12 +261,11 @@ const MemoCard = ({ memo, onUpdate, onDelete, onFocus }) => {
           onChange={(e) => onUpdate({ title: e.target.value })}
           placeholder="제목 없음"
           readOnly={memo.isFolded} 
-          // ✅ 1. className에서 truncate 단어를 지워줍니다.
           className={`bg-transparent outline-none font-bold text-sm w-full placeholder:text-gray-400 ${theme.text} ${memo.isFolded ? 'pointer-events-none' : ''}`}
-          // ✅ 2. style 속성을 추가하여 끝부분이 투명해지는 마스크(그라데이션) 효과를 줍니다.
+          // ✅ memo.isFolded 조건을 지우고 항상 그라데이션이 적용되도록 변경했습니다.
           style={{
-          WebkitMaskImage: 'linear-gradient(to right, black calc(100% - 24px), transparent 100%)' : 'none',
-          maskImage: 'linear-gradient(to right, black calc(100% - 24px), transparent 100%)' : 'none'
+            WebkitMaskImage: 'linear-gradient(to right, black calc(100% - 24px), transparent 100%)',
+            maskImage: 'linear-gradient(to right, black calc(100% - 24px), transparent 100%)'
           }}
           onDoubleClick={(e) => e.stopPropagation()}
         />
