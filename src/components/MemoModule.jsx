@@ -296,7 +296,6 @@ const MemoCard = ({ memo, onUpdate, onDelete, onFocus }) => {
               dangerouslySetInnerHTML={{ __html: memo.content || '<p className="text-gray-400 italic">내용이 없습니다. 더블클릭하여 편집하세요.</p>' }}
             />
             {/* 긴 글 가림 처리 */}
-            <div className={`absolute bottom-0 w-full h-8 bg-gradient-to-t from-white/60 to-transparent pointer-events-none mix-blend-overlay`}></div>
           </div>
         </div>
       )}
