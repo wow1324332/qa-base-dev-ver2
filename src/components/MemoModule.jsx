@@ -253,9 +253,10 @@ const MemoCard = ({ memo, onUpdate, onDelete, onFocus }) => {
   return (
     <div className={`relative w-full group ${memo.isFolded ? 'z-10' : 'z-[60]'}`}>
       
-      {/* ✅ 1. 상단 제목: 테두리(border) 관련 클래스를 싹 지우고, onDoubleClick 도 제거했습니다. */}
+      {/* ✅ 1. 제목 구역 자체를 버튼화: onClick 이벤트를 추가하고 마우스를 cursor-pointer 로 변경했습니다. */}
       <div 
-        className={`p-5 backdrop-blur-md transition-all cursor-default ${theme.bg} 
+        onClick={() => onUpdate({ isFolded: !memo.isFolded })}
+        className={`p-5 backdrop-blur-md transition-all cursor-pointer ${theme.bg} 
           ${memo.isFolded 
             ? 'rounded-2xl shadow-sm hover:shadow-md hover:-translate-y-0.5' 
             : 'rounded-t-2xl shadow-[0_-5px_15px_rgba(0,0,0,0.05)]'}`}
@@ -272,22 +273,19 @@ const MemoCard = ({ memo, onUpdate, onDelete, onFocus }) => {
               WebkitMaskImage: 'linear-gradient(to right, black calc(100% - 24px), transparent 100%)',
               maskImage: 'linear-gradient(to right, black calc(100% - 24px), transparent 100%)'
             }}
-            // 제목 input에서 더블클릭 이벤트가 위로 전파되지 않도록 차단
+            // ✅ 2. 텍스트 입력 방어: 펼쳐져 있을 때 글씨를 클릭해서 수정하려다가 
+            // 메모가 닫혀버리는 불상사를 막기 위해 이벤트 전파(stopPropagation)를 차단합니다.
+            onClick={(e) => e.stopPropagation()} 
             onDoubleClick={(e) => e.stopPropagation()} 
           />
-          <div className={`flex items-center space-x-1 shrink-0 ml-2 transition-opacity ${memo.isFolded ? 'opacity-0 group-hover:opacity-100' : 'opacity-100'}`}>
-            <button onClick={(e) => { e.stopPropagation(); onUpdate({ isFolded: !memo.isFolded }); }} className={`p-1 rounded hover:bg-black/5 ${theme.text}`}>
-              {memo.isFolded ? <Maximize2 className="w-3.5 h-3.5" /> : <Minimize2 className="w-3.5 h-3.5" />}
-            </button>
-          </div>
+          {/* ✅ 3. 삭제됨: 기존에 있던 Maximize/Minimize 버튼 코드는 완전히 날렸습니다. */}
         </div>
       </div>
 
-      {/* ✅ 2. 하단 내용: 여기에만 onDoubleClick={onFocus} 를 남겨두어, 내용 영역을 클릭할 때만 팝업이 뜹니다. */}
+      {/* --- 하단 내용 영역 --- */}
       {!memo.isFolded && (
         <div 
           onDoubleClick={onFocus}
-          // 내용 영역도 테두리가 거슬릴 수 있어 border 속성을 제거하고 은은한 그림자만 남겼습니다.
           className={`absolute top-full left-0 w-full p-5 pt-2 rounded-b-2xl shadow-[0_20px_40px_-10px_rgba(0,0,0,0.2)] backdrop-blur-2xl cursor-text animate-fast-fade bg-white/95`}
         >
           <div className="relative">
