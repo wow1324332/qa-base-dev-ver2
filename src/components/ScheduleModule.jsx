@@ -61,17 +61,160 @@ const CustomSelect = ({ value, onChange, options, className, disabled }) => {
   );
 };
 
+// ▼▼▼▼▼ [수정된 부분] CustomDatePicker 컴포넌트 전체 변경 ▼▼▼▼▼
+// Helper function to format Date object to YYYY-MM-DD
+const formatDateToString = (date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
 const CustomDatePicker = ({ value, onChange, disabled, alignRight }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  // displayDate determines which month is shown in the calendar view
+  const [displayDate, setDisplayDate] = useState(value ? new Date(value) : new Date());
+  const pickerRef = useRef(null);
+
+  useEffect(() => {
+    // value가 변경되면 displayDate도 맞춰줍니다 (모달이 다시 열릴 때 등)
+    if (value) setDisplayDate(new Date(value));
+  }, [value]);
+
+  useEffect(() => {
+    // 외부 클릭 시 닫기 로직
+    const handleClickOutside = (e) => {
+      if (pickerRef.current && !pickerRef.current.contains(e.target)) setIsOpen(false);
+    };
+    if (isOpen) document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isOpen]);
+
+  const year = displayDate.getFullYear();
+  const month = displayDate.getMonth();
+
+  const handlePrevMonth = (e) => {
+    e.stopPropagation();
+    setDisplayDate(new Date(year, month - 1, 1));
+  };
+
+  const handleNextMonth = (e) => {
+    e.stopPropagation();
+    setDisplayDate(new Date(year, month + 1, 1));
+  };
+
+  const handleSelectDate = (dateStr) => {
+    if (disabled) return;
+    onChange(dateStr);
+    setIsOpen(false);
+  };
+
+  // 캘린더 그리드 생성 로직 (ScheduleCalendar 로직의 축소판)
+  const generateDaysArray = () => {
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const firstDayOfWeek = new Date(year, month, 1).getDay(); // 0 (Sun) to 6 (Sat)
+    const days = [];
+    
+    // Prefix empty slots for days from previous month
+    for (let i = 0; i < firstDayOfWeek; i++) {
+      days.push(null);
+    }
+    
+    // Current month days
+    for (let i = 1; i <= daysInMonth; i++) {
+      const date = new Date(year, month, i);
+      const dateStr = formatDateToString(date);
+      const isSun = date.getDay() === 0;
+      const isSat = date.getDay() === 6;
+      days.push({
+        day: i,
+        dateStr,
+        isToday: dateStr === formatDateToString(new Date()),
+        isSelected: dateStr === value,
+        isHoliday: HOLIDAYS.includes(dateStr),
+        isSun,
+        isSat
+      });
+    }
+    return days;
+  };
+
+  // Input area display text format (MM/DD/YYYY or similar minimal style)
+  const displayText = value 
+    ? `${value.split('-')[1]}/${value.split('-')[2]}/${value.split('-')[0].slice(2)}` 
+    : '날짜 선택';
+
+  const daysArray = generateDaysArray();
+
   return (
-    <input 
-      type="date" 
-      disabled={disabled}
-      value={value || ''} 
-      onChange={(e) => onChange(e.target.value)} 
-      className={`w-full bg-gray-50 border border-gray-200 text-sm rounded-lg px-3 py-2 outline-none focus:border-gray-400 shadow-sm disabled:bg-gray-100 disabled:text-gray-500 ${alignRight ? 'text-right' : ''}`} 
-    />
+    <div ref={pickerRef} className="relative w-full">
+      {/* Trigger Area (Input을 흉내낸 div) */}
+      <div 
+        className={`w-full bg-gray-50 border border-gray-200 text-sm rounded-lg px-3 py-2 outline-none focus:border-gray-400 shadow-sm flex items-center justify-between transition-colors ${disabled ? 'cursor-not-allowed opacity-60 bg-gray-100' : 'cursor-pointer hover:border-gray-300'} ${alignRight ? 'flex-row-reverse' : ''}`}
+        onClick={() => !disabled && setIsOpen(!isOpen)}
+      >
+        <span className={`${value ? 'text-gray-800' : 'text-gray-400'} font-medium`}>{displayText}</span>
+        <CalendarDays className={`w-4 h-4 text-gray-400 shrink-0 ${alignRight ? 'mr-2' : 'ml-2'}`} strokeWidth={1.5} />
+      </div>
+
+      {/* Custom Calendar Popover */}
+      {isOpen && !disabled && (
+        <div className={`absolute top-full mt-2 w-[280px] bg-white rounded-xl shadow-xl border border-gray-100 p-4 z-[100] animate-fast-fade ${alignRight ? 'right-0' : 'left-0'}`}>
+          {/* Calendar Header */}
+          <div className="flex items-center justify-between mb-3 px-1">
+            <span className="text-xs font-bold text-gray-800 tracking-tight">{year}년 {month + 1}월</span>
+            <div className="flex space-x-0.5">
+              <button type="button" onClick={handlePrevMonth} className="p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-700 rounded transition-colors"><ChevronLeft className="w-4 h-4"/></button>
+              <button type="button" onClick={handleNextMonth} className="p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-700 rounded transition-colors"><ChevronRight className="w-4 h-4"/></button>
+            </div>
+          </div>
+
+          {/* Day Names */}
+          <div className="grid grid-cols-7 mb-1 gap-px text-center">
+            {['일', '월', '화', '수', '목', '금', '토'].map((d, i) => (
+              <span key={i} className={`text-[10px] font-bold text-gray-400 uppercase tracking-widest ${i === 0 ? 'text-red-300' : i === 6 ? 'text-blue-300' : ''}`}>{d}</span>
+            ))}
+          </div>
+
+          {/* Days Grid */}
+          <div className="grid grid-cols-7 gap-px text-center">
+            {daysArray.map((dayObj, i) => {
+              if (!dayObj) return <div key={`empty-${i}`} className="h-8"></div>;
+
+              const { day, dateStr, isToday, isSelected, isHoliday, isSun, isSat } = dayObj;
+              
+              let baseClass = "text-xs h-8 flex items-center justify-center cursor-pointer rounded-md transition-colors font-medium relative";
+              let textClass = "text-gray-700 hover:bg-gray-100";
+
+              if (isSelected) {
+                baseClass += " bg-gray-900 text-white shadow-md font-bold";
+                textClass = ""; // Override hover color when selected
+              } else if (isToday) {
+                baseClass += " bg-gray-100 text-gray-900 font-bold";
+              } else if (isSun || isHoliday) {
+                textClass = "text-red-500 hover:bg-red-50";
+              } else if (isSat) {
+                textClass = "text-blue-500 hover:bg-blue-50";
+              }
+
+              return (
+                <div 
+                  key={dateStr} 
+                  className={`${baseClass} ${textClass}`}
+                  onClick={(e) => { e.stopPropagation(); handleSelectDate(dateStr); }}
+                >
+                  {day}
+                  {isToday && !isSelected && <div className="absolute bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-gray-900"></div>}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
   );
 };
+// ▲▲▲▲▲ [수정 완료] ▲▲▲▲▲
 
 // 메인 모듈 로직
 const ProjectModal = ({ isOpen, onClose, formData, setFormData, onSubmit, isViewer, isEdit, onDelete, allAssigneesList, onAddCustomAssignee }) => {
@@ -162,7 +305,7 @@ const ProjectModal = ({ isOpen, onClose, formData, setFormData, onSubmit, isView
                       }} className="text-xs bg-gray-800 text-white px-3 py-1.5 rounded-md hover:bg-gray-900 transition-colors font-medium shrink-0">추가</button>
                     </div>
                   </div>
-                )}
+                ) }
               </div>
               <div><label className="text-xs font-medium text-gray-500 mb-1 block">유관부서</label><input required disabled={isViewer} value={formData.department} onChange={e=>setFormData({...formData, department: e.target.value})} className="w-full bg-gray-50 border border-gray-200 text-sm rounded-lg px-3 py-2 outline-none focus:border-gray-400 shadow-sm disabled:bg-gray-100 disabled:text-gray-500" /></div>
             </div>
@@ -907,3 +1050,4 @@ export const ScheduleDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
     </div>
   );
 };
+export default ScheduleDashboard;
