@@ -251,8 +251,8 @@ const MemoCard = ({ memo, onUpdate, onDelete, onFocus }) => {
   const theme = MEMO_COLORS.find(c => c.id === memo.colorId) || MEMO_COLORS[0];
 
   return (
-    // ✅ 2번 문제 해결: focus-within과 hover를 적용하여 마우스를 올리거나 클릭 중인 메모가 무조건 화면 최상단(z-[80])으로 올라오도록 만들었습니다.
-    <div className={`relative w-full group transition-all duration-300 ${memo.isFolded ? 'z-10 hover:z-20' : 'z-[60] hover:z-[70] focus-within:z-[80]'}`}>
+    // ✅ 2번 해결: 최상단 부모의 `transition-all`을 제거하여 z-index 변경 시 발생하는 버벅임을 완벽하게 없앴습니다. 
+    <div className={`relative w-full group ${memo.isFolded ? 'z-10' : 'z-[60] focus-within:z-[80]'}`}>
       
       {/* --- 상단 제목 구역 --- */}
       <div 
@@ -261,6 +261,7 @@ const MemoCard = ({ memo, onUpdate, onDelete, onFocus }) => {
           e.stopPropagation(); 
           onFocus(); 
         }}
+        // 제목 자체의 호버 애니메이션(위로 살짝 뜨는 효과)은 그대로 예쁘게 유지됩니다.
         className={`p-5 backdrop-blur-md transition-all cursor-pointer ${theme.bg} 
           ${memo.isFolded 
             ? 'rounded-2xl shadow-sm hover:shadow-md hover:-translate-y-0.5' 
@@ -276,7 +277,8 @@ const MemoCard = ({ memo, onUpdate, onDelete, onFocus }) => {
             maskRepeat: 'no-repeat'
           }}
         >
-          <div className="inline-grid max-w-full align-middle">
+          {/* ✅ 3번 해결: overflow-x-auto를 추가하여 긴 제목을 마우스로 드래그하면 가로로 부드럽게 끝까지 스크롤되도록 만들었습니다. */}
+          <div className="inline-grid max-w-full align-middle overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
             <span className="invisible whitespace-pre col-start-1 row-start-1 font-bold text-sm pointer-events-none">
               {memo.title || '제목 없음'}
             </span>
@@ -296,11 +298,10 @@ const MemoCard = ({ memo, onUpdate, onDelete, onFocus }) => {
 
       {/* --- 하단 내용 영역 --- */}
       {!memo.isFolded && (
-        <div className="absolute top-full left-0 w-full rounded-b-2xl shadow-[0_20px_40px_-10px_rgba(0,0,0,0.2)] backdrop-blur-2xl bg-white/95 animate-fast-fade overflow-hidden">
+        // ✅ 1번 해결: 브라우저 렌더링 버그를 유발하던 backdrop-blur를 제거하고 깔끔한 bg-white로 덮어 투명 사각형 찌꺼기 현상을 제거했습니다.
+        <div className="absolute top-full left-0 w-full rounded-b-2xl shadow-[0_20px_40px_-10px_rgba(0,0,0,0.2)] bg-white animate-fast-fade overflow-hidden">
           <div className={`max-h-[35vh] overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] ${theme.text}`}>
             
-            {/* ✅ 1번 문제 해결: 껍데기에 있던 패딩(p-5)을 텍스트 입력창 내부로 옮겼습니다. 이제 하얀색 드롭다운 영역 전체가 하나의 거대한 텍스트 필드로 작동하여 빈 공간 어디를 눌러도 커서가 즉시 잡힙니다. */}
-            {/* ✅ 보너스 디테일: spellCheck={false} 를 추가하여 의미 없는 글자를 칠 때 나타나는 브라우저 기본 빨간색 밑줄을 깔끔하게 제거했습니다. */}
             <div 
               contentEditable={true}
               suppressContentEditableWarning={true}
