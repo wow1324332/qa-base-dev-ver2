@@ -140,9 +140,7 @@ const CustomDatePicker = ({ value, onChange, disabled, alignRight }) => {
   };
 
   // Input area display text format (MM/DD/YYYY or similar minimal style)
-  const displayText = value 
-    ? `${value.split('-')[1]}/${value.split('-')[2]}/${value.split('-')[0].slice(2)}` 
-    : '날짜 선택';
+const displayText = value ? value : '날짜 선택';
 
   const daysArray = generateDaysArray();
 
