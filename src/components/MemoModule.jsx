@@ -133,7 +133,7 @@ export const MemoDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
             </button>
             <div className="h-px bg-gray-100 my-2 mx-3"></div>
             
-            <div className="flex items-center justify-between px-3 mb-2 mt-4">
+            <div className="flex items-center justify-between px-3 mb-4 mt-8">
               <span className="text-xs font-semibold text-gray-400 tracking-wider">CATEGORIES</span>
               <button onClick={handleAddCategory} className="text-gray-400 hover:text-gray-800"><Plus className="w-3.5 h-3.5" /></button>
             </div>
