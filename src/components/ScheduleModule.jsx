@@ -927,8 +927,10 @@ export const ScheduleDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
           </div>
           <div className="h-4 w-px bg-gray-200"></div>
           <button onClick={onLogout} className="text-gray-400 hover:text-gray-800 transition-colors p-1.5 hover-breath rounded-md"><LogOut className="w-4 h-4" /></button>
-          <button onClick={onQuit} className="text-gray-400 hover:text-red-500 transition-colors p-1.5 hover-breath rounded-md"><Power className="w-4 h-4" /></button>
-        </div>
+          <button onClick={() => window.close()} className="text-gray-400 hover:text-red-500 transition-colors p-1.5 hover-breath rounded-md">
+            <Power className="w-4 h-4" />
+          </button>
+          </div>
       </header>
 
       <div 
