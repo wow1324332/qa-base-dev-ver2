@@ -25,6 +25,32 @@ export const MemoDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState('');
 
+  const dragItemIndex = React.useRef(null);
+
+  const handleDragStart = (index) => {
+    dragItemIndex.current = index;
+  };
+
+  const handleDragEnter = (index) => {
+    if (dragItemIndex.current === index || dragItemIndex.current === null) return;
+    
+    // 회원님이 쓰시는 setMemos와 완벽하게 연결됩니다.
+    setMemos((prevMemos) => { 
+      const newMemos = [...prevMemos];
+      const draggedMemo = newMemos[dragItemIndex.current];
+      
+      newMemos.splice(dragItemIndex.current, 1);
+      newMemos.splice(index, 0, draggedMemo);
+      
+      dragItemIndex.current = index; 
+      return newMemos;
+    });
+  };
+
+  const handleDragEnd = () => {
+    dragItemIndex.current = null;
+  };
+  
   // 1. 데이터 불러오기 (카테고리 및 메모)
   useEffect(() => {
     if (!user) return;
@@ -200,6 +226,9 @@ export const MemoDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
                 onUpdate={(data) => handleUpdateMemo(memo.id, data)}
                 onDelete={() => handleDeleteMemo(memo.id)}
                 onFocus={() => setFocusedMemo(memo)}
+                onDragStart={() => handleDragStart(index)}
+                onDragEnter={() => handleDragEnter(index)}
+                onDragEnd={handleDragEnd}
               />
             ))}
           </div>
@@ -247,52 +276,106 @@ export const MemoDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
 };
 
 // --- 서브 컴포넌트: 개별 메모 카드 (그리드 내 표시) ---
-const MemoCard = ({ memo, onUpdate, onDelete, onFocus }) => {
+const MemoCard = ({ memo, onUpdate, onDelete, onFocus, onDragStart, onDragEnter, onDragEnd }) => {
   const theme = MEMO_COLORS.find(c => c.id === memo.colorId) || MEMO_COLORS[0];
   
-  // ✅ 1. 클릭 타이머를 저장할 안전한 보관함을 만듭니다. (상단에 import React가 없어도 동작하도록 React.useRef 사용)
   const clickTimeout = React.useRef(null);
+  
+  // ✅ 롱프레스(길게 누르기) 상태 관리를 위한 Ref와 State
+  const pressTimer = React.useRef(null);
+  const [showDelete, setShowDelete] = React.useState(false);
 
-  // ✅ 2. 한 번 클릭했을 때의 동작 (0.2초 기다린 후 실행)
   const handleTitleClick = (e) => {
+    // 삭제 버튼이 떠 있을 때 다른 곳을 클릭하면 모드를 취소합니다.
+    if (showDelete) {
+      setShowDelete(false);
+      return;
+    }
+
     const target = e.currentTarget.closest('.group');
-    
-    // 혹시 실행 대기 중인 이전 타이머가 있다면 지웁니다.
     if (clickTimeout.current) clearTimeout(clickTimeout.current);
     
-    // 200ms(0.2초) 동안 두 번째 클릭이 없으면 접기/펼치기를 실행합니다.
     clickTimeout.current = setTimeout(() => {
       onUpdate({ isFolded: !memo.isFolded });
       target?.focus();
     }, 200); 
   };
 
-  // ✅ 3. 두 번 클릭했을 때의 동작 (기다리던 접기 명령을 취소하고 모달만 띄움)
   const handleTitleDoubleClick = (e) => {
     e.stopPropagation();
-    
-    // 더블클릭이 감지되었으므로, 위에서 기다리고 있던 '접기/펼치기' 타이머를 즉시 폭파(취소)합니다!
+    if (showDelete) return; // 삭제 모드일 때는 더블클릭 무시
+
     if (clickTimeout.current) {
       clearTimeout(clickTimeout.current);
       clickTimeout.current = null;
     }
-    
-    // 그리고 평화롭게 편집 모달만 띄웁니다.
     onFocus();
+  };
+
+  // ✅ 롱프레스 타이머 시작 및 종료 함수
+  const handlePressStart = () => {
+    if (!memo.isFolded) return; // 접혀있을 때만 작동
+    pressTimer.current = setTimeout(() => {
+      setShowDelete(true);
+    }, 500); // 0.5초 동안 누르고 있으면 발동
+  };
+
+  const handlePressEnd = () => {
+    if (pressTimer.current) clearTimeout(pressTimer.current);
   };
 
   return (
     <div 
       tabIndex={-1}
-      className={`relative w-full group outline-none focus:outline-none ${memo.isFolded ? 'z-10 hover:z-20' : 'z-[60] hover:z-[70] focus:z-[80] focus-within:z-[80]'}`}
+      // ✅ 1. 삭제 모드가 아닐 때 & 접혀있을 때만 드래그를 허용합니다.
+      draggable={memo.isFolded && !showDelete}
+      onDragStart={(e) => {
+        handlePressEnd(); // 드래그 시작 시 롱프레스 취소
+        e.currentTarget.style.opacity = '0.4'; // 드래그 시 반투명 효과
+        e.currentTarget.style.transform = 'scale(0.95)'; // 살짝 작아지는 시각적 피드백
+        if (onDragStart) onDragStart();
+      }}
+      onDragEnter={onDragEnter}
+      onDragEnd={(e) => {
+        e.currentTarget.style.opacity = '1';
+        e.currentTarget.style.transform = 'scale(1)';
+        if (onDragEnd) onDragEnd();
+      }}
+      onDragOver={(e) => e.preventDefault()}
+      className={`relative w-full group outline-none focus:outline-none transition-transform duration-200
+        ${memo.isFolded ? 'z-10 hover:z-20' : 'z-[60] hover:z-[70] focus:z-[80] focus-within:z-[80]'}
+        ${memo.isFolded && !showDelete ? 'cursor-grab active:cursor-grabbing' : ''}`}
     >
       
+      {/* ✅ 2. 롱프레스 시 발생하는 우측 상단 시네마틱 삭제 버튼 */}
+      {showDelete && (
+        <div className="absolute -top-3 -right-3 z-[100] animate-fast-fade">
+          <button 
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete();
+            }}
+            className="p-2.5 bg-red-500/90 backdrop-blur-md border border-red-400/50 text-white rounded-full shadow-[0_8px_20px_rgba(239,68,68,0.5)] hover:bg-red-600 hover:scale-110 transition-all"
+          >
+            {/* 휴지통 아이콘 */}
+            <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+          </button>
+        </div>
+      )}
+
       {/* --- 상단 제목 구역 --- */}
       <div 
-        // ✅ 4. 위에 만들어둔 스마트한 클릭 함수들을 연결합니다.
         onClick={handleTitleClick}
         onDoubleClick={handleTitleDoubleClick}
-        className={`relative z-10 p-5 backdrop-blur-md transition-all cursor-pointer ${theme.bg} 
+        // ✅ 3. 제목 구역에 롱프레스 감지 이벤트를 연결합니다.
+        onMouseDown={handlePressStart}
+        onMouseUp={handlePressEnd}
+        onMouseLeave={handlePressEnd}
+        onTouchStart={handlePressStart}
+        onTouchEnd={handlePressEnd}
+        className={`relative z-10 p-5 backdrop-blur-md transition-all ${theme.bg} 
           ${memo.isFolded 
             ? 'rounded-2xl shadow-sm hover:shadow-md hover:-translate-y-0.5' 
             : 'rounded-t-2xl shadow-sm'}`}
