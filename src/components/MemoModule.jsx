@@ -68,8 +68,9 @@ export const MemoDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
   };
 
   // 3. 메모 관리 로직
-  const handleAddMemo = async () => {
-    await addDoc(collection(db, 'memos'), {
+const handleAddMemo = async () => {
+    // 1. 파이어베이스에 먼저 빈 메모를 생성하고, 그 결과값(참조 ID)을 받아옵니다.
+    const newDocRef = await addDoc(collection(db, 'memos'), {
       userId: user.id || user.email,
       categoryId: activeCategory === 'All' ? 'Uncategorized' : activeCategory,
       title: '',
@@ -78,6 +79,15 @@ export const MemoDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
       isFolded: false,
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp()
+    });
+
+    // 2. 방금 만들어진 빈 메모의 정보를 즉시 포커스 모달(focusedMemo)에 밀어넣어 창을 띄웁니다!
+    setFocusedMemo({
+      id: newDocRef.id,
+      title: '',
+      content: '',
+      colorId: 'gray',
+      isFolded: false
     });
   };
 
@@ -400,10 +410,8 @@ const MemoCard = ({ memo, onUpdate, onDelete, onFocus }) => {
         onMouseLeave={handlePressEnd}
         onTouchStart={handlePressStart}
         onTouchEnd={handlePressEnd}
-        // ✅ 2. 잃어버렸던 예쁜 투명함 복구: `backdrop-blur-md`를 다시 넣었습니다!
-        // 대신 마우스를 올릴 때 위로 살짝 뜨는 `hover:-translate-y-0.5` 속성을 지워서,
-        // 마우스를 주변에 마구 흔들어도 그래픽이 깨지지 않게 꽉 잡아주었습니다.
-        className={`relative z-10 p-5 backdrop-blur-md transition-all ${theme.bg} 
+
+        className={`relative z-10 p-5 backdrop-blur-md transition-all select-none ${theme.bg} 
           ${memo.isFolded 
             ? 'rounded-2xl shadow-sm hover:shadow-md' 
             : 'rounded-t-2xl shadow-sm'}`}
