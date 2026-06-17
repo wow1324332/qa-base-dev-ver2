@@ -466,14 +466,13 @@ const FocusMemoModal = ({ memo, onUpdate, onClose, onDelete }) => {
   const contentRef = useRef(null);
   const theme = MEMO_COLORS.find(c => c.id === memo.colorId) || MEMO_COLORS[0];
 
-  // 디바운스 자동 저장 (모달 닫힐 때도 자동 저장되도록 onBlur 활용)
+  // 디바운스 자동 저장
   const handleContentBlur = () => {
     if (contentRef.current) {
       onUpdate({ content: contentRef.current.innerHTML });
     }
   };
 
-  // 커스텀 리치 텍스트 서식 명령어
   const execCmd = (cmd, arg = null) => {
     document.execCommand(cmd, false, arg);
     contentRef.current?.focus();
@@ -481,57 +480,73 @@ const FocusMemoModal = ({ memo, onUpdate, onClose, onDelete }) => {
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-8 animate-fast-fade">
-      {/* 배경 블러 (클릭 시 닫기 & 자동 저장) */}
-      <div className="absolute inset-0 bg-gray-900/40 backdrop-blur-sm" onClick={() => { handleContentBlur(); onClose(); }}></div>
       
-      <div className={`relative w-full max-w-2xl max-h-full flex flex-col rounded-3xl shadow-2xl backdrop-blur-xl border ${theme.bg} ${theme.border} animate-scale-up overflow-hidden`}>
+      {/* ✅ 1. 답답한 딤(Dim) 처리 제거: 
+          어둡고 흐려졌던 배경(bg-gray-900/40 backdrop-blur-sm)을 완전히 투명(bg-transparent)하게 바꾸어 시원한 개방감을 주었습니다. 빈 공간을 누르면 닫히는 기능은 그대로 유지됩니다. */}
+      <div className="absolute inset-0 bg-transparent" onClick={() => { handleContentBlur(); onClose(); }}></div>
+      
+      {/* 모달 껍데기 */}
+      <div className="relative w-full max-w-3xl max-h-full flex flex-col rounded-2xl shadow-[0_40px_80px_-20px_rgba(0,0,0,0.3)] animate-scale-up">
         
-        {/* 상단 툴바 */}
-        <div className={`flex items-center justify-between p-3 border-b border-white/20 bg-white/40 shrink-0`}>
-          <div className="flex items-center space-x-1 bg-white/50 p-1 rounded-lg backdrop-blur-md shadow-sm border border-white/50">
-            <button onClick={() => execCmd('bold')} className="p-1.5 rounded hover:bg-black/5 text-gray-700 transition-colors" title="굵게"><Bold className="w-4 h-4" /></button>
-            <button onClick={() => execCmd('italic')} className="p-1.5 rounded hover:bg-black/5 text-gray-700 transition-colors" title="기울임"><Italic className="w-4 h-4" /></button>
-            <button onClick={() => execCmd('underline')} className="p-1.5 rounded hover:bg-black/5 text-gray-700 transition-colors" title="밑줄"><Underline className="w-4 h-4" /></button>
-            
-            <div className="w-px h-4 bg-gray-300 mx-1"></div>
-            
-            {/* 색상 테마 변경 */}
-            <div className="flex items-center space-x-1 px-1">
-              <Palette className="w-3.5 h-3.5 text-gray-400 mr-1" />
-              {MEMO_COLORS.map(c => (
-                <button 
-                  key={c.id} 
-                  onClick={() => onUpdate({ colorId: c.id })}
-                  className={`w-4 h-4 rounded-full ${c.bg} border-2 ${memo.colorId === c.id ? 'border-gray-800 scale-110' : 'border-transparent hover:scale-110'} transition-transform shadow-sm`}
-                />
-              ))}
+        {/* ✅ 2. UI 싱크 (상단 제목 영역): 
+            모달 전체가 투명했던 것을 버리고, 언폴딩 카드처럼 위쪽 절반만 테마 컬러를 가지도록 분리했습니다. 제목도 이 구역으로 옮겼습니다! */}
+        <div className={`rounded-t-2xl backdrop-blur-md border border-b-0 border-white/20 z-10 flex flex-col shadow-sm ${theme.bg}`}>
+          
+          {/* 상단 툴바 */}
+          <div className="flex items-center justify-between p-3 border-b border-white/20 shrink-0">
+            <div className="flex items-center space-x-1 bg-white/50 p-1 rounded-lg backdrop-blur-md shadow-sm border border-white/50">
+              <button onClick={() => execCmd('bold')} className="p-1.5 rounded hover:bg-black/5 text-gray-700 transition-colors" title="굵게"><Bold className="w-4 h-4" /></button>
+              <button onClick={() => execCmd('italic')} className="p-1.5 rounded hover:bg-black/5 text-gray-700 transition-colors" title="기울임"><Italic className="w-4 h-4" /></button>
+              <button onClick={() => execCmd('underline')} className="p-1.5 rounded hover:bg-black/5 text-gray-700 transition-colors" title="밑줄"><Underline className="w-4 h-4" /></button>
+              
+              <div className="w-px h-4 bg-gray-300 mx-1"></div>
+              
+              {/* 색상 테마 변경 */}
+              <div className="flex items-center space-x-1 px-1">
+                <Palette className="w-3.5 h-3.5 text-gray-400 mr-1" />
+                {MEMO_COLORS.map(c => (
+                  <button 
+                    key={c.id} 
+                    onClick={() => onUpdate({ colorId: c.id })}
+                    className={`w-4 h-4 rounded-full ${c.bg} border-2 ${memo.colorId === c.id ? 'border-gray-800 scale-110' : 'border-transparent hover:scale-110'} transition-transform shadow-sm`}
+                  />
+                ))}
+              </div>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <button onClick={onDelete} className="p-1.5 rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-500 transition-colors"><Trash2 className="w-4 h-4" /></button>
+              <button onClick={() => { handleContentBlur(); onClose(); }} className="p-1.5 rounded-lg text-gray-500 hover:bg-black/5 transition-colors"><X className="w-5 h-5" /></button>
             </div>
           </div>
 
-          <div className="flex items-center space-x-2">
-            <button onClick={onDelete} className="p-1.5 rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-500 transition-colors"><Trash2 className="w-4 h-4" /></button>
-            <button onClick={() => { handleContentBlur(); onClose(); }} className="p-1.5 rounded-lg text-gray-500 hover:bg-black/5 transition-colors"><X className="w-5 h-5" /></button>
+          {/* 툴바 바로 아래로 옮겨진 제목 입력란 */}
+          <div className="p-6 pt-5">
+            <input 
+              type="text" 
+              value={memo.title} 
+              onChange={(e) => onUpdate({ title: e.target.value })}
+              placeholder="제목 없음"
+              className={`w-full bg-transparent outline-none font-bold text-2xl placeholder:text-gray-400/80 ${theme.text}`}
+            />
           </div>
         </div>
 
-        {/* 편집 영역 */}
-        <div className="p-8 overflow-y-auto flex-1 no-scrollbar">
-          <input 
-            type="text" 
-            value={memo.title} 
-            onChange={(e) => onUpdate({ title: e.target.value })}
-            placeholder="메모 제목"
-            className={`w-full bg-transparent outline-none font-black text-3xl mb-6 placeholder:text-gray-400/60 ${theme.text}`}
-          />
+        {/* ✅ 3. UI 싱크 (하단 내용 영역):
+            언폴딩 카드와 똑같이, 글을 쓰는 내용 영역은 투명도를 아예 뺀 완벽한 순백색(bg-white)으로 덮어서 가독성을 극대화했습니다. */}
+        <div className={`rounded-b-2xl bg-white p-8 overflow-y-auto flex-1 border border-t-0 border-gray-100 ${theme.text}`}>
           <div 
             ref={contentRef}
             contentEditable
             onBlur={handleContentBlur}
             suppressContentEditableWarning
-            className={`outline-none text-sm leading-relaxed min-h-[300px] ${theme.text}`}
-            dangerouslySetInnerHTML={{ __html: memo.content }}
+            spellCheck={false}
+            data-placeholder="내용이 없습니다. 클릭하여 편집하세요."
+            className="outline-none text-sm leading-relaxed min-h-[300px] cursor-text empty:before:content-[attr(data-placeholder)] empty:before:text-gray-400 empty:before:italic empty:before:pointer-events-none"
+            dangerouslySetInnerHTML={{ __html: memo.content || '' }}
           />
         </div>
+
       </div>
     </div>
   );
