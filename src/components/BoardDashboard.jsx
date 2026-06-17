@@ -225,13 +225,6 @@ export const BoardDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
       {/* ✅ 2. 서브 네비게이션 바 (경로 표시 + 우측 검색창) */}
       <div className="h-14 px-8 flex justify-between items-center bg-white border-b border-gray-200 shrink-0 z-40">
         <div className="flex items-center space-x-2 text-sm font-semibold text-gray-500">
-
-          <button 
-            onClick={() => setSidebarOpen(!sidebarOpen)} 
-            className="p-1.5 mr-2 text-gray-400 hover:text-gray-800 hover:bg-white/80 rounded-lg transition-colors shadow-sm border border-transparent hover:border-gray-200"
-          >
-            <Menu className="w-5 h-5" />
-          </button>
           
           <button onClick={() => onNavigate('board')} className="hover:text-blue-600 transition-colors">Functional Board</button>
           <ChevronRight className="w-4 h-4" />
@@ -251,11 +244,11 @@ export const BoardDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
 
       <div className="flex flex-1 overflow-hidden">
         
-        {/* --- 좌측 사이드바 (게시판 전용) --- */}
-        <aside className={`bg-white/60 backdrop-blur-xl rounded-r-2xl shadow-[-5px_0_30px_rgba(0,0,0,0.02)] transition-all duration-300 ease-in-out flex flex-col justify-between z-10 overflow-hidden whitespace-nowrap border-r border-white/50 ${sidebarOpen ? 'w-72' : 'w-0'}`}>
+        {/* --- 좌측 사이드바 (너비 w-64로 수정 및 디바이스 화면과 동일한 스타일 적용) --- */}
+        <aside className={`bg-white/60 backdrop-blur-xl rounded-r-2xl shadow-[-5px_0_30px_rgba(0,0,0,0.02)] transition-all duration-300 ease-in-out flex flex-col justify-between z-10 overflow-hidden whitespace-nowrap border-r border-white/50 ${sidebarOpen ? 'w-64' : 'w-0'}`}>
           
           {/* 상단: 카테고리 트리 */}
-          <div className="p-5 overflow-y-auto no-scrollbar w-72 flex-1 flex flex-col">
+          <div className="p-5 overflow-y-auto no-scrollbar w-64 flex-1 flex flex-col">
             <div className="flex items-center justify-between mb-4 px-1">
               <span className="text-xs font-bold text-gray-400 tracking-wider">FOLDERS</span>
               <button onClick={() => setShowModal({ type: 'medium', targetId: null })} className="text-gray-400 hover:text-gray-800 transition-colors"><Plus className="w-4 h-4" /></button>
@@ -335,12 +328,22 @@ export const BoardDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
             </div>
           </div>
           
-          {/* ✅ 하단 즐겨찾기 컴포넌트 연결 */}
+          {/* 하단 즐겨찾기 컴포넌트 연결 */}
           <SidebarFavorites db={db} user={user} onNavigate={onNavigate} sidebarOpen={sidebarOpen} currentModule="board" />
         </aside>
 
+        {/* ✅ 미니멀 시네마틱 폴딩 핸들 (디바이스 화면과 동일한 left-[256px] 너비 적용) */}
+        <button 
+          onClick={() => setSidebarOpen(!sidebarOpen)} 
+          className={`absolute top-1/2 -translate-y-1/2 z-30 flex items-center justify-center transition-all duration-300 ease-in-out group outline-none w-3 h-14 rounded-r-lg backdrop-blur-md shadow-[3px_0_10px_-3px_rgba(0,0,0,0.05)] bg-white/30 hover:bg-white/50 hover:shadow-[4px_0_16px_-4px_rgba(0,0,0,0.1)] ${
+            sidebarOpen ? 'left-[256px]' : 'left-0'
+          }`}
+        >
+          <div className="w-[1.5px] h-5 bg-gray-400/40 rounded-full transition-colors duration-300 group-hover:bg-gray-500/60"></div>
+        </button>
+
         {/* --- 우측 메인 콘텐츠 영역 --- */}
-        <main className="flex-1 relative overflow-hidden bg-white/50 flex flex-col">
+        <main className={`flex-1 relative overflow-hidden bg-white/50 flex flex-col transition-all duration-300 ${!sidebarOpen ? 'ml-12' : ''}`}>
           
           {/* 상태 A: 아무 글도 선택하지 않고, 전체 게시글이나 특정 폴더를 보고 있을 때 (카드 뷰) */}
           {!activePost && (
