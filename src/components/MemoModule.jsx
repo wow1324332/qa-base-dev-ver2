@@ -280,13 +280,34 @@ const MemoCard = ({ memo, onUpdate, onDelete, onFocus, onDragStart, onDragEnter,
   const theme = MEMO_COLORS.find(c => c.id === memo.colorId) || MEMO_COLORS[0];
   
   const clickTimeout = React.useRef(null);
-  
-  // ✅ 롱프레스(길게 누르기) 상태 관리를 위한 Ref와 State
   const pressTimer = React.useRef(null);
+  
+  // ✅ 1. 롱프레스 직후에 발생하는 '가짜 클릭'을 무시하기 위한 깃발입니다.
+  const isLongPressActive = React.useRef(false); 
   const [showDelete, setShowDelete] = React.useState(false);
 
+  const handlePressStart = () => {
+    if (!memo.isFolded) return;
+    isLongPressActive.current = false; // 깃발 초기화
+    
+    pressTimer.current = setTimeout(() => {
+      isLongPressActive.current = true; // 0.5초 달성 시 "이건 롱프레스다!" 하고 깃발 꽂기
+      setShowDelete(true);
+    }, 500); 
+  };
+
+  const handlePressEnd = () => {
+    if (pressTimer.current) clearTimeout(pressTimer.current);
+  };
+
   const handleTitleClick = (e) => {
-    // 삭제 버튼이 떠 있을 때 다른 곳을 클릭하면 모드를 취소합니다.
+    // ✅ 2. 롱프레스를 끝내고 손을 뗄 때 발생하는 클릭 이벤트는 완전히 무시합니다!
+    if (isLongPressActive.current) {
+      isLongPressActive.current = false; // 다음을 위해 깃발만 내림
+      return; 
+    }
+
+    // 이미 휴지통이 떠 있을 때 다시 클릭하면 휴지통을 닫습니다.
     if (showDelete) {
       setShowDelete(false);
       return;
@@ -303,7 +324,7 @@ const MemoCard = ({ memo, onUpdate, onDelete, onFocus, onDragStart, onDragEnter,
 
   const handleTitleDoubleClick = (e) => {
     e.stopPropagation();
-    if (showDelete) return; // 삭제 모드일 때는 더블클릭 무시
+    if (showDelete) return;
 
     if (clickTimeout.current) {
       clearTimeout(clickTimeout.current);
@@ -312,42 +333,36 @@ const MemoCard = ({ memo, onUpdate, onDelete, onFocus, onDragStart, onDragEnter,
     onFocus();
   };
 
-  // ✅ 롱프레스 타이머 시작 및 종료 함수
-  const handlePressStart = () => {
-    if (!memo.isFolded) return; // 접혀있을 때만 작동
-    pressTimer.current = setTimeout(() => {
-      setShowDelete(true);
-    }, 500); // 0.5초 동안 누르고 있으면 발동
-  };
-
-  const handlePressEnd = () => {
-    if (pressTimer.current) clearTimeout(pressTimer.current);
-  };
-
   return (
     <div 
       tabIndex={-1}
-      // ✅ 1. 삭제 모드가 아닐 때 & 접혀있을 때만 드래그를 허용합니다.
       draggable={memo.isFolded && !showDelete}
       onDragStart={(e) => {
-        handlePressEnd(); // 드래그 시작 시 롱프레스 취소
-        e.currentTarget.style.opacity = '0.4'; // 드래그 시 반투명 효과
-        e.currentTarget.style.transform = 'scale(0.95)'; // 살짝 작아지는 시각적 피드백
+        handlePressEnd();
+        e.dataTransfer.effectAllowed = 'move'; // 드래그 성격을 '이동'으로 정의
+        e.currentTarget.style.opacity = '0.4';
+        e.currentTarget.style.transform = 'scale(0.95)';
         if (onDragStart) onDragStart();
       }}
-      onDragEnter={onDragEnter}
+      onDragEnter={(e) => {
+        e.preventDefault(); // ✅ 3. 드래그 충돌 차단
+        if (onDragEnter) onDragEnter();
+      }}
+      onDragOver={(e) => {
+        e.preventDefault(); // ✅ 4. 여기가 핵심! 브라우저의 '금지(🚫)' 아이콘을 없앱니다.
+        e.dataTransfer.dropEffect = 'move'; // 커서를 '이동 가능' 아이콘으로 강제 변경합니다.
+      }}
       onDragEnd={(e) => {
         e.currentTarget.style.opacity = '1';
         e.currentTarget.style.transform = 'scale(1)';
         if (onDragEnd) onDragEnd();
       }}
-      onDragOver={(e) => e.preventDefault()}
       className={`relative w-full group outline-none focus:outline-none transition-transform duration-200
         ${memo.isFolded ? 'z-10 hover:z-20' : 'z-[60] hover:z-[70] focus:z-[80] focus-within:z-[80]'}
         ${memo.isFolded && !showDelete ? 'cursor-grab active:cursor-grabbing' : ''}`}
     >
       
-      {/* ✅ 2. 롱프레스 시 발생하는 우측 상단 시네마틱 삭제 버튼 */}
+      {/* --- 시네마틱 삭제 버튼 --- */}
       {showDelete && (
         <div className="absolute -top-3 -right-3 z-[100] animate-fast-fade">
           <button 
@@ -357,7 +372,6 @@ const MemoCard = ({ memo, onUpdate, onDelete, onFocus, onDragStart, onDragEnter,
             }}
             className="p-2.5 bg-red-500/90 backdrop-blur-md border border-red-400/50 text-white rounded-full shadow-[0_8px_20px_rgba(239,68,68,0.5)] hover:bg-red-600 hover:scale-110 transition-all"
           >
-            {/* 휴지통 아이콘 */}
             <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
             </svg>
@@ -369,7 +383,6 @@ const MemoCard = ({ memo, onUpdate, onDelete, onFocus, onDragStart, onDragEnter,
       <div 
         onClick={handleTitleClick}
         onDoubleClick={handleTitleDoubleClick}
-        // ✅ 3. 제목 구역에 롱프레스 감지 이벤트를 연결합니다.
         onMouseDown={handlePressStart}
         onMouseUp={handlePressEnd}
         onMouseLeave={handlePressEnd}
