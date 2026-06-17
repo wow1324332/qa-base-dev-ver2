@@ -24,37 +24,6 @@ export const MemoDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
   const [focusedMemo, setFocusedMemo] = useState(null);
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState('');
-
-  const dragItemIndex = React.useRef(null);
-
-  const handleDragStart = (index) => {
-    dragItemIndex.current = index;
-  };
-
-  const handleDragEnter = (targetIndex) => {
-  // 드래그 중인 아이템이 없거나, 자기 자신이라면 무시합니다.
-  if (dragItemIndex.current === null || dragItemIndex.current === targetIndex) return;
-
-  // 리액트 상태 업데이트 함수(setMemos) 내에서 안전하게 인덱스를 교환합니다.
-  // 💡 주의: 회원님이 쓰시는 setMemos 이름으로 꼭 맞춰주세요!
-  setMemos((prevMemos) => { 
-    const newMemos = [...prevMemos];
-    const draggedItem = newMemos[dragItemIndex.current];
-    
-    // 배열에서 기존 위치를 제거하고
-    newMemos.splice(dragItemIndex.current, 1);
-    // 새로운 위치에 삽입합니다.
-    newMemos.splice(targetIndex, 0, draggedItem);
-    
-    // 핵심 마법: 다음 이동 계산을 위해 현재 인덱스 Ref를 실시간으로 업데이트합니다.
-    dragItemIndex.current = targetIndex; 
-    return newMemos;
-    });
-  };
-
-  const handleDragEnd = () => {
-    dragItemIndex.current = null;
-  };
   
   // 1. 데이터 불러오기 (카테고리 및 메모)
   useEffect(() => {
@@ -281,7 +250,7 @@ export const MemoDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
 };
 
 // --- 서브 컴포넌트: 개별 메모 카드 (그리드 내 표시) ---
-const MemoCard = ({ memo, onUpdate, onDelete, onFocus, onDragStart, onDragEnter, onDragEnd }) => {
+const MemoCard = ({ memo, onUpdate, onDelete, onFocus }) => {
   const theme = MEMO_COLORS.find(c => c.id === memo.colorId) || MEMO_COLORS[0];
   
   const cardRef = React.useRef(null);
@@ -290,6 +259,7 @@ const MemoCard = ({ memo, onUpdate, onDelete, onFocus, onDragStart, onDragEnter,
   const isLongPressActive = React.useRef(false); 
   const [showDelete, setShowDelete] = React.useState(false);
 
+  // 바깥 영역 클릭 시 삭제 버튼 닫기
   React.useEffect(() => {
     if (!showDelete) return;
     
@@ -349,52 +319,9 @@ const MemoCard = ({ memo, onUpdate, onDelete, onFocus, onDragStart, onDragEnter,
     <div 
       ref={cardRef} 
       tabIndex={-1}
-      draggable={memo.isFolded && !showDelete}
-      
-      // ✅ 3. 드래그 이벤트를 더 강력하고 명확하게 정의했습니다. (금지🚫 커서 해결)
-      onDragStart={(e) => {
-        handlePressEnd();
-        // HTML5 드래그 API 필수 데이터 세팅 (이걸 해야 브라우저가 허가합니다)
-        e.dataTransfer.effectAllowed = 'move';
-        e.dataTransfer.setData('text/plain', String(memo.id)); 
-        
-        // 투명도 변경을 0.01초 뒤로 미뤄 잔상이 깨지는 것을 막습니다.
-        setTimeout(() => {
-          if (cardRef.current) {
-            cardRef.current.style.opacity = '0.4';
-            cardRef.current.style.transform = 'scale(0.95)';
-          }
-        }, 0);
-        
-        if (onDragStart) onDragStart();
-      }}
-      onDragOver={(e) => {
-        // 여기가 핵심! 브라우저의 기본 금지(🚫) 커서를 치워버리는 무적의 코드입니다.
-        if (e.preventDefault) e.preventDefault(); 
-        e.dataTransfer.dropEffect = 'move';
-        return false; // 일부 브라우저 호환성을 위해 추가
-      }}
-      onDragEnter={(e) => {
-        if (e.preventDefault) e.preventDefault();
-        if (onDragEnter) onDragEnter();
-      }}
-      onDrop={(e) => {
-        // 드롭 완료 허가
-        if (e.preventDefault) e.preventDefault(); 
-      }}
-      onDragEnd={(e) => {
-        // 스타일 원복
-        if (cardRef.current) {
-          cardRef.current.style.opacity = '1';
-          cardRef.current.style.transform = 'scale(1)';
-        }
-        if (onDragEnd) onDragEnd();
-      }}
-      
-      // ✅ 4. 삭제 모드(showDelete)일 때는 z-[90]을 부여해 무적 상태로 만듭니다. (2번 잔상 이슈 해결의 기초)
+      // ✅ 드래그 관련 속성(draggable, onDrag 등)을 모두 깔끔하게 삭제했습니다.
       className={`relative w-full group outline-none focus:outline-none transition-transform duration-200
-        ${showDelete ? 'z-[90]' : memo.isFolded ? 'z-10 hover:z-20' : 'z-[60] hover:z-[70] focus:z-[80] focus-within:z-[80]'}
-        ${memo.isFolded && !showDelete ? 'cursor-grab active:cursor-grabbing' : ''}`}
+        ${showDelete ? 'z-[90]' : memo.isFolded ? 'z-10 hover:z-20' : 'z-[60] hover:z-[70] focus:z-[80] focus-within:z-[80]'}`}
     >
       
       {/* --- 시네마틱 삭제 버튼 --- */}
@@ -424,9 +351,8 @@ const MemoCard = ({ memo, onUpdate, onDelete, onFocus, onDragStart, onDragEnter,
         onMouseLeave={handlePressEnd}
         onTouchStart={handlePressStart}
         onTouchEnd={handlePressEnd}
-        // ✅ 2. 렌더링 버그를 유발하던 블러 효과(backdrop-blur-md)를 과감하게 삭제했습니다!
-        // 깔끔한 순백색으로 배경을 덮어서 네모난 잔상 이슈를 완벽하게 차단했습니다.
-        className={`relative z-10 p-5 transition-all ${theme.bg} 
+        // ✅ 잃어버렸던 영롱함 복구: 'backdrop-blur-md'를 다시 추가하여 예쁜 반투명 상태로 되돌렸습니다.
+        className={`relative z-10 p-5 backdrop-blur-md transition-all ${theme.bg} 
           ${memo.isFolded 
             ? 'rounded-2xl shadow-sm hover:shadow-md hover:-translate-y-0.5' 
             : 'rounded-t-2xl shadow-sm'}`}
