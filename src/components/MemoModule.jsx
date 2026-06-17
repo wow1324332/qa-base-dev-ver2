@@ -33,13 +33,13 @@ export const MemoDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
     // 카테고리 구독
     const qCategories = query(collection(db, 'memoCategories'), where('userId', '==', user.id || user.email));
     const unsubCat = onSnapshot(qCategories, (snap) => {
-      setCategories(snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => a.createdAt - b.createdAt));
+      setCategories(snap.docs.map(d => ({ id: d.id, ...d.data({ serverTimestamps: 'estimate' }) })).sort((a, b) => a.createdAt - b.createdAt));
     });
 
     // 메모 구독
     const qMemos = query(collection(db, 'memos'), where('userId', '==', user.id || user.email));
     const unsubMemo = onSnapshot(qMemos, (snap) => {
-      setMemos(snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => b.createdAt - a.createdAt));
+      setMemos(snap.docs.map(d => ({ id: d.id, ...d.data({ serverTimestamps: 'estimate' }) })).sort((a, b) => b.createdAt - a.createdAt));
     });
 
     return () => { unsubCat(); unsubMemo(); };
@@ -193,7 +193,7 @@ const handleAddMemo = async () => {
             {/* ✅ 2. 카테고리 목록 바로 아래에 직관적인 "Add Category" 버튼을 추가했습니다. */}
             <button 
               onClick={handleAddCategory} 
-              className="w-full flex items-center space-x-3 px-3 py-2.5 mt-3 rounded-xl text-gray-400 hover:bg-gray-50 hover:text-gray-800 transition-colors group"
+              className="w-full flex items-center space-x-3 px-3 py-2.5 mt-3 rounded-xl text-gray-400 hover:bg-white/50 hover:text-gray-900 transition-colors group"
             >
               <Plus className="w-4 h-4 transition-transform duration-200 group-hover:scale-110" />
               <span className="text-sm font-medium">Add Category</span>
@@ -240,14 +240,18 @@ const handleAddMemo = async () => {
       </div>
 
       {showCategoryModal && (
-        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 animate-fast-fade">
-          <div className="absolute inset-0 bg-gray-900/40 backdrop-blur-sm" onClick={() => setShowCategoryModal(false)}></div>
-          <div className="relative w-full max-w-sm bg-white rounded-2xl shadow-2xl p-6 border border-gray-100 animate-scale-up">
-            <button onClick={() => setShowCategoryModal(false)} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"><X className="w-5 h-5"/></button>
-            <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center">
-              <Folder className="w-5 h-5 mr-2 text-gray-600" />
-              새 카테고리 추가
-            </h3>
+        <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 sm:p-8 animate-fast-fade">
+          <div className="absolute inset-0 bg-gray-900/60 backdrop-blur-md" onClick={() => setShowCategoryModal(false)}></div>
+          
+          <div className="relative w-full max-w-sm bg-white/90 backdrop-blur-xl rounded-3xl shadow-[0_30px_60px_rgba(0,0,0,0.3)] p-8 border border-white/50 animate-scale-up text-center">
+            
+            <div className="w-16 h-16 mx-auto bg-gray-100 rounded-full flex items-center justify-center mb-6 shadow-inner">
+              <Folder className="w-8 h-8 text-gray-600" />
+            </div>
+            
+            <h3 className="text-xl font-bold text-gray-800 mb-2">새 카테고리 추가</h3>
+            <p className="text-sm text-gray-500 mb-8 font-medium">새로운 메모 분류를 생성합니다.</p>
+            
             <form onSubmit={submitCategory}>
               <input 
                 type="text" 
@@ -255,11 +259,11 @@ const handleAddMemo = async () => {
                 value={newCategoryName} 
                 onChange={(e) => setNewCategoryName(e.target.value)}
                 placeholder="카테고리 이름"
-                className="w-full bg-gray-50 border border-gray-200 text-sm rounded-lg px-3 py-2.5 outline-none focus:border-gray-800 transition-colors mb-5"
+                className="w-full bg-white/50 border border-gray-200/80 text-sm font-medium text-gray-800 rounded-2xl px-4 py-3.5 outline-none focus:border-gray-400 focus:bg-white transition-all mb-6 shadow-sm placeholder:text-gray-400"
               />
-              <div className="flex space-x-2">
-                <button type="button" onClick={() => setShowCategoryModal(false)} className="flex-1 bg-gray-100 text-gray-600 text-sm font-medium py-2.5 rounded-xl hover:bg-gray-200 transition-colors border border-gray-200 shadow-sm">취소</button>
-                <button type="submit" className="flex-1 bg-gray-800 text-white text-sm font-medium py-2.5 rounded-xl hover:bg-gray-900 transition-colors shadow-md">추가</button>
+              <div className="flex space-x-3">
+                <button type="button" onClick={() => setShowCategoryModal(false)} className="flex-1 bg-gray-100/80 text-gray-600 font-semibold py-3.5 rounded-2xl hover:bg-gray-200 transition-colors border border-gray-200/50 shadow-sm">취소</button>
+                <button type="submit" className="flex-1 bg-gray-800 text-white font-semibold py-3.5 rounded-2xl hover:bg-gray-900 transition-colors shadow-md transform hover:-translate-y-0.5">추가하기</button>
               </div>
             </form>
           </div>
