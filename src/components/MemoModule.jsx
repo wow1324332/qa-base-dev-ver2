@@ -256,6 +256,16 @@ const MemoCard = ({ memo, onUpdate, onDelete, onFocus }) => {
   const isLongPressActive = useRef(false); 
   const [showDelete, setShowDelete] = useState(false);
 
+  // ✅ 1. 삭제 모드 진입 시 블러 버그를 피하기 위한 고정 테마 색상 맵핑
+  const SOLID_THEMES = {
+    gray: 'bg-gray-100 border-gray-300/70 text-gray-800',
+    blue: 'bg-blue-50 border-blue-300/70 text-blue-800',
+    rose: 'bg-rose-50 border-rose-300/70 text-rose-800',
+    emerald: 'bg-emerald-50 border-emerald-300/70 text-emerald-800',
+    amber: 'bg-amber-50 border-amber-300/70 text-amber-800',
+  };
+  const solidClass = SOLID_THEMES[memo.colorId] || SOLID_THEMES.gray;
+
   // 바깥 영역 클릭 시 삭제 버튼 닫기
   useEffect(() => {
     if (!showDelete) return;
@@ -316,9 +326,7 @@ const MemoCard = ({ memo, onUpdate, onDelete, onFocus }) => {
     <div 
       ref={cardRef} 
       tabIndex={-1}
-      // ✅ 1. isolate 와 transform-gpu 를 추가하여 각 메모 카드를 브라우저에서 '완전히 독립된 그래픽 도화지'로 분리했습니다.
-      // 이렇게 하면 주변 메모가 호버되더라도 서로의 블러(Blur) 연산에 간섭하지 못합니다!
-      className={`relative w-full group outline-none focus:outline-none transition-transform duration-200 transform-gpu isolate
+      className={`relative w-full group outline-none focus:outline-none transition-transform duration-200
         ${showDelete ? 'z-[90]' : memo.isFolded ? 'z-10 hover:z-20' : 'z-[60] hover:z-[70] focus:z-[80] focus-within:z-[80]'}`}
     >
       
@@ -349,11 +357,13 @@ const MemoCard = ({ memo, onUpdate, onDelete, onFocus }) => {
         onMouseLeave={handlePressEnd}
         onTouchStart={handlePressStart}
         onTouchEnd={handlePressEnd}
-        // ✅ 2. transform-gpu 와 backface-hidden 을 추가하여 블러 연산 시 생기는 찌꺼기 렌더링 버그를 하드웨어 가속으로 원천 차단합니다.
-        className={`relative z-10 p-5 backdrop-blur-md transform-gpu backface-hidden transition-all ${theme.bg} 
-          ${memo.isFolded 
-            ? 'rounded-2xl shadow-sm hover:shadow-md hover:-translate-y-0.5' 
-            : 'rounded-t-2xl shadow-sm'}`}
+        // ✅ 2. 마법의 분기 처리: 평소에는 반투명(`backdrop-blur-md`) 효과이지만, 
+        // 삭제 모드(`showDelete`)일 때는 솔리드 색상(`solidClass`)과 명확한 외곽선 및 강한 그림자 효과로 전환되어 렌더링 버그를 차단하고 가시성을 극대화합니다.
+        className={`relative z-10 p-5 transition-all border duration-300
+          ${showDelete 
+            ? `${solidClass} rounded-2xl shadow-xl scale-[1.02]` 
+            : `backdrop-blur-md border-transparent ${theme.bg} ${memo.isFolded ? 'rounded-2xl shadow-sm hover:shadow-md hover:-translate-y-0.5' : 'rounded-t-2xl shadow-sm'}`
+          }`}
       >
         <div 
           className="w-full block overflow-hidden"
@@ -385,9 +395,12 @@ const MemoCard = ({ memo, onUpdate, onDelete, onFocus }) => {
 
       {/* --- 하단 내용 영역 (Dropdown) --- */}
       <div 
-        // ✅ 3. 하단 내용 영역에도 transform-gpu를 달아 제목 영역과의 애니메이션 충돌을 방지합니다.
-        className={`absolute top-full left-0 w-full rounded-b-2xl shadow-[0_20px_40px_-10px_rgba(0,0,0,0.2)] bg-white overflow-hidden transition-all duration-300 ease-out origin-top transform-gpu
-          ${memo.isFolded ? 'opacity-0 -translate-y-3 pointer-events-none invisible' : 'opacity-100 translate-y-0 visible'}
+        // ✅ 3. 접혀있을 때는 불필요한 그림자 레이어(`shadow-none`)와 높이(`max-h-0`)를 완전히 지워 물리적 충돌 영역을 소멸시킵니다.
+        className={`absolute top-full left-0 w-full rounded-b-2xl bg-white overflow-hidden transition-all duration-300 ease-out origin-top
+          ${memo.isFolded 
+            ? 'opacity-0 -translate-y-3 pointer-events-none invisible max-h-0 shadow-none' 
+            : 'opacity-100 translate-y-0 visible max-h-[35vh] shadow-[0_20px_40px_-10px_rgba(0,0,0,0.2)]'
+          }
         `}
       >
         <div className={`max-h-[35vh] overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] ${theme.text}`}>
