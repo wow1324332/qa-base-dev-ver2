@@ -263,6 +263,7 @@ const handleAddMemo = async () => {
           onUpdate={(data) => handleUpdateMemo(focusedMemo.id, data)} 
           onClose={() => setFocusedMemo(null)}
           onDelete={() => handleDeleteMemo(focusedMemo.id)}
+          categories={categories}
         />
       )}
 
@@ -470,23 +471,36 @@ const MemoCard = ({ memo, onUpdate, onDelete, onFocus }) => {
 };
 
 // --- 서브 컴포넌트: 포커스 모드 모달 (커스텀 에디터 포함) ---
-const FocusMemoModal = ({ memo, onUpdate, onClose, onDelete }) => {
+const FocusMemoModal = ({ memo, onUpdate, onClose, onDelete, categories = [] }) => {
   const contentRef = useRef(null);
   
-  // ✅ 4 & 5번 해결: 실시간 백그라운드 동기화 꼬임과 입력 버그를 완벽 차단하기 위해 내부 로컬 상태를 사용합니다.
   const [localTitle, setLocalTitle] = useState(memo.title || '');
   const [localColorId, setLocalColorId] = useState(memo.colorId || 'gray');
+  // ✅ 1. 카테고리 관리를 위한 로컬 상태 및 드롭다운 토글 상태 추가
+  const [localCategoryId, setLocalCategoryId] = useState(memo.categoryId || 'Uncategorized');
+  const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
 
-  // ✅ 6번 해결: 부모를 거치지 않고 로컬 색상 아이디를 추적하여 모달 디자인에 즉시 반영합니다.
-  const currentTheme = MEMO_COLORS.find(c => c.id === localColorId) || MEMO_COLORS[0];
+  // ✅ 2. 테마에 맞추되 눈이 편안한 '차분하고 어두운 톤'의 색상표
+  const DARK_MODAL_THEMES = {
+    gray: { header: 'bg-[#272a30]', body: 'bg-[#1a1c20]', text: 'text-gray-200' },
+    blue: { header: 'bg-slate-800', body: 'bg-slate-900', text: 'text-slate-200' },
+    rose: { header: 'bg-rose-900', body: 'bg-rose-950', text: 'text-rose-200' },
+    emerald: { header: 'bg-teal-900', body: 'bg-teal-950', text: 'text-teal-200' },
+    amber: { header: 'bg-stone-800', body: 'bg-stone-900', text: 'text-stone-200' },
+  };
+  const darkTheme = DARK_MODAL_THEMES[localColorId] || DARK_MODAL_THEMES.gray;
 
-  // ✅ 5번 해결: 모달을 닫을 때(바깥 클릭) 단 한 번만 최종 편집본을 부모 상태 및 데이터베이스로 전송합니다.
+  const currentCategoryName = localCategoryId === 'Uncategorized' 
+    ? '미분류' 
+    : categories.find(c => c.id === localCategoryId)?.name || '미분류';
+
   const handleCloseAndSave = () => {
     const finalContent = contentRef.current ? contentRef.current.innerHTML : memo.content;
     onUpdate({
       title: localTitle,
       colorId: localColorId,
-      content: finalContent
+      content: finalContent,
+      categoryId: localCategoryId // 카테고리 변경 내역도 함께 저장!
     });
     onClose();
   };
@@ -499,69 +513,106 @@ const FocusMemoModal = ({ memo, onUpdate, onClose, onDelete }) => {
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-8 animate-fast-fade">
       
-      {/* 닫기 버튼 대신 모달 밖의 영역 선택 시 자동으로 저장되며 닫히도록 설정 */}
       <div className="absolute inset-0 bg-transparent" onClick={handleCloseAndSave}></div>
       
-      {/* 뒤가 절대 비치지 않는 견고한 단색 솔리드 구조 패널 */}
-      <div className="relative w-full max-w-2xl h-[70vh] flex flex-col rounded-2xl shadow-[0_25px_70px_-15px_rgba(0,0,0,0.3)] bg-white border border-gray-200 animate-scale-up overflow-hidden">
+      {/* 모달 본체 (바탕을 클릭하면 카테고리 드롭다운이 닫히도록 설정) */}
+      <div 
+        onClick={() => setShowCategoryDropdown(false)}
+        className="relative w-full max-w-2xl h-[70vh] flex flex-col rounded-2xl shadow-[0_30px_80px_-15px_rgba(0,0,0,0.6)] border border-gray-700/50 animate-scale-up overflow-hidden"
+      >
         
-        {/* ✅ 1 & 2번 해결: 과하지 않게 지정된 메모 테마 색상이 아주 부드럽고 얇게 녹아든 제목 영역 (폰트 크기/굵기 대폭 축소) */}
-        <div className={`px-8 py-4 border-b border-gray-100 shrink-0 transition-colors duration-300 ${currentTheme.bg}`}>
+        {/* 상단 제목 구역 (차분하고 어두운 테마 배경) */}
+        <div className={`px-8 py-4 border-b border-white/5 shrink-0 transition-colors duration-300 ${darkTheme.header}`}>
           <input 
             type="text" 
             value={localTitle} 
-            onChange={(e) => setLocalTitle(e.target.value)} // 4번 타이핑 멈춤/안지워짐 버그 100% 해결
+            onChange={(e) => setLocalTitle(e.target.value)} 
             placeholder="제목을 입력하세요"
-            className={`w-full bg-transparent outline-none font-semibold text-base placeholder:text-gray-400/60 ${currentTheme.text}`}
+            className={`w-full bg-transparent outline-none font-semibold text-base placeholder:text-gray-500 ${darkTheme.text}`}
           />
         </div>
 
-        {/* ✅ 3번 해결: 내용 영역 - 눈이 피로한 완전 생짜 흰색을 버리고, 컨셉에 맞춘 편안하고 아주 밝은 그레이 톤(#f5f6f8) 공간 조성 */}
-        <div className="px-8 py-6 overflow-y-auto flex-1 no-scrollbar bg-[#f5f6f8] pb-24">
+        {/* 하단 내용 영역 (눈이 편안한 딥 다크 배경) */}
+        <div className={`px-8 py-6 overflow-y-auto flex-1 no-scrollbar pb-24 transition-colors duration-300 ${darkTheme.body}`}>
           <div 
             ref={contentRef}
             contentEditable
             suppressContentEditableWarning
             spellCheck={false}
             data-placeholder="내용이 없습니다. 클릭하여 편집하세요."
-            className={`outline-none text-sm leading-relaxed min-h-[300px] cursor-text empty:before:content-[attr(data-placeholder)] empty:before:text-gray-400 empty:before:italic empty:before:pointer-events-none ${currentTheme.text}`}
+            className={`outline-none text-sm leading-relaxed min-h-[300px] cursor-text empty:before:content-[attr(data-placeholder)] empty:before:text-gray-600 empty:before:italic empty:before:pointer-events-none ${darkTheme.text}`}
             dangerouslySetInnerHTML={{ __html: memo.content || '' }}
           />
         </div>
 
-        {/* 하단 중앙 캡슐형 플로팅 에디터 툴 바 */}
-        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center space-x-2 bg-white px-5 py-2.5 rounded-full shadow-[0_10px_35px_rgba(0,0,0,0.12)] border border-gray-200">
-          <button onClick={() => execCmd('bold')} className="p-2 rounded-full hover:bg-gray-100 text-gray-700 transition-colors" title="굵게"><Bold className="w-4 h-4" /></button>
-          <button onClick={() => execCmd('italic')} className="p-2 rounded-full hover:bg-gray-100 text-gray-700 transition-colors" title="기울임"><Italic className="w-4 h-4" /></button>
-          <button onClick={() => execCmd('underline')} className="p-2 rounded-full hover:bg-gray-100 text-gray-700 transition-colors" title="밑줄"><Underline className="w-4 h-4" /></button>
+        {/* --- 중앙 하단 플로팅 툴바 (다크 모드 스타일) --- */}
+        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center space-x-2 bg-gray-800/90 backdrop-blur-md px-5 py-2.5 rounded-full shadow-[0_10px_35px_rgba(0,0,0,0.5)] border border-gray-700/60">
+          <button onClick={() => execCmd('bold')} className="p-2 rounded-full hover:bg-gray-700 text-gray-300 transition-colors" title="굵게"><Bold className="w-4 h-4" /></button>
+          <button onClick={() => execCmd('italic')} className="p-2 rounded-full hover:bg-gray-700 text-gray-300 transition-colors" title="기울임"><Italic className="w-4 h-4" /></button>
+          <button onClick={() => execCmd('underline')} className="p-2 rounded-full hover:bg-gray-700 text-gray-300 transition-colors" title="밑줄"><Underline className="w-4 h-4" /></button>
           
-          <div className="w-px h-5 bg-gray-200 mx-2"></div>
+          <div className="w-px h-5 bg-gray-600 mx-2"></div>
           
-          {/* ✅ 6번 해결: 색상 서클 선택 시 모달 내부에서 실시간으로 즉시 적용 및 체크 표기 */}
+          {/* 색상 테마 변경 */}
           <div className="flex items-center space-x-1.5 px-1">
             <Palette className="w-4 h-4 text-gray-400 mr-1" />
             {MEMO_COLORS.map(c => (
               <button 
                 key={c.id} 
-                onClick={() => setLocalColorId(c.id)} // 클릭 순간 즉시 인메모리 반영
-                className={`rounded-full ${c.bg} border-2 ${localColorId === c.id ? 'border-gray-800 scale-110' : 'border-transparent hover:scale-110'} transition-all shadow-sm`}
+                onClick={() => setLocalColorId(c.id)} 
+                className={`rounded-full ${c.bg} border-2 ${localColorId === c.id ? 'border-gray-400 scale-110' : 'border-transparent hover:scale-110'} transition-all shadow-sm`}
                 style={{ width: '18px', height: '18px' }}
               />
             ))}
           </div>
 
-          <div className="w-px h-5 bg-gray-200 mx-2"></div>
+          <div className="w-px h-5 bg-gray-600 mx-2"></div>
           
           {/* 삭제 버튼 */}
           <button 
-            onClick={() => {
-              onDelete();
-              onClose();
-            }} 
-            className="p-2 rounded-full text-gray-400 hover:bg-red-50 hover:text-red-500 transition-colors" 
+            onClick={() => { onDelete(); onClose(); }} 
+            className="p-2 rounded-full text-gray-400 hover:bg-red-500/20 hover:text-red-400 transition-colors" 
             title="삭제"
           >
             <Trash2 className="w-4 h-4" />
+          </button>
+        </div>
+
+        {/* --- 우측 하단 카테고리 변경 버튼 & 시네마틱 드롭다운 --- */}
+        <div className="absolute bottom-6 right-8">
+          
+          {/* 드롭다운 메뉴 (위로 펼쳐짐) */}
+          {showCategoryDropdown && (
+            <div className="absolute bottom-full right-0 mb-3 w-48 bg-gray-800/95 backdrop-blur-xl border border-gray-600/50 rounded-2xl shadow-[0_15px_40px_rgba(0,0,0,0.5)] overflow-hidden animate-fast-fade z-50 origin-bottom-right">
+              <div className="max-h-48 overflow-y-auto no-scrollbar py-2">
+                <button 
+                  onClick={(e) => { e.stopPropagation(); setLocalCategoryId('Uncategorized'); setShowCategoryDropdown(false); }}
+                  className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${localCategoryId === 'Uncategorized' ? 'bg-gray-700 text-white font-bold' : 'text-gray-400 hover:bg-gray-700/50 hover:text-white'}`}
+                >
+                  미분류
+                </button>
+                {categories.map(cat => (
+                  <button 
+                    key={cat.id}
+                    onClick={(e) => { e.stopPropagation(); setLocalCategoryId(cat.id); setShowCategoryDropdown(false); }}
+                    className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${localCategoryId === cat.id ? 'bg-gray-700 text-white font-bold' : 'text-gray-400 hover:bg-gray-700/50 hover:text-white'}`}
+                  >
+                    {cat.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* 카테고리 선택 버튼 */}
+          <button 
+            onClick={(e) => { e.stopPropagation(); setShowCategoryDropdown(!showCategoryDropdown); }}
+            className={`flex items-center space-x-2 px-4 py-2 rounded-full backdrop-blur-md border transition-all shadow-lg
+              ${showCategoryDropdown ? 'bg-gray-700/90 text-white border-gray-500' : 'bg-gray-800/60 text-gray-300 border-gray-600/50 hover:bg-gray-700/80 hover:text-white'}`}
+          >
+            <Folder className="w-4 h-4" />
+            <span className="text-sm font-medium truncate max-w-[100px]">{currentCategoryName}</span>
+            <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-300 ${showCategoryDropdown ? 'rotate-180' : ''}`} />
           </button>
         </div>
 
