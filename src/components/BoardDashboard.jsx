@@ -248,7 +248,7 @@ export const BoardDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
       >
         
         {/* --- 좌측 사이드바 (너비 w-64로 수정 및 디바이스 화면과 동일한 스타일 적용) --- */}
-        <aside className={`bg-white/60 backdrop-blur-xl rounded-r-2xl shadow-[-5px_0_30px_rgba(0,0,0,0.02)] transition-all duration-300 ease-in-out flex flex-col justify-between z-10 overflow-hidden whitespace-nowrap border-r border-white/50 ${sidebarOpen ? 'w-64' : 'w-0'}`}>
+        <aside className={`bg-white/60 backdrop-blur-xl rounded-r-2xl shadow-[-5px_0_30px_rgba(0,0,0,0.02)] transition-all duration-300 ease-in-out flex flex-col justify-between z-10 overflow-hidden whitespace-nowrap ${sidebarOpen ? 'w-64' : 'w-0'}`}>
           
           {/* 상단: 카테고리 트리 */}
           <div className="p-5 overflow-y-auto no-scrollbar w-64 flex-1 flex flex-col">
