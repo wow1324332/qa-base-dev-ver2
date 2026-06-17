@@ -253,7 +253,8 @@ const MemoCard = ({ memo, onUpdate, onDelete, onFocus }) => {
   return (
     <div 
       tabIndex={-1}
-      className={`relative w-full group outline-none ${memo.isFolded ? 'z-10 hover:z-20' : 'z-[60] hover:z-[70] focus:z-[80] focus-within:z-[80]'}`}
+      // ✅ 1. 부모 껍데기에 focus:outline-none을 명시적으로 추가하여 브라우저 외곽선을 완벽 차단합니다.
+      className={`relative w-full group outline-none focus:outline-none ${memo.isFolded ? 'z-10 hover:z-20' : 'z-[60] hover:z-[70] focus:z-[80] focus-within:z-[80]'}`}
     >
       
       {/* --- 상단 제목 구역 --- */}
@@ -266,11 +267,11 @@ const MemoCard = ({ memo, onUpdate, onDelete, onFocus }) => {
           e.stopPropagation(); 
           onFocus(); 
         }}
-        // ✅ 1. 제목 영역에 relative z-10을 추가하여, 하단 내용 영역이 슬라이드되어 내려올 때 이 제목 '뒤'에서 튀어나오도록 덮어줍니다.
+        // ✅ 2. 문제의 원인이었던 위쪽 방향 커스텀 그림자를 삭제하고, 접혀있을 때와 똑같이 shadow-sm을 주어 상단 변화를 없앴습니다.
         className={`relative z-10 p-5 backdrop-blur-md transition-all cursor-pointer ${theme.bg} 
           ${memo.isFolded 
             ? 'rounded-2xl shadow-sm hover:shadow-md hover:-translate-y-0.5' 
-            : 'rounded-t-2xl shadow-[0_-5px_15px_rgba(0,0,0,0.05)]'}`}
+            : 'rounded-t-2xl shadow-sm'}`}
       >
         <div 
           className="w-full block overflow-hidden"
@@ -282,7 +283,8 @@ const MemoCard = ({ memo, onUpdate, onDelete, onFocus }) => {
             maskRepeat: 'no-repeat'
           }}
         >
-          <div className="inline-grid max-w-full align-middle overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+          {/* ✅ 3. 스크롤 가능한 inline-grid에도 outline-none을 달아, 드래그 시 박스가 잡히는 크롬 버그를 방지합니다. */}
+          <div className="inline-grid max-w-full align-middle overflow-x-auto outline-none focus:outline-none [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
             <span className="invisible whitespace-pre col-start-1 row-start-1 font-bold text-sm pointer-events-none">
               {memo.title || '제목 없음'}
             </span>
@@ -301,8 +303,6 @@ const MemoCard = ({ memo, onUpdate, onDelete, onFocus }) => {
       </div>
 
       {/* --- 하단 내용 영역 (Dropdown) --- */}
-      {/* ✅ 2. { !memo.isFolded && } 조건을 지우고 항상 렌더링되게 둔 다음, CSS 클래스로 미끄러지는 애니메이션을 주었습니다. */}
-      {/* ✅ 3. 부자연스러웠던 animate-fast-fade를 삭제하고, -translate-y-3 (위로 살짝 숨김) 상태에서 translate-y-0 (원래 자리)로 내려오게 만들었습니다. */}
       <div 
         className={`absolute top-full left-0 w-full rounded-b-2xl shadow-[0_20px_40px_-10px_rgba(0,0,0,0.2)] bg-white overflow-hidden transition-all duration-300 ease-out origin-top
           ${memo.isFolded ? 'opacity-0 -translate-y-3 pointer-events-none invisible' : 'opacity-100 translate-y-0 visible'}
