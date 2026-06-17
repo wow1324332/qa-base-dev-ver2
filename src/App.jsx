@@ -8,6 +8,7 @@ import { ScheduleDashboard } from './components/ScheduleModule';
 import { ProjectsDashboard } from './components/ProjectsModule';
 import { AccountsDashboard } from './components/AccountsModule';
 import { MemoDashboard } from './components/MemoModule';
+import { BoardDashboard } from './components/BoardDashboard';
 
 export default function App() {
   const [screen, setScreen] = useState(() => {
