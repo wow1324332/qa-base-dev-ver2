@@ -133,7 +133,7 @@ export const BoardDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
         </header>
 
         {/* ✅ 2. 서브 네비게이션 바 (경로 표시 및 뒤로 가기) */}
-        <div className="h-14 px-8 flex items-center bg-white border-b border-gray-200 shrink-0 z-40">
+        <div className="h-14 px-8 flex items-center bg-white/60 backdrop-blur-md shrink-0 z-40">
           <div className="flex items-center space-x-2 text-sm font-semibold text-gray-500">
             <button onClick={() => onNavigate('board')} className="hover:text-blue-600 transition-colors">Functional Board</button>
             <ChevronRight className="w-4 h-4" />
@@ -141,33 +141,39 @@ export const BoardDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
           </div>
         </div>
 
-        <main className="flex-1 overflow-y-auto bg-white/20 backdrop-blur-sm p-10">
+        {/* ✅ 메인 영역 (배경 블러 제거 및 투명 처리) */}
+        <main className="flex-1 overflow-y-auto bg-transparent p-10">
           <div className="max-w-6xl mx-auto">
             <div className="flex justify-between items-end mb-8">
               <div>
                 <h1 className="text-3xl font-bold text-gray-800 mb-2">Knowledge Base</h1>
-                <p className="text-gray-500">팀의 지식과 가이드를 체계적으로 관리하세요.</p>
+                <p className="text-gray-600 font-medium">팀의 지식과 가이드를 체계적으로 관리하세요.</p>
               </div>
               <button 
                 onClick={() => setShowModal({ type: 'large', targetId: null })}
-                className="bg-gray-800 text-white px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-gray-900 transition-all shadow-md flex items-center"
+                className="bg-gray-800 text-white px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-gray-900 transition-all shadow-md flex items-center hover-breath"
               >
                 <Plus className="w-4 h-4 mr-2" /> 새 보드 생성
               </button>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            {/* ✅ 카드 영역 (기능 보드와 동일한 시네마틱 디자인 적용) */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {largeCats.map(cat => (
                 <div 
                   key={cat.id} 
                   onClick={() => { setActiveLargeId(cat.id); setViewState('detail'); setActivePost(null); setActiveMediumId('All'); }}
-                  className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md hover:-translate-y-1 transition-all cursor-pointer group"
+                  className="relative overflow-hidden bg-white/80 backdrop-blur-sm rounded-3xl p-8 cursor-pointer shadow-md hover-breath group"
                 >
-                  <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center mb-4 group-hover:bg-blue-600 group-hover:text-white transition-colors">
-                    <Folder className="w-6 h-6" />
+                  <div className="absolute inset-0 bg-[url('/Functioncard.jpg')] bg-cover bg-center opacity-[0.2] mix-blend-multiply transition-opacity duration-500 group-hover:opacity-[0.3] pointer-events-none"></div>
+                  
+                  <div className="relative z-10">
+                    <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center mb-6 group-hover:bg-gray-800 transition-colors duration-500 shadow-sm">
+                      <Folder className="w-6 h-6 text-gray-600 group-hover:text-white transition-colors duration-500" strokeWidth={1.5} />
+                    </div>
+                    <h3 className="text-xl font-medium text-gray-800 mb-2">{cat.name}</h3>
+                    <p className="text-sm text-gray-500 leading-relaxed font-medium">게시판 열기 &rarr;</p>
                   </div>
-                  <h3 className="text-lg font-bold text-gray-800 mb-1">{cat.name}</h3>
-                  <p className="text-xs text-gray-400">게시판 열기 &rarr;</p>
                 </div>
               ))}
             </div>
@@ -226,7 +232,7 @@ export const BoardDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
       </header>
 
       {/* ✅ 2. 서브 네비게이션 바 (경로 표시 + 우측 검색창) */}
-      <div className="h-14 px-8 flex justify-between items-center bg-white border-b border-gray-200 shrink-0 z-40">
+      <div className="h-14 px-8 flex justify-between items-center bg-white/60 backdrop-blur-md shrink-0 z-40">
         <div className="flex items-center space-x-2 text-sm font-semibold text-gray-500">
           
           <button onClick={() => onNavigate('board')} className="hover:text-blue-600 transition-colors">Functional Board</button>
