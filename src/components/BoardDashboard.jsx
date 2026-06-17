@@ -1,15 +1,18 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { 
   Folder, FileText, Plus, Search, ChevronRight, LayoutDashboard, 
-  LogOut, Power, Bold, Italic, Underline, Trash2, Edit3, X, ChevronDown, Save, Users
+  LogOut, Power, Bold, Italic, Underline, Trash2, Edit3, X, ChevronDown, Save, Users, Menu
 } from 'lucide-react';
 import { collection, onSnapshot, doc, updateDoc, addDoc, deleteDoc, query, where, serverTimestamp } from "firebase/firestore";
 import { db } from '../firebaseConfig'; // 🔥 경로 확인
+import { SidebarFavorites } from './SharedUI';
 
 export const BoardDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
   // --- 상태 관리 ---
   const [viewState, setViewState] = useState('large_grid'); // 'large_grid' | 'detail'
   const [activeLargeId, setActiveLargeId] = useState(null);
+
+  const [sidebarOpen, setSidebarOpen] = useState(true);
   
   const [largeCats, setLargeCats] = useState([]);
   const [mediumCats, setMediumCats] = useState([]);
@@ -222,6 +225,14 @@ export const BoardDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
       {/* ✅ 2. 서브 네비게이션 바 (경로 표시 + 우측 검색창) */}
       <div className="h-14 px-8 flex justify-between items-center bg-white border-b border-gray-200 shrink-0 z-40">
         <div className="flex items-center space-x-2 text-sm font-semibold text-gray-500">
+
+          <button 
+            onClick={() => setSidebarOpen(!sidebarOpen)} 
+            className="p-1.5 mr-2 text-gray-400 hover:text-gray-800 hover:bg-white/80 rounded-lg transition-colors shadow-sm border border-transparent hover:border-gray-200"
+          >
+            <Menu className="w-5 h-5" />
+          </button>
+          
           <button onClick={() => onNavigate('board')} className="hover:text-blue-600 transition-colors">Functional Board</button>
           <ChevronRight className="w-4 h-4" />
           <button onClick={() => setViewState('large_grid')} className="hover:text-blue-600 transition-colors">Knowledge Base</button>
@@ -241,44 +252,46 @@ export const BoardDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
       <div className="flex flex-1 overflow-hidden">
         
         {/* --- 좌측 사이드바 (게시판 전용) --- */}
-        <aside className="w-72 bg-white border-r border-gray-200 flex flex-col z-10 shrink-0">
-          <div className="p-5 overflow-y-auto no-scrollbar flex-1">
-            <div className="flex items-center justify-between mb-4">
+        <aside className={`bg-white/60 backdrop-blur-xl rounded-r-2xl shadow-[-5px_0_30px_rgba(0,0,0,0.02)] transition-all duration-300 ease-in-out flex flex-col justify-between z-10 overflow-hidden whitespace-nowrap border-r border-white/50 ${sidebarOpen ? 'w-72' : 'w-0'}`}>
+          
+          {/* 상단: 카테고리 트리 */}
+          <div className="p-5 overflow-y-auto no-scrollbar w-72 flex-1 flex flex-col">
+            <div className="flex items-center justify-between mb-4 px-1">
               <span className="text-xs font-bold text-gray-400 tracking-wider">FOLDERS</span>
-              <button onClick={() => setShowModal({ type: 'medium', targetId: null })} className="text-gray-400 hover:text-gray-800"><Plus className="w-4 h-4" /></button>
+              <button onClick={() => setShowModal({ type: 'medium', targetId: null })} className="text-gray-400 hover:text-gray-800 transition-colors"><Plus className="w-4 h-4" /></button>
             </div>
             
             {/* 전체 게시글 버튼 */}
             <button 
               onClick={() => { setActiveMediumId('All'); setActivePost(null); }}
-              className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl transition-colors select-none mb-2
-                ${activeMediumId === 'All' && !activePost ? 'bg-blue-50 text-blue-700 font-bold' : 'text-gray-600 hover:bg-gray-50'}`}
+              className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl transition-colors select-none mb-4
+                ${activeMediumId === 'All' && !activePost ? 'bg-blue-50/80 text-blue-700 font-bold shadow-sm' : 'text-gray-600 hover:bg-white/50'}`}
             >
               <LayoutDashboard className="w-4 h-4" />
               <span className="text-sm font-medium">전체 게시글</span>
             </button>
 
             {/* 미디엄 카테고리 트리 */}
-            <div className="space-y-1 mt-4">
+            <div className="space-y-1 flex-1 overflow-y-auto no-scrollbar pb-4">
               {mediumCats.map(mCat => {
                 const catPosts = posts.filter(p => p.mediumId === mCat.id);
-                const isExpanded = activeMediumId === mCat.id; // 선택된 폴더만 펼쳐짐
+                const isExpanded = activeMediumId === mCat.id;
                 
                 return (
                   <div key={mCat.id} className="mb-1 select-none">
                     <div 
                       onClick={() => { setActiveMediumId(mCat.id); setActivePost(null); }}
                       className={`w-full flex items-center justify-between px-3 py-2 rounded-xl cursor-pointer transition-colors group
-                        ${isExpanded && !activePost ? 'bg-gray-100 text-gray-900 font-bold' : 'text-gray-600 hover:bg-gray-50'}`}
+                        ${isExpanded && !activePost ? 'bg-white/80 text-gray-900 font-bold shadow-sm' : 'text-gray-600 hover:bg-white/50'}`}
                     >
-                      <div className="flex items-center space-x-2">
-                        <Folder className={`w-4 h-4 ${isExpanded ? 'text-gray-800' : 'text-gray-400'}`} />
-                        <span className="text-sm truncate w-40">{mCat.name}</span>
+                      <div className="flex items-center space-x-2 overflow-hidden">
+                        <Folder className={`w-4 h-4 shrink-0 ${isExpanded ? 'text-gray-800' : 'text-gray-400'}`} />
+                        <span className="text-sm truncate w-36">{mCat.name}</span>
                       </div>
-                      <div className="flex items-center space-x-1">
+                      <div className="flex items-center space-x-1 shrink-0">
                         <button 
                           onClick={(e) => { e.stopPropagation(); setShowModal({ type: 'post_add', targetId: mCat.id }); }} 
-                          className="opacity-0 group-hover:opacity-100 p-1 hover:text-blue-600 transition-opacity" title="이 폴더에 글쓰기"
+                          className="opacity-0 group-hover:opacity-100 p-1 text-gray-400 hover:text-blue-600 transition-opacity" title="이 폴더에 글쓰기"
                         >
                           <Plus className="w-3.5 h-3.5" />
                         </button>
@@ -286,18 +299,18 @@ export const BoardDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
                       </div>
                     </div>
                     
-                    {/* 하위 스몰 카테고리(게시글) 목록 (아코디언) */}
+                    {/* 하위 스몰 카테고리 (게시글) 목록 */}
                     {isExpanded && (
-                      <div className="mt-1 ml-4 pl-3 border-l border-gray-200 space-y-1">
+                      <div className="mt-1 ml-4 pl-3 border-l border-gray-300/50 space-y-1">
                         {catPosts.length === 0 ? (
-                          <div className="px-3 py-1.5 text-xs text-gray-400">게시글이 없습니다.</div>
+                          <div className="px-3 py-2 text-xs text-gray-400 font-medium">게시글이 없습니다.</div>
                         ) : (
                           catPosts.map(post => (
                             <button 
                               key={post.id}
                               onClick={() => { setActivePost(post); setIsEditing(false); }}
-                              className={`w-full flex items-center space-x-2 px-3 py-1.5 rounded-lg text-sm text-left transition-colors truncate
-                                ${activePost?.id === post.id ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-50'}`}
+                              className={`w-full flex items-center space-x-2 px-3 py-2 rounded-lg text-sm text-left transition-colors truncate
+                                ${activePost?.id === post.id ? 'bg-blue-50/80 text-blue-700 font-semibold shadow-sm' : 'text-gray-500 hover:text-gray-900 hover:bg-white/60'}`}
                             >
                               <FileText className="w-3.5 h-3.5 shrink-0" />
                               <span className="truncate">{post.title}</span>
@@ -310,16 +323,20 @@ export const BoardDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
                 );
               })}
             </div>
+
+            {/* 새 글 작성 버튼 (목록과 즐겨찾기 사이) */}
+            <div className="pt-3 border-t border-gray-200/50">
+              <button 
+                onClick={() => setShowModal({ type: 'post_add', targetId: activeMediumId === 'All' ? null : activeMediumId })} 
+                className="w-full flex items-center justify-center space-x-2 bg-gray-800/90 text-white px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-gray-900 transition-all shadow-md backdrop-blur-sm"
+              >
+                <Edit3 className="w-4 h-4" /> <span>새 글 작성</span>
+              </button>
+            </div>
           </div>
           
-          <div className="p-4 border-t border-gray-100">
-            <button 
-              onClick={() => setShowModal({ type: 'post_add', targetId: activeMediumId === 'All' ? null : activeMediumId })} 
-              className="w-full flex items-center justify-center space-x-2 bg-gray-800 text-white px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-gray-900 transition-all shadow-md"
-            >
-              <Edit3 className="w-4 h-4" /> <span>새 글 작성</span>
-            </button>
-          </div>
+          {/* ✅ 하단 즐겨찾기 컴포넌트 연결 */}
+          <SidebarFavorites db={db} user={user} onNavigate={onNavigate} sidebarOpen={sidebarOpen} currentModule="board" />
         </aside>
 
         {/* --- 우측 메인 콘텐츠 영역 --- */}
