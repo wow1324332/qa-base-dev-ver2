@@ -464,13 +464,23 @@ const MemoCard = ({ memo, onUpdate, onDelete, onFocus }) => {
 // --- 서브 컴포넌트: 포커스 모드 모달 (커스텀 에디터 포함) ---
 const FocusMemoModal = ({ memo, onUpdate, onClose, onDelete }) => {
   const contentRef = useRef(null);
-  const theme = MEMO_COLORS.find(c => c.id === memo.colorId) || MEMO_COLORS[0];
+  
+  // ✅ 4 & 5번 해결: 실시간 백그라운드 동기화 꼬임과 입력 버그를 완벽 차단하기 위해 내부 로컬 상태를 사용합니다.
+  const [localTitle, setLocalTitle] = useState(memo.title || '');
+  const [localColorId, setLocalColorId] = useState(memo.colorId || 'gray');
 
-  // 디바운스 자동 저장 (모달 닫힐 때도 자동 저장)
-  const handleContentBlur = () => {
-    if (contentRef.current) {
-      onUpdate({ content: contentRef.current.innerHTML });
-    }
+  // ✅ 6번 해결: 부모를 거치지 않고 로컬 색상 아이디를 추적하여 모달 디자인에 즉시 반영합니다.
+  const currentTheme = MEMO_COLORS.find(c => c.id === localColorId) || MEMO_COLORS[0];
+
+  // ✅ 5번 해결: 모달을 닫을 때(바깥 클릭) 단 한 번만 최종 편집본을 부모 상태 및 데이터베이스로 전송합니다.
+  const handleCloseAndSave = () => {
+    const finalContent = contentRef.current ? contentRef.current.innerHTML : memo.content;
+    onUpdate({
+      title: localTitle,
+      colorId: localColorId,
+      content: finalContent
+    });
+    onClose();
   };
 
   const execCmd = (cmd, arg = null) => {
@@ -481,53 +491,52 @@ const FocusMemoModal = ({ memo, onUpdate, onClose, onDelete }) => {
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-8 animate-fast-fade">
       
-      {/* 1. 바깥 영역 클릭 시 닫기 (배경 Dim 처리 없이 완전 투명하게 유지) */}
-      <div className="absolute inset-0 bg-transparent" onClick={() => { handleContentBlur(); onClose(); }}></div>
+      {/* 닫기 버튼 대신 모달 밖의 영역 선택 시 자동으로 저장되며 닫히도록 설정 */}
+      <div className="absolute inset-0 bg-transparent" onClick={handleCloseAndSave}></div>
       
-      {/* 2. 모달 본체: 투명도(backdrop-blur) 완전 제거, 깨끗한 단색 화이트(bg-white) 적용 */}
-      <div className="relative w-full max-w-3xl max-h-[85vh] flex flex-col rounded-2xl shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] bg-white border border-gray-200 animate-scale-up">
+      {/* 뒤가 절대 비치지 않는 견고한 단색 솔리드 구조 패널 */}
+      <div className="relative w-full max-w-2xl h-[70vh] flex flex-col rounded-2xl shadow-[0_25px_70px_-15px_rgba(0,0,0,0.3)] bg-white border border-gray-200 animate-scale-up overflow-hidden">
         
-        {/* 3. 상단 헤더: 편집 툴을 지우고 '제목 입력란'으로만 꽉 채웠습니다. */}
-        <div className="px-8 py-5 border-b border-gray-100 shrink-0">
+        {/* ✅ 1 & 2번 해결: 과하지 않게 지정된 메모 테마 색상이 아주 부드럽고 얇게 녹아든 제목 영역 (폰트 크기/굵기 대폭 축소) */}
+        <div className={`px-8 py-4 border-b border-gray-100 shrink-0 transition-colors duration-300 ${currentTheme.bg}`}>
           <input 
             type="text" 
-            value={memo.title} 
-            onChange={(e) => onUpdate({ title: e.target.value })}
-            placeholder="제목 없음"
-            className={`w-full bg-transparent outline-none font-bold text-2xl placeholder:text-gray-300 ${theme.text}`}
+            value={localTitle} 
+            onChange={(e) => setLocalTitle(e.target.value)} // 4번 타이핑 멈춤/안지워짐 버그 100% 해결
+            placeholder="제목을 입력하세요"
+            className={`w-full bg-transparent outline-none font-semibold text-base placeholder:text-gray-400/60 ${currentTheme.text}`}
           />
         </div>
 
-        {/* 4. 본문 편집 영역 (제목 밑에 있던 중복 타이틀 제거) */}
-        <div className="px-8 py-6 overflow-y-auto flex-1 no-scrollbar pb-24">
+        {/* ✅ 3번 해결: 내용 영역 - 눈이 피로한 완전 생짜 흰색을 버리고, 컨셉에 맞춘 편안하고 아주 밝은 그레이 톤(#f5f6f8) 공간 조성 */}
+        <div className="px-8 py-6 overflow-y-auto flex-1 no-scrollbar bg-[#f5f6f8] pb-24">
           <div 
             ref={contentRef}
             contentEditable
-            onBlur={handleContentBlur}
             suppressContentEditableWarning
             spellCheck={false}
             data-placeholder="내용이 없습니다. 클릭하여 편집하세요."
-            className={`outline-none text-base leading-relaxed min-h-[300px] cursor-text empty:before:content-[attr(data-placeholder)] empty:before:text-gray-300 empty:before:italic empty:before:pointer-events-none ${theme.text}`}
+            className={`outline-none text-sm leading-relaxed min-h-[300px] cursor-text empty:before:content-[attr(data-placeholder)] empty:before:text-gray-400 empty:before:italic empty:before:pointer-events-none ${currentTheme.text}`}
             dangerouslySetInnerHTML={{ __html: memo.content || '' }}
           />
         </div>
 
-        {/* 5. 플로팅 툴바: 모달 하단 중앙으로 이동 (맥OS의 독(Dock) 같은 느낌) */}
-        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center space-x-2 bg-white px-5 py-2.5 rounded-full shadow-[0_8px_30px_rgba(0,0,0,0.12)] border border-gray-200/60">
+        {/* 하단 중앙 캡슐형 플로팅 에디터 툴 바 */}
+        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center space-x-2 bg-white px-5 py-2.5 rounded-full shadow-[0_10px_35px_rgba(0,0,0,0.12)] border border-gray-200">
           <button onClick={() => execCmd('bold')} className="p-2 rounded-full hover:bg-gray-100 text-gray-700 transition-colors" title="굵게"><Bold className="w-4 h-4" /></button>
           <button onClick={() => execCmd('italic')} className="p-2 rounded-full hover:bg-gray-100 text-gray-700 transition-colors" title="기울임"><Italic className="w-4 h-4" /></button>
           <button onClick={() => execCmd('underline')} className="p-2 rounded-full hover:bg-gray-100 text-gray-700 transition-colors" title="밑줄"><Underline className="w-4 h-4" /></button>
           
           <div className="w-px h-5 bg-gray-200 mx-2"></div>
           
-          {/* 색상 테마 변경 */}
+          {/* ✅ 6번 해결: 색상 서클 선택 시 모달 내부에서 실시간으로 즉시 적용 및 체크 표기 */}
           <div className="flex items-center space-x-1.5 px-1">
             <Palette className="w-4 h-4 text-gray-400 mr-1" />
             {MEMO_COLORS.map(c => (
               <button 
                 key={c.id} 
-                onClick={() => onUpdate({ colorId: c.id })}
-                className={`rounded-full ${c.bg} border-2 ${memo.colorId === c.id ? 'border-gray-800 scale-110' : 'border-transparent hover:scale-110'} transition-transform shadow-sm`}
+                onClick={() => setLocalColorId(c.id)} // 클릭 순간 즉시 인메모리 반영
+                className={`rounded-full ${c.bg} border-2 ${localColorId === c.id ? 'border-gray-800 scale-110' : 'border-transparent hover:scale-110'} transition-all shadow-sm`}
                 style={{ width: '18px', height: '18px' }}
               />
             ))}
@@ -536,7 +545,14 @@ const FocusMemoModal = ({ memo, onUpdate, onClose, onDelete }) => {
           <div className="w-px h-5 bg-gray-200 mx-2"></div>
           
           {/* 삭제 버튼 */}
-          <button onClick={onDelete} className="p-2 rounded-full text-gray-400 hover:bg-red-50 hover:text-red-500 transition-colors" title="삭제">
+          <button 
+            onClick={() => {
+              onDelete();
+              onClose();
+            }} 
+            className="p-2 rounded-full text-gray-400 hover:bg-red-50 hover:text-red-500 transition-colors" 
+            title="삭제"
+          >
             <Trash2 className="w-4 h-4" />
           </button>
         </div>
