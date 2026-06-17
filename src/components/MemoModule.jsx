@@ -256,16 +256,6 @@ const MemoCard = ({ memo, onUpdate, onDelete, onFocus }) => {
   const isLongPressActive = useRef(false); 
   const [showDelete, setShowDelete] = useState(false);
 
-  // ✅ 1. 삭제 모드 진입 시 블러 버그를 피하기 위한 고정 테마 색상 맵핑
-  const SOLID_THEMES = {
-    gray: 'bg-gray-100 border-gray-300/70 text-gray-800',
-    blue: 'bg-blue-50 border-blue-300/70 text-blue-800',
-    rose: 'bg-rose-50 border-rose-300/70 text-rose-800',
-    emerald: 'bg-emerald-50 border-emerald-300/70 text-emerald-800',
-    amber: 'bg-amber-50 border-amber-300/70 text-amber-800',
-  };
-  const solidClass = SOLID_THEMES[memo.colorId] || SOLID_THEMES.gray;
-
   // 바깥 영역 클릭 시 삭제 버튼 닫기
   useEffect(() => {
     if (!showDelete) return;
@@ -326,8 +316,9 @@ const MemoCard = ({ memo, onUpdate, onDelete, onFocus }) => {
     <div 
       ref={cardRef} 
       tabIndex={-1}
-      className={`relative w-full group outline-none focus:outline-none transition-transform duration-200
-        ${showDelete ? 'z-[90]' : memo.isFolded ? 'z-10 hover:z-20' : 'z-[60] hover:z-[70] focus:z-[80] focus-within:z-[80]'}`}
+      // ✅ 1. 렌더링 버그의 주범: 주변 메모를 스칠 때마다 레이어를 들썩이게 만들었던 `hover:z-20` 등을 완전히 삭제했습니다!
+      className={`relative w-full group outline-none focus:outline-none
+        ${showDelete ? 'z-[90]' : memo.isFolded ? 'z-10' : 'z-[60] focus-within:z-[80]'}`}
     >
       
       {/* --- 시네마틱 삭제 버튼 --- */}
@@ -339,7 +330,8 @@ const MemoCard = ({ memo, onUpdate, onDelete, onFocus }) => {
               onDelete();
               setShowDelete(false);
             }}
-            className="p-2.5 bg-red-500/90 backdrop-blur-md border border-red-400/50 text-white rounded-full shadow-[0_8px_20px_rgba(239,68,68,0.5)] hover:bg-red-600 hover:scale-110 transition-all"
+            // 삭제 버튼 자체의 불필요한 블러 효과도 제거하여 솔리드 레드 컬러로 깔끔하게 띄웁니다.
+            className="p-2.5 bg-red-500 text-white rounded-full shadow-[0_8px_20px_rgba(239,68,68,0.5)] hover:bg-red-600 hover:scale-110 transition-all"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -357,13 +349,13 @@ const MemoCard = ({ memo, onUpdate, onDelete, onFocus }) => {
         onMouseLeave={handlePressEnd}
         onTouchStart={handlePressStart}
         onTouchEnd={handlePressEnd}
-        // ✅ 2. 마법의 분기 처리: 평소에는 반투명(`backdrop-blur-md`) 효과이지만, 
-        // 삭제 모드(`showDelete`)일 때는 솔리드 색상(`solidClass`)과 명확한 외곽선 및 강한 그림자 효과로 전환되어 렌더링 버그를 차단하고 가시성을 극대화합니다.
-        className={`relative z-10 p-5 transition-all border duration-300
-          ${showDelete 
-            ? `${solidClass} rounded-2xl shadow-xl scale-[1.02]` 
-            : `backdrop-blur-md border-transparent ${theme.bg} ${memo.isFolded ? 'rounded-2xl shadow-sm hover:shadow-md hover:-translate-y-0.5' : 'rounded-t-2xl shadow-sm'}`
-          }`}
+        // ✅ 2. 잃어버렸던 예쁜 투명함 복구: `backdrop-blur-md`를 다시 넣었습니다!
+        // 대신 마우스를 올릴 때 위로 살짝 뜨는 `hover:-translate-y-0.5` 속성을 지워서,
+        // 마우스를 주변에 마구 흔들어도 그래픽이 깨지지 않게 꽉 잡아주었습니다.
+        className={`relative z-10 p-5 backdrop-blur-md transition-all ${theme.bg} 
+          ${memo.isFolded 
+            ? 'rounded-2xl shadow-sm hover:shadow-md' 
+            : 'rounded-t-2xl shadow-sm'}`}
       >
         <div 
           className="w-full block overflow-hidden"
@@ -395,7 +387,6 @@ const MemoCard = ({ memo, onUpdate, onDelete, onFocus }) => {
 
       {/* --- 하단 내용 영역 (Dropdown) --- */}
       <div 
-        // ✅ 3. 접혀있을 때는 불필요한 그림자 레이어(`shadow-none`)와 높이(`max-h-0`)를 완전히 지워 물리적 충돌 영역을 소멸시킵니다.
         className={`absolute top-full left-0 w-full rounded-b-2xl bg-white overflow-hidden transition-all duration-300 ease-out origin-top
           ${memo.isFolded 
             ? 'opacity-0 -translate-y-3 pointer-events-none invisible max-h-0 shadow-none' 
