@@ -164,9 +164,9 @@ const handleAddMemo = async () => {
             </button>
             <div className="h-px bg-gray-100 my-2 mx-3"></div>
             
-            <div className="flex items-center justify-between px-3 mb-8 mt-16">
+            {/* ✅ 1. 기존 상단에 있던 + 아이콘을 지우고 깔끔하게 텍스트만 남겼습니다. */}
+            <div className="px-3 mb-4 mt-8">
               <span className="text-xs font-semibold text-gray-400 tracking-wider">CATEGORIES</span>
-              <button onClick={handleAddCategory} className="text-gray-400 hover:text-gray-800"><Plus className="w-3.5 h-3.5" /></button>
             </div>
             
             <button onClick={() => setActiveCategory('All')} className={`w-full flex items-center space-x-3 px-3 py-2 rounded-xl transition-colors ${activeMenuTheme(activeCategory === 'All')}`}>
@@ -189,6 +189,16 @@ const handleAddMemo = async () => {
                 </div>
               ))}
             </div>
+
+            {/* ✅ 2. 카테고리 목록 바로 아래에 직관적인 "Add Category" 버튼을 추가했습니다. */}
+            <button 
+              onClick={handleAddCategory} 
+              className="w-full flex items-center space-x-3 px-3 py-2.5 mt-3 rounded-xl text-gray-400 hover:bg-gray-50 hover:text-gray-800 transition-colors group"
+            >
+              <Plus className="w-4 h-4 transition-transform duration-200 group-hover:scale-110" />
+              <span className="text-sm font-medium">Add Category</span>
+            </button>
+
           </div>
           <SidebarFavorites db={db} user={user} onNavigate={onNavigate} sidebarOpen={sidebarOpen} currentModule="memo" />
         </aside>
