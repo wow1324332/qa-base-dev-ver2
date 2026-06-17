@@ -249,25 +249,49 @@ export const MemoDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
 // --- 서브 컴포넌트: 개별 메모 카드 (그리드 내 표시) ---
 const MemoCard = ({ memo, onUpdate, onDelete, onFocus }) => {
   const theme = MEMO_COLORS.find(c => c.id === memo.colorId) || MEMO_COLORS[0];
+  
+  // ✅ 1. 클릭 타이머를 저장할 안전한 보관함을 만듭니다. (상단에 import React가 없어도 동작하도록 React.useRef 사용)
+  const clickTimeout = React.useRef(null);
+
+  // ✅ 2. 한 번 클릭했을 때의 동작 (0.2초 기다린 후 실행)
+  const handleTitleClick = (e) => {
+    const target = e.currentTarget.closest('.group');
+    
+    // 혹시 실행 대기 중인 이전 타이머가 있다면 지웁니다.
+    if (clickTimeout.current) clearTimeout(clickTimeout.current);
+    
+    // 200ms(0.2초) 동안 두 번째 클릭이 없으면 접기/펼치기를 실행합니다.
+    clickTimeout.current = setTimeout(() => {
+      onUpdate({ isFolded: !memo.isFolded });
+      target?.focus();
+    }, 200); 
+  };
+
+  // ✅ 3. 두 번 클릭했을 때의 동작 (기다리던 접기 명령을 취소하고 모달만 띄움)
+  const handleTitleDoubleClick = (e) => {
+    e.stopPropagation();
+    
+    // 더블클릭이 감지되었으므로, 위에서 기다리고 있던 '접기/펼치기' 타이머를 즉시 폭파(취소)합니다!
+    if (clickTimeout.current) {
+      clearTimeout(clickTimeout.current);
+      clickTimeout.current = null;
+    }
+    
+    // 그리고 평화롭게 편집 모달만 띄웁니다.
+    onFocus();
+  };
 
   return (
     <div 
       tabIndex={-1}
-      // ✅ 1. 부모 껍데기에 focus:outline-none을 명시적으로 추가하여 브라우저 외곽선을 완벽 차단합니다.
       className={`relative w-full group outline-none focus:outline-none ${memo.isFolded ? 'z-10 hover:z-20' : 'z-[60] hover:z-[70] focus:z-[80] focus-within:z-[80]'}`}
     >
       
       {/* --- 상단 제목 구역 --- */}
       <div 
-        onClick={(e) => {
-          onUpdate({ isFolded: !memo.isFolded });
-          e.currentTarget.closest('.group')?.focus();
-        }}
-        onDoubleClick={(e) => {
-          e.stopPropagation(); 
-          onFocus(); 
-        }}
-        // ✅ 2. 문제의 원인이었던 위쪽 방향 커스텀 그림자를 삭제하고, 접혀있을 때와 똑같이 shadow-sm을 주어 상단 변화를 없앴습니다.
+        // ✅ 4. 위에 만들어둔 스마트한 클릭 함수들을 연결합니다.
+        onClick={handleTitleClick}
+        onDoubleClick={handleTitleDoubleClick}
         className={`relative z-10 p-5 backdrop-blur-md transition-all cursor-pointer ${theme.bg} 
           ${memo.isFolded 
             ? 'rounded-2xl shadow-sm hover:shadow-md hover:-translate-y-0.5' 
@@ -283,7 +307,6 @@ const MemoCard = ({ memo, onUpdate, onDelete, onFocus }) => {
             maskRepeat: 'no-repeat'
           }}
         >
-          {/* ✅ 3. 스크롤 가능한 inline-grid에도 outline-none을 달아, 드래그 시 박스가 잡히는 크롬 버그를 방지합니다. */}
           <div className="inline-grid max-w-full align-middle overflow-x-auto outline-none focus:outline-none [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
             <span className="invisible whitespace-pre col-start-1 row-start-1 font-bold text-sm pointer-events-none">
               {memo.title || '제목 없음'}
