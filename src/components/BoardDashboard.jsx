@@ -143,7 +143,7 @@ export const BoardDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
 
         {/* ✅ 메인 영역 (배경 블러 제거 및 투명 처리) */}
         <main className="flex-1 overflow-y-auto bg-transparent p-10">
-          <div className="max-w-6xl mx-auto">
+          <div className="w-full max-w-[1600px] mx-auto">
             <div className="flex justify-between items-end mb-8">
               <div>
                 <h1 className="text-3xl font-bold text-gray-800 mb-2">Knowledge Base</h1>
@@ -158,7 +158,7 @@ export const BoardDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
             </div>
 
             {/* ✅ 카드 영역 (기능 보드와 동일한 시네마틱 디자인 적용) */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
               {largeCats.map(cat => (
                 <div 
                   key={cat.id} 
