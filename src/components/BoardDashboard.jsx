@@ -242,7 +242,10 @@ export const BoardDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
         </div>
       </div>
 
-      <div className="flex flex-1 overflow-hidden">
+      <div 
+        className="flex flex-1 overflow-hidden relative bg-[#f0f2f5] bg-cover bg-center bg-no-repeat"
+        style={{ backgroundImage: "url('/project-bg.jpg')" }}
+      >
         
         {/* --- 좌측 사이드바 (너비 w-64로 수정 및 디바이스 화면과 동일한 스타일 적용) --- */}
         <aside className={`bg-white/60 backdrop-blur-xl rounded-r-2xl shadow-[-5px_0_30px_rgba(0,0,0,0.02)] transition-all duration-300 ease-in-out flex flex-col justify-between z-10 overflow-hidden whitespace-nowrap border-r border-white/50 ${sidebarOpen ? 'w-64' : 'w-0'}`}>
@@ -343,7 +346,7 @@ export const BoardDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
         </button>
 
         {/* --- 우측 메인 콘텐츠 영역 --- */}
-        <main className={`flex-1 relative overflow-hidden bg-white/50 flex flex-col transition-all duration-300 ${!sidebarOpen ? 'ml-12' : ''}`}>
+        <main className={`flex-1 relative overflow-hidden bg-white/30 backdrop-blur-sm flex flex-col transition-all duration-300 ${!sidebarOpen ? 'ml-12' : ''}`}>
           
           {/* 상태 A: 아무 글도 선택하지 않고, 전체 게시글이나 특정 폴더를 보고 있을 때 (카드 뷰) */}
           {!activePost && (
