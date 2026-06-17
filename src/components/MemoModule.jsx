@@ -251,8 +251,6 @@ const MemoCard = ({ memo, onUpdate, onDelete, onFocus }) => {
   const theme = MEMO_COLORS.find(c => c.id === memo.colorId) || MEMO_COLORS[0];
 
   return (
-    // ✅ 1. tabIndex={-1}과 outline-none을 추가하여 메모 카드 자체가 '포커스(선택)'를 받을 수 있는 자격을 부여합니다.
-    // ✅ 2. hover, focus, focus-within 상태일 때 z-index를 최상단(70, 80)으로 무조건 끌어올립니다.
     <div 
       tabIndex={-1}
       className={`relative w-full group outline-none ${memo.isFolded ? 'z-10 hover:z-20' : 'z-[60] hover:z-[70] focus:z-[80] focus-within:z-[80]'}`}
@@ -262,14 +260,14 @@ const MemoCard = ({ memo, onUpdate, onDelete, onFocus }) => {
       <div 
         onClick={(e) => {
           onUpdate({ isFolded: !memo.isFolded });
-          // ✅ 3. 카드를 클릭해서 열 때, 이 카드에 즉시 강제로 포커스를 주어 레이어 최상단(z-80)으로 튀어 오르게 만듭니다!
           e.currentTarget.closest('.group')?.focus();
         }}
         onDoubleClick={(e) => {
           e.stopPropagation(); 
           onFocus(); 
         }}
-        className={`p-5 backdrop-blur-md transition-all cursor-pointer ${theme.bg} 
+        // ✅ 1. 제목 영역에 relative z-10을 추가하여, 하단 내용 영역이 슬라이드되어 내려올 때 이 제목 '뒤'에서 튀어나오도록 덮어줍니다.
+        className={`relative z-10 p-5 backdrop-blur-md transition-all cursor-pointer ${theme.bg} 
           ${memo.isFolded 
             ? 'rounded-2xl shadow-sm hover:shadow-md hover:-translate-y-0.5' 
             : 'rounded-t-2xl shadow-[0_-5px_15px_rgba(0,0,0,0.05)]'}`}
@@ -302,22 +300,26 @@ const MemoCard = ({ memo, onUpdate, onDelete, onFocus }) => {
         </div>
       </div>
 
-      {/* --- 하단 내용 영역 --- */}
-      {!memo.isFolded && (
-        <div className="absolute top-full left-0 w-full rounded-b-2xl shadow-[0_20px_40px_-10px_rgba(0,0,0,0.2)] bg-white animate-fast-fade overflow-hidden">
-          <div className={`max-h-[35vh] overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] ${theme.text}`}>
-            <div 
-              contentEditable={true}
-              suppressContentEditableWarning={true}
-              spellCheck={false} 
-              onBlur={(e) => onUpdate({ content: e.currentTarget.innerHTML })}
-              dangerouslySetInnerHTML={{ __html: memo.content || '' }}
-              data-placeholder="내용이 없습니다. 클릭하여 편집하세요."
-              className="w-full min-h-[100px] p-5 pt-2 outline-none focus:outline-none focus:ring-0 text-xs leading-relaxed break-words whitespace-pre-wrap cursor-text empty:before:content-[attr(data-placeholder)] empty:before:text-gray-400 empty:before:italic empty:before:pointer-events-none"
-            />
-          </div>
+      {/* --- 하단 내용 영역 (Dropdown) --- */}
+      {/* ✅ 2. { !memo.isFolded && } 조건을 지우고 항상 렌더링되게 둔 다음, CSS 클래스로 미끄러지는 애니메이션을 주었습니다. */}
+      {/* ✅ 3. 부자연스러웠던 animate-fast-fade를 삭제하고, -translate-y-3 (위로 살짝 숨김) 상태에서 translate-y-0 (원래 자리)로 내려오게 만들었습니다. */}
+      <div 
+        className={`absolute top-full left-0 w-full rounded-b-2xl shadow-[0_20px_40px_-10px_rgba(0,0,0,0.2)] bg-white overflow-hidden transition-all duration-300 ease-out origin-top
+          ${memo.isFolded ? 'opacity-0 -translate-y-3 pointer-events-none invisible' : 'opacity-100 translate-y-0 visible'}
+        `}
+      >
+        <div className={`max-h-[35vh] overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] ${theme.text}`}>
+          <div 
+            contentEditable={!memo.isFolded} 
+            suppressContentEditableWarning={true}
+            spellCheck={false} 
+            onBlur={(e) => onUpdate({ content: e.currentTarget.innerHTML })}
+            dangerouslySetInnerHTML={{ __html: memo.content || '' }}
+            data-placeholder="내용이 없습니다. 클릭하여 편집하세요."
+            className="w-full min-h-[100px] p-5 pt-2 outline-none focus:outline-none focus:ring-0 text-xs leading-relaxed break-words whitespace-pre-wrap cursor-text empty:before:content-[attr(data-placeholder)] empty:before:text-gray-400 empty:before:italic empty:before:pointer-events-none"
+          />
         </div>
-      )}
+      </div>
     </div>
   );
 };
