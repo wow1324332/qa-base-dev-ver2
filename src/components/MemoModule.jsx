@@ -102,20 +102,22 @@ export const MemoDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
   const executeDelete = async () => {
     if (!deleteTarget) return;
 
-    if (deleteTarget.type === 'category') {
-      const targetMemos = memos.filter(m => m.categoryId === deleteTarget.id);
+    // ✅ 핵심 마법: 삭제 작업을 처리하기 전에 "팝업창부터 즉시 닫아서" 딜레이를 제로로 만듭니다.
+    const currentTarget = deleteTarget; // 지울 대상을 잠시 보관함에 복사해두고
+    setDeleteTarget(null);              // 팝업창을 먼저 닫아버립니다.
+
+    // 그 후, 보관함에 둔 정보를 바탕으로 진짜 삭제 작업을 백그라운드에서 실행합니다.
+    if (currentTarget.type === 'category') {
+      const targetMemos = memos.filter(m => m.categoryId === currentTarget.id);
       for (const memo of targetMemos) {
         await updateDoc(doc(db, 'memos', memo.id), { categoryId: 'Uncategorized' });
       }
-      await deleteDoc(doc(db, 'memoCategories', deleteTarget.id));
-      if (activeCategory === deleteTarget.id) setActiveCategory('All');
-    } else if (deleteTarget.type === 'memo') {
-      await deleteDoc(doc(db, 'memos', deleteTarget.id));
-      if (focusedMemo?.id === deleteTarget.id) setFocusedMemo(null);
+      await deleteDoc(doc(db, 'memoCategories', currentTarget.id));
+      if (activeCategory === currentTarget.id) setActiveCategory('All');
+    } else if (currentTarget.type === 'memo') {
+      await deleteDoc(doc(db, 'memos', currentTarget.id));
+      if (focusedMemo?.id === currentTarget.id) setFocusedMemo(null);
     }
-    
-    // 삭제 처리가 끝나면 모달을 닫습니다.
-    setDeleteTarget(null);
   };
 
   // 필터링된 메모 목록
