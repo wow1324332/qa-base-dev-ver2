@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { 
   Folder, FileText, Plus, Search, ChevronRight, LayoutDashboard, 
-  LogOut, Power, Bold, Italic, Underline, Trash2, Edit3, X, ChevronDown, Save
+  LogOut, Power, Bold, Italic, Underline, Trash2, Edit3, X, ChevronDown, Save, Users
 } from 'lucide-react';
 import { collection, onSnapshot, doc, updateDoc, addDoc, deleteDoc, query, where, serverTimestamp } from "firebase/firestore";
 import { db } from '../firebaseConfig'; // 🔥 경로 확인
@@ -104,17 +104,36 @@ export const BoardDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
     return (
       <div className="w-screen h-screen bg-[#f8f9fa] flex flex-col overflow-hidden animate-simple-fade">
         {/* 공통 헤더 */}
-        <header className="h-20 px-8 flex justify-between items-center bg-white/80 backdrop-blur-md border-b border-gray-200 shrink-0 relative z-50">
+        <header className="h-20 px-8 flex justify-between items-center bg-[url('/header-bg.jpg')] bg-cover bg-[length:100%_100%] shrink-0 relative z-50 shadow-[0_15px_30px_-5px_rgba(0,0,0,0.5)]">
+          <div className="flex items-center space-x-3"></div>
+          
+          <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2 bg-white px-3 py-1.5 rounded-full border border-gray-200 shadow-md cursor-default">
+              <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></div>
+              <Users className="w-4 h-4 text-gray-600" />
+              <span className="text-xs font-medium text-gray-700">1명 접속중</span>
+            </div>
+
+            <div className="flex items-center space-x-3 bg-white p-1 pr-3 rounded-full border border-gray-200 shadow-md">
+              <div className="w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center text-white text-xs font-medium overflow-hidden">
+                {user?.profileImage ? <img src={user.profileImage} alt="profile" className="w-full h-full object-cover" /> : user?.name?.charAt(0) || 'U'}
+              </div>
+              <span className="text-sm font-medium text-gray-700">{user?.name || 'User'}</span>
+            </div>
+
+            <button onClick={onLogout} className="p-2 bg-white rounded-full text-gray-400 hover:text-red-500 shadow-sm border border-gray-100 transition-colors" title="로그아웃"><LogOut className="w-4 h-4" /></button>
+            <button onClick={onQuit} className="p-2 bg-white rounded-full text-gray-400 hover:text-red-500 shadow-sm border border-gray-100 transition-colors" title="종료"><Power className="w-4 h-4" /></button>
+          </div>
+        </header>
+
+        {/* ✅ 2. 서브 네비게이션 바 (경로 표시 및 뒤로 가기) */}
+        <div className="h-14 px-8 flex items-center bg-white border-b border-gray-200 shrink-0 z-40">
           <div className="flex items-center space-x-2 text-sm font-semibold text-gray-500">
-            <button onClick={() => onNavigate('board')} className="hover:text-gray-900 transition-colors">Functional Board</button>
+            <button onClick={() => onNavigate('board')} className="hover:text-blue-600 transition-colors">Functional Board</button>
             <ChevronRight className="w-4 h-4" />
             <span className="text-gray-900">Knowledge Base</span>
           </div>
-          <div className="flex items-center space-x-4">
-            <button onClick={onLogout} className="text-gray-400 hover:text-gray-800 p-1.5"><LogOut className="w-4 h-4" /></button>
-            <button onClick={onQuit} className="text-gray-400 hover:text-red-500 p-1.5"><Power className="w-4 h-4" /></button>
-          </div>
-        </header>
+        </div>
 
         <main className="flex-1 overflow-y-auto bg-[#f5f6f8] p-10">
           <div className="max-w-6xl mx-auto">
@@ -180,27 +199,44 @@ export const BoardDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
   return (
     <div className="w-screen h-screen bg-[#f5f6f8] flex flex-col overflow-hidden animate-simple-fade">
       
-      {/* 상세 화면 상단 헤더 (경로 표시 및 검색창) */}
-      <header className="h-16 px-6 flex justify-between items-center bg-white border-b border-gray-200 shrink-0 z-20">
+      {/* ✅ 1. 앱 공통 메인 헤더 (위와 동일) */}
+      <header className="h-20 px-8 flex justify-between items-center bg-[url('/header-bg.jpg')] bg-cover bg-[length:100%_100%] shrink-0 relative z-50 shadow-[0_15px_30px_-5px_rgba(0,0,0,0.5)]">
+        <div className="flex items-center space-x-3"></div>
+        <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2 bg-white px-3 py-1.5 rounded-full border border-gray-200 shadow-md cursor-default">
+            <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></div>
+            <Users className="w-4 h-4 text-gray-600" />
+            <span className="text-xs font-medium text-gray-700">1명 접속중</span>
+          </div>
+          <div className="flex items-center space-x-3 bg-white p-1 pr-3 rounded-full border border-gray-200 shadow-md">
+            <div className="w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center text-white text-xs font-medium overflow-hidden">
+              {user?.profileImage ? <img src={user.profileImage} alt="profile" className="w-full h-full object-cover" /> : user?.name?.charAt(0) || 'U'}
+            </div>
+            <span className="text-sm font-medium text-gray-700">{user?.name || 'User'}</span>
+          </div>
+          <button onClick={onLogout} className="p-2 bg-white rounded-full text-gray-400 hover:text-red-500 shadow-sm border border-gray-100 transition-colors" title="로그아웃"><LogOut className="w-4 h-4" /></button>
+          <button onClick={onQuit} className="p-2 bg-white rounded-full text-gray-400 hover:text-red-500 shadow-sm border border-gray-100 transition-colors" title="종료"><Power className="w-4 h-4" /></button>
+        </div>
+      </header>
+
+      {/* ✅ 2. 서브 네비게이션 바 (경로 표시 + 우측 검색창) */}
+      <div className="h-14 px-8 flex justify-between items-center bg-white border-b border-gray-200 shrink-0 z-40">
         <div className="flex items-center space-x-2 text-sm font-semibold text-gray-500">
-          <button onClick={() => onNavigate('board')} className="hover:text-gray-900 transition-colors">Functional Board</button>
+          <button onClick={() => onNavigate('board')} className="hover:text-blue-600 transition-colors">Functional Board</button>
           <ChevronRight className="w-4 h-4" />
-          <button onClick={() => setViewState('large_grid')} className="hover:text-gray-900 transition-colors">Knowledge Base</button>
+          <button onClick={() => setViewState('large_grid')} className="hover:text-blue-600 transition-colors">Knowledge Base</button>
           <ChevronRight className="w-4 h-4" />
           <span className="text-gray-900">{activeLargeName}</span>
         </div>
         
-        <div className="flex items-center space-x-4">
-          {/* ✅ 검색 기능 추가 */}
-          <div className="relative">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-            <input 
-              type="text" placeholder="게시글 검색..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9 pr-4 py-1.5 bg-gray-100 border-transparent rounded-full text-sm outline-none focus:bg-white focus:border-gray-300 focus:shadow-sm transition-all w-64"
-            />
-          </div>
+        <div className="relative">
+          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+          <input 
+            type="text" placeholder="게시글 검색..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-9 pr-4 py-1.5 bg-gray-100 border-transparent rounded-full text-sm outline-none focus:bg-white focus:border-gray-300 focus:shadow-sm transition-all w-64"
+          />
         </div>
-      </header>
+      </div>
 
       <div className="flex flex-1 overflow-hidden">
         
