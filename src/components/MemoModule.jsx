@@ -251,17 +251,24 @@ const MemoCard = ({ memo, onUpdate, onDelete, onFocus }) => {
   const theme = MEMO_COLORS.find(c => c.id === memo.colorId) || MEMO_COLORS[0];
 
   return (
-    // ✅ 2번 해결: 최상단 부모의 `transition-all`을 제거하여 z-index 변경 시 발생하는 버벅임을 완벽하게 없앴습니다. 
-    <div className={`relative w-full group ${memo.isFolded ? 'z-10' : 'z-[60] focus-within:z-[80]'}`}>
+    // ✅ 1. tabIndex={-1}과 outline-none을 추가하여 메모 카드 자체가 '포커스(선택)'를 받을 수 있는 자격을 부여합니다.
+    // ✅ 2. hover, focus, focus-within 상태일 때 z-index를 최상단(70, 80)으로 무조건 끌어올립니다.
+    <div 
+      tabIndex={-1}
+      className={`relative w-full group outline-none ${memo.isFolded ? 'z-10 hover:z-20' : 'z-[60] hover:z-[70] focus:z-[80] focus-within:z-[80]'}`}
+    >
       
       {/* --- 상단 제목 구역 --- */}
       <div 
-        onClick={() => onUpdate({ isFolded: !memo.isFolded })}
+        onClick={(e) => {
+          onUpdate({ isFolded: !memo.isFolded });
+          // ✅ 3. 카드를 클릭해서 열 때, 이 카드에 즉시 강제로 포커스를 주어 레이어 최상단(z-80)으로 튀어 오르게 만듭니다!
+          e.currentTarget.closest('.group')?.focus();
+        }}
         onDoubleClick={(e) => {
           e.stopPropagation(); 
           onFocus(); 
         }}
-        // 제목 자체의 호버 애니메이션(위로 살짝 뜨는 효과)은 그대로 예쁘게 유지됩니다.
         className={`p-5 backdrop-blur-md transition-all cursor-pointer ${theme.bg} 
           ${memo.isFolded 
             ? 'rounded-2xl shadow-sm hover:shadow-md hover:-translate-y-0.5' 
@@ -277,7 +284,6 @@ const MemoCard = ({ memo, onUpdate, onDelete, onFocus }) => {
             maskRepeat: 'no-repeat'
           }}
         >
-          {/* ✅ 3번 해결: overflow-x-auto를 추가하여 긴 제목을 마우스로 드래그하면 가로로 부드럽게 끝까지 스크롤되도록 만들었습니다. */}
           <div className="inline-grid max-w-full align-middle overflow-x-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
             <span className="invisible whitespace-pre col-start-1 row-start-1 font-bold text-sm pointer-events-none">
               {memo.title || '제목 없음'}
@@ -298,10 +304,8 @@ const MemoCard = ({ memo, onUpdate, onDelete, onFocus }) => {
 
       {/* --- 하단 내용 영역 --- */}
       {!memo.isFolded && (
-        // ✅ 1번 해결: 브라우저 렌더링 버그를 유발하던 backdrop-blur를 제거하고 깔끔한 bg-white로 덮어 투명 사각형 찌꺼기 현상을 제거했습니다.
         <div className="absolute top-full left-0 w-full rounded-b-2xl shadow-[0_20px_40px_-10px_rgba(0,0,0,0.2)] bg-white animate-fast-fade overflow-hidden">
           <div className={`max-h-[35vh] overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] ${theme.text}`}>
-            
             <div 
               contentEditable={true}
               suppressContentEditableWarning={true}
@@ -311,7 +315,6 @@ const MemoCard = ({ memo, onUpdate, onDelete, onFocus }) => {
               data-placeholder="내용이 없습니다. 클릭하여 편집하세요."
               className="w-full min-h-[100px] p-5 pt-2 outline-none focus:outline-none focus:ring-0 text-xs leading-relaxed break-words whitespace-pre-wrap cursor-text empty:before:content-[attr(data-placeholder)] empty:before:text-gray-400 empty:before:italic empty:before:pointer-events-none"
             />
-
           </div>
         </div>
       )}
