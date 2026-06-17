@@ -24,6 +24,7 @@ export const MemoDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
   const [focusedMemo, setFocusedMemo] = useState(null);
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState('');
+  const [deleteTarget, setDeleteTarget] = useState(null);
   
   // 1. 데이터 불러오기 (카테고리 및 메모)
   useEffect(() => {
@@ -61,17 +62,9 @@ export const MemoDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
     setShowCategoryModal(false);
   };
 
-  const handleDeleteCategory = async (catId) => {
-    if (!window.confirm('카테고리를 삭제하시겠습니까? (내부 메모는 "미분류"로 이동됩니다)')) return;
-    
-    // 카테고리에 속한 메모들을 미분류로 변경
-    const targetMemos = memos.filter(m => m.categoryId === catId);
-    for (const memo of targetMemos) {
-      await updateDoc(doc(db, 'memos', memo.id), { categoryId: 'Uncategorized' });
-    }
-    // 카테고리 삭제
-    await deleteDoc(doc(db, 'memoCategories', catId));
-    if (activeCategory === catId) setActiveCategory('All');
+  const handleDeleteCategory = (catId) => {
+    // window.confirm 대신 삭제 대상을 지정하고 모달을 띄웁니다.
+    setDeleteTarget({ type: 'category', id: catId });
   };
 
   // 3. 메모 관리 로직
@@ -100,11 +93,29 @@ export const MemoDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
     await updateDoc(doc(db, 'memos', id), payload);
   };
 
-  const handleDeleteMemo = async (id) => {
-    if (window.confirm('이 메모를 삭제하시겠습니까?')) {
-      await deleteDoc(doc(db, 'memos', id));
-      if (focusedMemo?.id === id) setFocusedMemo(null);
+  const handleDeleteMemo = (id) => {
+    // window.confirm 대신 삭제 대상을 지정하고 모달을 띄웁니다.
+    setDeleteTarget({ type: 'memo', id });
+  };
+
+  // ✅ 2. 모달에서 '삭제하기' 버튼을 눌렀을 때 실행되는 진짜 삭제 로직을 여기에 추가합니다.
+  const executeDelete = async () => {
+    if (!deleteTarget) return;
+
+    if (deleteTarget.type === 'category') {
+      const targetMemos = memos.filter(m => m.categoryId === deleteTarget.id);
+      for (const memo of targetMemos) {
+        await updateDoc(doc(db, 'memos', memo.id), { categoryId: 'Uncategorized' });
+      }
+      await deleteDoc(doc(db, 'memoCategories', deleteTarget.id));
+      if (activeCategory === deleteTarget.id) setActiveCategory('All');
+    } else if (deleteTarget.type === 'memo') {
+      await deleteDoc(doc(db, 'memos', deleteTarget.id));
+      if (focusedMemo?.id === deleteTarget.id) setFocusedMemo(null);
     }
+    
+    // 삭제 처리가 끝나면 모달을 닫습니다.
+    setDeleteTarget(null);
   };
 
   // 필터링된 메모 목록
@@ -241,6 +252,44 @@ export const MemoDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
           onClose={() => setFocusedMemo(null)}
           onDelete={() => handleDeleteMemo(focusedMemo.id)}
         />
+      )}
+
+      {deleteTarget && (
+        <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 sm:p-8 animate-fast-fade">
+          <div 
+            className="absolute inset-0 bg-gray-900/60 backdrop-blur-md" 
+            onClick={() => setDeleteTarget(null)}
+          ></div>
+          
+          <div className="relative w-full max-w-sm bg-white/90 backdrop-blur-xl rounded-3xl shadow-[0_30px_60px_rgba(0,0,0,0.3)] p-8 border border-white/50 animate-scale-up text-center">
+            
+            <div className="w-16 h-16 mx-auto bg-red-100 rounded-full flex items-center justify-center mb-6 shadow-inner">
+              <Trash2 className="w-8 h-8 text-red-500" />
+            </div>
+            
+            <h3 className="text-xl font-bold text-gray-800 mb-2">정말 삭제하시겠습니까?</h3>
+            <p className="text-sm text-gray-500 mb-8 leading-relaxed font-medium">
+              {deleteTarget.type === 'category' 
+                ? '카테고리를 삭제하면 내부 메모는\n"미분류"로 이동됩니다.' 
+                : '삭제된 메모는 다시 복구할 수 없습니다.'}
+            </p>
+            
+            <div className="flex space-x-3">
+              <button 
+                onClick={() => setDeleteTarget(null)} 
+                className="flex-1 bg-gray-100/80 text-gray-600 font-semibold py-3.5 rounded-2xl hover:bg-gray-200 transition-colors border border-gray-200/50 shadow-sm"
+              >
+                취소
+              </button>
+              <button 
+                onClick={executeDelete} 
+                className="flex-1 bg-red-500 text-white font-semibold py-3.5 rounded-2xl hover:bg-red-600 transition-colors shadow-[0_8px_20px_rgba(239,68,68,0.4)] hover:shadow-[0_10px_25px_rgba(239,68,68,0.5)] transform hover:-translate-y-0.5"
+              >
+                삭제하기
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
