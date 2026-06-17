@@ -172,7 +172,7 @@ export const FunctionalBoard = ({ user, onNavigate, onLogout, onShowProfileModal
 
             {/* ✅ 6. Knowledge Base (게시판) 카드 신규 추가 */}
             <div 
-              onClick={() => onNavigate('board')}
+              onClick={() => onNavigate('knowledge')}
               className="relative overflow-hidden bg-white/80 backdrop-blur-sm rounded-3xl p-8 cursor-pointer shadow-md hover-breath group"
             >
               <div className="absolute inset-0 bg-[url('/Functioncard.jpg')] bg-cover bg-center opacity-[0.2] mix-blend-multiply transition-opacity duration-500 group-hover:opacity-[0.3] pointer-events-none"></div>
