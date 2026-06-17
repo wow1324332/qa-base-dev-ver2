@@ -279,19 +279,35 @@ export const MemoDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
 const MemoCard = ({ memo, onUpdate, onDelete, onFocus, onDragStart, onDragEnter, onDragEnd }) => {
   const theme = MEMO_COLORS.find(c => c.id === memo.colorId) || MEMO_COLORS[0];
   
+  // ✅ 1. 컴포넌트 자체를 가리키는 돋보기를 만듭니다 (외부 클릭 감지용)
+  const cardRef = React.useRef(null);
+  
   const clickTimeout = React.useRef(null);
   const pressTimer = React.useRef(null);
-  
-  // ✅ 1. 롱프레스 직후에 발생하는 '가짜 클릭'을 무시하기 위한 깃발입니다.
   const isLongPressActive = React.useRef(false); 
   const [showDelete, setShowDelete] = React.useState(false);
 
+  // ✅ 2. 바깥 영역 클릭 시 삭제 버튼 닫기 (3번 이슈 해결)
+  React.useEffect(() => {
+    if (!showDelete) return;
+    
+    const handleClickOutside = (e) => {
+      // 내 카드(cardRef) 바깥쪽을 클릭했다면 삭제 모드를 끕니다.
+      if (cardRef.current && !cardRef.current.contains(e.target)) {
+        setShowDelete(false);
+      }
+    };
+    
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showDelete]);
+
   const handlePressStart = () => {
     if (!memo.isFolded) return;
-    isLongPressActive.current = false; // 깃발 초기화
+    isLongPressActive.current = false;
     
     pressTimer.current = setTimeout(() => {
-      isLongPressActive.current = true; // 0.5초 달성 시 "이건 롱프레스다!" 하고 깃발 꽂기
+      isLongPressActive.current = true;
       setShowDelete(true);
     }, 500); 
   };
@@ -301,18 +317,14 @@ const MemoCard = ({ memo, onUpdate, onDelete, onFocus, onDragStart, onDragEnter,
   };
 
   const handleTitleClick = (e) => {
-    // ✅ 2. 롱프레스를 끝내고 손을 뗄 때 발생하는 클릭 이벤트는 완전히 무시합니다!
     if (isLongPressActive.current) {
-      isLongPressActive.current = false; // 다음을 위해 깃발만 내림
+      isLongPressActive.current = false;
       return; 
     }
-
-    // 이미 휴지통이 떠 있을 때 다시 클릭하면 휴지통을 닫습니다.
     if (showDelete) {
       setShowDelete(false);
       return;
     }
-
     const target = e.currentTarget.closest('.group');
     if (clickTimeout.current) clearTimeout(clickTimeout.current);
     
@@ -325,7 +337,6 @@ const MemoCard = ({ memo, onUpdate, onDelete, onFocus, onDragStart, onDragEnter,
   const handleTitleDoubleClick = (e) => {
     e.stopPropagation();
     if (showDelete) return;
-
     if (clickTimeout.current) {
       clearTimeout(clickTimeout.current);
       clickTimeout.current = null;
@@ -335,30 +346,48 @@ const MemoCard = ({ memo, onUpdate, onDelete, onFocus, onDragStart, onDragEnter,
 
   return (
     <div 
+      ref={cardRef} // 👈 돋보기 달아주기
       tabIndex={-1}
       draggable={memo.isFolded && !showDelete}
+      
+      // ✅ 3. 드래그 앤 드롭 필수 이벤트 완전 무장 (1번 이슈 해결)
       onDragStart={(e) => {
         handlePressEnd();
-        e.dataTransfer.effectAllowed = 'move'; // 드래그 성격을 '이동'으로 정의
-        e.currentTarget.style.opacity = '0.4';
-        e.currentTarget.style.transform = 'scale(0.95)';
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', String(memo.id)); // 이걸 안 넣으면 브라우저가 화냅니다(드래그 취소).
+        
+        // 투명도 변경을 0.01초 뒤로 미뤄서 드래그 고스트(잔상)가 깨지는 것을 막습니다.
+        setTimeout(() => {
+          if (cardRef.current) {
+            cardRef.current.style.opacity = '0.4';
+            cardRef.current.style.transform = 'scale(0.95)';
+          }
+        }, 0);
+        
         if (onDragStart) onDragStart();
       }}
+      onDragOver={(e) => {
+        e.preventDefault(); // 🚫 금지 커서를 치워버리는 핵심 코드입니다!
+        e.dataTransfer.dropEffect = 'move';
+      }}
       onDragEnter={(e) => {
-        e.preventDefault(); // ✅ 3. 드래그 충돌 차단
+        e.preventDefault();
         if (onDragEnter) onDragEnter();
       }}
-      onDragOver={(e) => {
-        e.preventDefault(); // ✅ 4. 여기가 핵심! 브라우저의 '금지(🚫)' 아이콘을 없앱니다.
-        e.dataTransfer.dropEffect = 'move'; // 커서를 '이동 가능' 아이콘으로 강제 변경합니다.
+      onDrop={(e) => {
+        e.preventDefault(); // 드롭 완료 허가
       }}
       onDragEnd={(e) => {
-        e.currentTarget.style.opacity = '1';
-        e.currentTarget.style.transform = 'scale(1)';
+        if (cardRef.current) {
+          cardRef.current.style.opacity = '1';
+          cardRef.current.style.transform = 'scale(1)';
+        }
         if (onDragEnd) onDragEnd();
       }}
+      
+      // ✅ 4. 삭제 모드(showDelete)일 때는 z-[90]을 부여해 무적 상태로 만듭니다. (2번 이슈 해결)
       className={`relative w-full group outline-none focus:outline-none transition-transform duration-200
-        ${memo.isFolded ? 'z-10 hover:z-20' : 'z-[60] hover:z-[70] focus:z-[80] focus-within:z-[80]'}
+        ${showDelete ? 'z-[90]' : memo.isFolded ? 'z-10 hover:z-20' : 'z-[60] hover:z-[70] focus:z-[80] focus-within:z-[80]'}
         ${memo.isFolded && !showDelete ? 'cursor-grab active:cursor-grabbing' : ''}`}
     >
       
@@ -369,6 +398,7 @@ const MemoCard = ({ memo, onUpdate, onDelete, onFocus, onDragStart, onDragEnter,
             onClick={(e) => {
               e.stopPropagation();
               onDelete();
+              setShowDelete(false);
             }}
             className="p-2.5 bg-red-500/90 backdrop-blur-md border border-red-400/50 text-white rounded-full shadow-[0_8px_20px_rgba(239,68,68,0.5)] hover:bg-red-600 hover:scale-110 transition-all"
           >
