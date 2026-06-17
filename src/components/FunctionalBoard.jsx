@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Users, Settings, User, LogOut, Server, Calendar, Bug, KeyRound, MonitorSmartphone, StickyNote } from 'lucide-react';
+import { Users, Settings, User, LogOut, Server, Calendar, Bug, KeyRound, MonitorSmartphone, StickyNote, BookOpen } from 'lucide-react';
 
 const AppLogo = ({ className }) => {
   const [imgError, setImgError] = useState(false);
@@ -166,6 +166,24 @@ export const FunctionalBoard = ({ user, onNavigate, onLogout, onShowProfileModal
                 <h3 className="text-xl font-medium text-gray-800 mb-2">Quick Memos</h3>
                 <p className="text-sm text-gray-500 leading-relaxed">
                   테스트 임시 데이터와 개인적인<br/>아이디어들을 가볍게 메모하세요.
+                </p>
+              </div>
+            </div>
+
+            {/* ✅ 6. Knowledge Base (게시판) 카드 신규 추가 */}
+            <div 
+              onClick={() => onNavigate('board')}
+              className="relative overflow-hidden bg-white/80 backdrop-blur-sm rounded-3xl p-8 cursor-pointer shadow-md hover-breath group"
+            >
+              <div className="absolute inset-0 bg-[url('/Functioncard.jpg')] bg-cover bg-center opacity-[0.2] mix-blend-multiply transition-opacity duration-500 group-hover:opacity-[0.3] pointer-events-none"></div>
+  
+              <div className="relative z-10">
+                <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center mb-6 group-hover:bg-gray-800 transition-colors duration-500 shadow-sm">
+                  <BookOpen className="w-6 h-6 text-gray-600 group-hover:text-white transition-colors duration-500" strokeWidth={1.5} />
+                </div>
+                <h3 className="text-xl font-medium text-gray-800 mb-2">Knowledge Base</h3>
+                <p className="text-sm text-gray-500 leading-relaxed">
+                  사내 지식 자산, QA 가이드 및<br/>기술 문서를 체계적으로 관리하세요.
                 </p>
               </div>
             </div>
