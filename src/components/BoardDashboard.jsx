@@ -105,7 +105,10 @@ export const BoardDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
   // =========================================================================
   if (viewState === 'large_grid') {
     return (
-      <div className="w-screen h-screen bg-[#f8f9fa] flex flex-col overflow-hidden animate-simple-fade">
+      <div 
+        className="w-screen h-screen flex flex-col overflow-hidden animate-simple-fade bg-cover bg-center bg-no-repeat relative"
+        style={{ backgroundImage: "url('/project-bg.jpg')" }}
+      >
         {/* 공통 헤더 */}
         <header className="h-20 px-8 flex justify-between items-center bg-[url('/header-bg.jpg')] bg-cover bg-[length:100%_100%] shrink-0 relative z-50 shadow-[0_15px_30px_-5px_rgba(0,0,0,0.5)]">
           <div className="flex items-center space-x-3"></div>
@@ -138,7 +141,7 @@ export const BoardDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
           </div>
         </div>
 
-        <main className="flex-1 overflow-y-auto bg-[#f5f6f8] p-10">
+        <main className="flex-1 overflow-y-auto bg-white/20 backdrop-blur-sm p-10">
           <div className="max-w-6xl mx-auto">
             <div className="flex justify-between items-end mb-8">
               <div>
