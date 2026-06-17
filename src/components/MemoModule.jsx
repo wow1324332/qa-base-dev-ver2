@@ -38,7 +38,6 @@ export const MemoDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
     // 메모 구독
     const qMemos = query(collection(db, 'memos'), where('userId', '==', user.id || user.email));
     const unsubMemo = onSnapshot(qMemos, (snap) => {
-      // ✅ b.updatedAt - a.updatedAt 부분을 b.createdAt - a.createdAt 으로 변경합니다.
       setMemos(snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => b.createdAt - a.createdAt));
     });
 
@@ -92,7 +91,7 @@ export const MemoDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
   const handleUpdateMemo = async (id, updateData) => {
     const payload = { ...updateData };
     
-    // ✅ 전달된 데이터가 오직 '접기/펼치기(isFolded)' 상태 변경 하나뿐이라면, 
+    // 전달된 데이터가 오직 '접기/펼치기(isFolded)' 상태 변경 하나뿐이라면, 
     // 최근 수정 시간(updatedAt)을 갱신하지 않아서 순서가 바뀌지 않도록 방어합니다.
     if (!(Object.keys(updateData).length === 1 && 'isFolded' in updateData)) {
       payload.updatedAt = serverTimestamp();
@@ -193,6 +192,7 @@ export const MemoDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
 
           {/* Masonry Grid 형태의 컬럼 레이아웃 */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 max-w-7xl mx-auto items-start pb-[20vh]">
+            {/* ✅ 드래그 관련 찌꺼기 코드(onDragStart 등)를 완벽하게 제거했습니다! */}
             {displayedMemos.map(memo => (
               <MemoCard 
                 key={memo.id} 
@@ -200,9 +200,6 @@ export const MemoDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
                 onUpdate={(data) => handleUpdateMemo(memo.id, data)}
                 onDelete={() => handleDeleteMemo(memo.id)}
                 onFocus={() => setFocusedMemo(memo)}
-                onDragStart={() => handleDragStart(index)}
-                onDragEnter={() => handleDragEnter(index)}
-                onDragEnd={handleDragEnd}
               />
             ))}
           </div>
@@ -253,14 +250,14 @@ export const MemoDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
 const MemoCard = ({ memo, onUpdate, onDelete, onFocus }) => {
   const theme = MEMO_COLORS.find(c => c.id === memo.colorId) || MEMO_COLORS[0];
   
-  const cardRef = React.useRef(null);
-  const clickTimeout = React.useRef(null);
-  const pressTimer = React.useRef(null);
-  const isLongPressActive = React.useRef(false); 
-  const [showDelete, setShowDelete] = React.useState(false);
+  const cardRef = useRef(null);
+  const clickTimeout = useRef(null);
+  const pressTimer = useRef(null);
+  const isLongPressActive = useRef(false); 
+  const [showDelete, setShowDelete] = useState(false);
 
   // 바깥 영역 클릭 시 삭제 버튼 닫기
-  React.useEffect(() => {
+  useEffect(() => {
     if (!showDelete) return;
     
     const handleClickOutside = (e) => {
@@ -319,7 +316,6 @@ const MemoCard = ({ memo, onUpdate, onDelete, onFocus }) => {
     <div 
       ref={cardRef} 
       tabIndex={-1}
-      // ✅ 드래그 관련 속성(draggable, onDrag 등)을 모두 깔끔하게 삭제했습니다.
       className={`relative w-full group outline-none focus:outline-none transition-transform duration-200
         ${showDelete ? 'z-[90]' : memo.isFolded ? 'z-10 hover:z-20' : 'z-[60] hover:z-[70] focus:z-[80] focus-within:z-[80]'}`}
     >
@@ -351,7 +347,6 @@ const MemoCard = ({ memo, onUpdate, onDelete, onFocus }) => {
         onMouseLeave={handlePressEnd}
         onTouchStart={handlePressStart}
         onTouchEnd={handlePressEnd}
-        // ✅ 잃어버렸던 영롱함 복구: 'backdrop-blur-md'를 다시 추가하여 예쁜 반투명 상태로 되돌렸습니다.
         className={`relative z-10 p-5 backdrop-blur-md transition-all ${theme.bg} 
           ${memo.isFolded 
             ? 'rounded-2xl shadow-sm hover:shadow-md hover:-translate-y-0.5' 
