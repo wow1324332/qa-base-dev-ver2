@@ -346,7 +346,7 @@ export const BoardDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
         </button>
 
         {/* --- 우측 메인 콘텐츠 영역 --- */}
-        <main className={`flex-1 relative overflow-hidden bg-white/30 backdrop-blur-sm flex flex-col transition-all duration-300 ${!sidebarOpen ? 'ml-12' : ''}`}>
+        <main className={`flex-1 relative overflow-hidden flex flex-col transition-all duration-300 ${!sidebarOpen ? 'ml-12' : ''}`}>
           
           {/* 상태 A: 아무 글도 선택하지 않고, 전체 게시글이나 특정 폴더를 보고 있을 때 (카드 뷰) */}
           {!activePost && (
