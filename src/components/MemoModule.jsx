@@ -316,7 +316,9 @@ const MemoCard = ({ memo, onUpdate, onDelete, onFocus }) => {
     <div 
       ref={cardRef} 
       tabIndex={-1}
-      className={`relative w-full group outline-none focus:outline-none transition-transform duration-200
+      // ✅ 1. isolate 와 transform-gpu 를 추가하여 각 메모 카드를 브라우저에서 '완전히 독립된 그래픽 도화지'로 분리했습니다.
+      // 이렇게 하면 주변 메모가 호버되더라도 서로의 블러(Blur) 연산에 간섭하지 못합니다!
+      className={`relative w-full group outline-none focus:outline-none transition-transform duration-200 transform-gpu isolate
         ${showDelete ? 'z-[90]' : memo.isFolded ? 'z-10 hover:z-20' : 'z-[60] hover:z-[70] focus:z-[80] focus-within:z-[80]'}`}
     >
       
@@ -347,7 +349,8 @@ const MemoCard = ({ memo, onUpdate, onDelete, onFocus }) => {
         onMouseLeave={handlePressEnd}
         onTouchStart={handlePressStart}
         onTouchEnd={handlePressEnd}
-        className={`relative z-10 p-5 backdrop-blur-md transition-all ${theme.bg} 
+        // ✅ 2. transform-gpu 와 backface-hidden 을 추가하여 블러 연산 시 생기는 찌꺼기 렌더링 버그를 하드웨어 가속으로 원천 차단합니다.
+        className={`relative z-10 p-5 backdrop-blur-md transform-gpu backface-hidden transition-all ${theme.bg} 
           ${memo.isFolded 
             ? 'rounded-2xl shadow-sm hover:shadow-md hover:-translate-y-0.5' 
             : 'rounded-t-2xl shadow-sm'}`}
@@ -382,7 +385,8 @@ const MemoCard = ({ memo, onUpdate, onDelete, onFocus }) => {
 
       {/* --- 하단 내용 영역 (Dropdown) --- */}
       <div 
-        className={`absolute top-full left-0 w-full rounded-b-2xl shadow-[0_20px_40px_-10px_rgba(0,0,0,0.2)] bg-white overflow-hidden transition-all duration-300 ease-out origin-top
+        // ✅ 3. 하단 내용 영역에도 transform-gpu를 달아 제목 영역과의 애니메이션 충돌을 방지합니다.
+        className={`absolute top-full left-0 w-full rounded-b-2xl shadow-[0_20px_40px_-10px_rgba(0,0,0,0.2)] bg-white overflow-hidden transition-all duration-300 ease-out origin-top transform-gpu
           ${memo.isFolded ? 'opacity-0 -translate-y-3 pointer-events-none invisible' : 'opacity-100 translate-y-0 visible'}
         `}
       >
