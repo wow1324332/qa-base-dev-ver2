@@ -340,80 +340,66 @@ export const BoardDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
                       />
                     </div>
 
-                    {/* 카테고리 분류 및 직접 생성 토글 */}
-                    <div>
-                    {/* ✅ 커스텀 시네마틱 드롭다운으로 변경된 카테고리 선택 영역 */}
+                    {/* ✅ 커스텀 시네마틱 드롭다운 */}
                     <div className="relative z-20">
-                    <label className="text-xs font-bold text-gray-500 mb-1.5 block">카테고리 선택</label>
-                    <div className="flex items-center space-x-2 mb-2">
-                      
-                      {/* 커스텀 셀렉트 박스 */}
-                      <div className="relative flex-1">
-                        {/* 배경 클릭 시 드롭다운 닫기 위한 투명 백드롭 */}
-                        {isDropdownOpen && !isCreatingNewCat && (
-                          <div className="fixed inset-0 z-40" onClick={() => setIsDropdownOpen(false)}></div>
-                        )}
+                      <label className="text-xs font-bold text-gray-500 mb-1.5 block">카테고리 선택</label>
+                      <div className="flex items-center space-x-2 mb-2">
                         
-                        <button
-                          type="button"
-                          disabled={isCreatingNewCat}
-                          onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                          // ✅ px-4와 justify-between으로 화살표 여백을 안정감 있게 수정했습니다.
-                          className={`w-full flex items-center justify-between bg-white/50 border border-white/60 text-gray-800 text-sm font-medium rounded-2xl px-4 py-3.5 outline-none transition-all ${isCreatingNewCat ? 'opacity-50 cursor-not-allowed' : 'hover:bg-white/80 focus:border-blue-400 focus:ring-4 focus:ring-blue-400/20 shadow-inner'}`}
-                        >
-                          <span className="truncate pr-2">
-                            {mediumCats.length === 0 ? '지정 가능한 폴더 없음' : (mediumCats.find(c => c.id === selectedMediumId)?.name || '카테고리 선택')}
-                          </span>
-                          <ChevronDown className={`w-4 h-4 text-gray-500 transition-transform duration-300 shrink-0 ${isDropdownOpen ? 'rotate-180' : ''}`} />
-                        </button>
+                        <div className="relative flex-1">
+                          {/* 투명 백드롭 */}
+                          {isDropdownOpen && !isCreatingNewCat && (
+                            <div className="fixed inset-0 z-40" onClick={() => setIsDropdownOpen(false)}></div>
+                          )}
+                          
+                          <button
+                            type="button"
+                            disabled={isCreatingNewCat}
+                            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                            className={`w-full flex items-center justify-between bg-white/50 border border-white/60 text-gray-800 text-sm font-medium rounded-2xl px-4 py-3.5 outline-none transition-all ${isCreatingNewCat ? 'opacity-50 cursor-not-allowed' : 'hover:bg-white/80 focus:border-blue-400 focus:ring-4 focus:ring-blue-400/20 shadow-inner'}`}
+                          >
+                            <span className="truncate pr-2">
+                              {mediumCats.length === 0 ? '지정 가능한 폴더 없음' : (mediumCats.find(c => c.id === selectedMediumId)?.name || '카테고리 선택')}
+                            </span>
+                            <ChevronDown className={`w-4 h-4 text-gray-500 transition-transform duration-300 shrink-0 ${isDropdownOpen ? 'rotate-180' : ''}`} />
+                          </button>
 
-                        {/* 시네마틱 드롭다운 메뉴 */}
-                        <div className={`absolute left-0 right-0 top-full mt-2 bg-white/80 backdrop-blur-xl border border-white/60 rounded-2xl shadow-[0_15px_40px_-10px_rgba(0,0,0,0.15)] overflow-hidden transition-all duration-300 z-50 origin-top ${isDropdownOpen && !isCreatingNewCat ? 'opacity-100 scale-100 visible' : 'opacity-0 scale-95 invisible pointer-events-none'}`}>
-                          <div className="max-h-48 overflow-y-auto no-scrollbar py-2">
-                            {mediumCats.map(cat => (
-                              <div
-                                key={cat.id}
-                                onClick={() => { setSelectedMediumId(cat.id); setIsDropdownOpen(false); }}
-                                className={`px-4 py-2.5 text-sm cursor-pointer transition-colors flex items-center space-x-2 ${selectedMediumId === cat.id ? 'bg-blue-50/80 text-blue-700 font-bold' : 'text-gray-700 hover:bg-white hover:text-gray-900 font-medium'}`}
-                              >
-                                <Folder className={`w-4 h-4 ${selectedMediumId === cat.id ? 'text-blue-500' : 'text-gray-400'}`} />
-                                <span className="truncate">{cat.name}</span>
-                              </div>
-                            ))}
-                            {mediumCats.length === 0 && (
-                              <div className="px-4 py-3 text-sm text-gray-500 font-medium text-center">폴더가 없습니다.</div>
-                            )}
+                          {/* 드롭다운 메뉴 리스트 */}
+                          <div className={`absolute left-0 right-0 top-full mt-2 bg-white/80 backdrop-blur-xl border border-white/60 rounded-2xl shadow-[0_15px_40px_-10px_rgba(0,0,0,0.15)] overflow-hidden transition-all duration-300 z-50 origin-top ${isDropdownOpen && !isCreatingNewCat ? 'opacity-100 scale-100 visible' : 'opacity-0 scale-95 invisible pointer-events-none'}`}>
+                            <div className="max-h-48 overflow-y-auto no-scrollbar py-2">
+                              {mediumCats.map(cat => (
+                                <div
+                                  key={cat.id}
+                                  onClick={() => { setSelectedMediumId(cat.id); setIsDropdownOpen(false); }}
+                                  className={`px-4 py-2.5 text-sm cursor-pointer transition-colors flex items-center space-x-2 ${selectedMediumId === cat.id ? 'bg-blue-50/80 text-blue-700 font-bold' : 'text-gray-700 hover:bg-white hover:text-gray-900 font-medium'}`}
+                                >
+                                  <Folder className={`w-4 h-4 ${selectedMediumId === cat.id ? 'text-blue-500' : 'text-gray-400'}`} />
+                                  <span className="truncate">{cat.name}</span>
+                                </div>
+                              ))}
+                              {mediumCats.length === 0 && (
+                                <div className="px-4 py-3 text-sm text-gray-500 font-medium text-center">폴더가 없습니다.</div>
+                              )}
+                            </div>
                           </div>
                         </div>
-                      </div>
 
-                      <button type="button" onClick={() => setIsCreatingNewCat(!isCreatingNewCat)} className={`px-4 py-3.5 text-xs font-bold rounded-2xl border transition-all shrink-0 ${isCreatingNewCat ? 'bg-blue-600 text-white border-blue-600 shadow-sm' : 'bg-white/70 text-gray-600 border-white/60 hover:bg-white'}`}> {isCreatingNewCat ? '기존 폴더' : '직접 생성'} </button>
+                        <button type="button" onClick={() => setIsCreatingNewCat(!isCreatingNewCat)} className={`px-4 py-3.5 text-xs font-bold rounded-2xl border transition-all shrink-0 ${isCreatingNewCat ? 'bg-blue-600 text-white border-blue-600 shadow-sm' : 'bg-white/70 text-gray-600 border-white/60 hover:bg-white'}`}> {isCreatingNewCat ? '기존 폴더' : '직접 생성'} </button>
+                      </div>
+                      
+                      {isCreatingNewCat && (
+                        <input type="text" value={newCategoryName} onChange={(e) => setNewCategoryName(e.target.value)} maxLength={15} placeholder="새 폴더 이름 입력..." className="w-full bg-white/50 border border-white/60 text-gray-800 text-sm font-medium rounded-2xl px-4 py-3 outline-none focus:bg-white/80 focus:border-blue-400 focus:ring-4 focus:ring-blue-400/20 caret-blue-600 shadow-inner placeholder:text-gray-400 animate-fast-fade" />
+                      )}
                     </div>
-                    
-                    {isCreatingNewCat && (
-                      <input type="text" value={newCategoryName} onChange={(e) => setNewCategoryName(e.target.value)} maxLength={15} placeholder="새 폴더 이름 입력..." className="w-full bg-white/50 border border-white/60 text-gray-800 text-sm font-medium rounded-2xl px-4 py-3 outline-none focus:bg-white/80 focus:border-blue-400 focus:ring-4 focus:ring-blue-400/20 caret-blue-600 shadow-inner placeholder:text-gray-400 animate-fast-fade" />
-                    )}
-                  </div>
                   </>
                 ) : (
-                  /* 기존의 단일 필드 모달 (보드 생성, 수정 등) */
-                  <input 
-                    type="text" autoFocus value={inputText} onChange={(e) => setInputText(e.target.value)}
-                    maxLength={15}
-                    placeholder="이름을 입력하세요..."
-                    className="w-full bg-white/50 border border-white/60 text-gray-800 text-sm font-medium rounded-2xl px-4 py-4 outline-none focus:bg-white/80 focus:border-blue-400 focus:ring-4 focus:ring-blue-400/20 caret-blue-600 transition-all duration-300 shadow-inner placeholder:text-gray-400"
-                  />
+                  <input type="text" autoFocus value={inputText} onChange={(e) => setInputText(e.target.value)} maxLength={15} placeholder="이름을 입력하세요..." className="w-full bg-white/50 border border-white/60 text-gray-800 text-sm font-medium rounded-2xl px-4 py-4 outline-none focus:bg-white/80 focus:border-blue-400 focus:ring-4 focus:ring-blue-400/20 caret-blue-600 transition-all duration-300 shadow-inner placeholder:text-gray-400" />
                 )}
-
-                {/* 하단 제어 버튼 (동적 비활성화 유효성 검사 적용) */}
                 <div className="flex space-x-3 mt-8">
-                  <button type="button" onClick={() => { setInputText(''); setNewCategoryName(''); setShowModal({ type: null, targetId: null }); }} className="flex-1 bg-white/70 backdrop-blur-sm text-gray-600 text-sm font-bold py-3.5 rounded-2xl hover:bg-white hover:text-gray-800 transition-colors border border-white/60 shadow-sm">취소</button>
+                  <button type="button" onClick={() => { setInputText(''); setNewCategoryName(''); setIsDropdownOpen(false); setShowModal({ type: null, targetId: null }); }} className="flex-1 bg-white/70 backdrop-blur-sm text-gray-600 text-sm font-bold py-3.5 rounded-2xl hover:bg-white hover:text-gray-800 transition-colors border border-white/60 shadow-sm">취소</button>
                   <button 
                     type="submit" 
-                    // ✅ 조건별 확인 버튼 활성/비활성 처리
                     disabled={showModal.type === 'post_add' ? (!inputText.trim() || (isCreatingNewCat && !newCategoryName.trim())) : !inputText.trim()}
-                    className={`flex-1 text-sm font-bold py-3.5 rounded-2xl transition-all shadow-md border 
-                      ${(showModal.type === 'post_add' ? (!inputText.trim() || (isCreatingNewCat && !newCategoryName.trim())) : !inputText.trim()) ? 'bg-gray-400/50 text-gray-200 border-gray-400/30 cursor-not-allowed opacity-60' : 'bg-gray-900/90 backdrop-blur-sm text-white border-gray-800 hover:bg-black hover:shadow-lg'}`}
+                    className={`flex-1 text-sm font-bold py-3.5 rounded-2xl transition-all shadow-md border ${(showModal.type === 'post_add' ? (!inputText.trim() || (isCreatingNewCat && !newCategoryName.trim())) : !inputText.trim()) ? 'bg-gray-400/50 text-gray-200 border-gray-400/30 cursor-not-allowed opacity-60' : 'bg-gray-900/90 backdrop-blur-sm text-white border-gray-800 hover:bg-black hover:shadow-lg'}`}
                   >
                     확인
                   </button>
@@ -663,35 +649,84 @@ export const BoardDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
                 <p className="text-xs text-gray-500 mt-1 font-medium">분류 및 정보를 입력해 주세요.</p>
               </div>
             </div>
-            <form onSubmit={handleCreateSubmit} className="relative z-10 space-y-4">
-              {showModal.type === 'post_add' ? (
-                <>
-                  <div>
-                    <label className="text-xs font-bold text-gray-500 mb-1.5 block">게시글 제목</label>
-                    <input type="text" autoFocus value={inputText} onChange={(e) => setInputText(e.target.value)} placeholder="제목을 입력하세요..." className="w-full bg-white/50 border border-white/60 text-gray-800 text-sm font-medium rounded-2xl px-4 py-3.5 outline-none focus:border-blue-400 caret-blue-600 transition-all shadow-inner" />
-                  </div>
-                  <div>
-                    <label className="text-xs font-bold text-gray-500 mb-1.5 block">카테고리 선택</label>
-                    <div className="flex items-center space-x-2 mb-2">
-                      <select disabled={isCreatingNewCat} value={selectedMediumId} onChange={(e) => setSelectedMediumId(e.target.value)} className="flex-1 bg-white/50 border border-white/60 text-gray-800 text-sm font-medium rounded-2xl px-3 py-3 outline-none focus:border-blue-400 cursor-pointer" >
-                        {mediumCats.map(cat => <option key={cat.id} value={cat.id}>{cat.name}</option>)}
-                        {mediumCats.length === 0 && <option value="">지정 가능한 폴더 없음</option>}
-                      </select>
-                      <button type="button" onClick={() => setIsCreatingNewCat(!isCreatingNewCat)} className={`px-4 py-3 text-xs font-bold rounded-2xl border transition-all ${isCreatingNewCat ? 'bg-blue-600 text-white border-blue-600' : 'bg-white/70 text-gray-600 border-white/60'}`}> {isCreatingNewCat ? '기존 폴더' : '직접 생성'} </button>
+              <form id="boardCreateForm" onSubmit={handleCreateSubmit} className="relative z-10 space-y-4">
+                {showModal.type === 'post_add' ? (
+                  <>
+                    {/* 게시글 제목 */}
+                    <div>
+                      <label className="text-xs font-bold text-gray-500 mb-1.5 block">게시글 제목</label>
+                      <input 
+                        type="text" autoFocus value={inputText} onChange={(e) => setInputText(e.target.value)}
+                        placeholder="제목을 입력하세요..."
+                        className="w-full bg-white/50 border border-white/60 text-gray-800 text-sm font-medium rounded-2xl px-4 py-3.5 outline-none focus:bg-white/80 focus:border-blue-400 focus:ring-4 focus:ring-blue-400/20 caret-blue-600 transition-all duration-300 shadow-inner placeholder:text-gray-400"
+                      />
                     </div>
-                    {isCreatingNewCat && (
-                      <input type="text" value={newCategoryName} onChange={(e) => setNewCategoryName(e.target.value)} maxLength={15} placeholder="새 폴더 이름 입력..." className="w-full bg-white/50 border border-white/60 text-gray-800 text-sm font-medium rounded-2xl px-4 py-3 outline-none focus:border-blue-400 caret-blue-600 shadow-inner animate-fast-fade" />
-                    )}
-                  </div>
-                </>
-              ) : (
-                <input type="text" autoFocus value={inputText} onChange={(e) => setInputText(e.target.value)} maxLength={15} placeholder="이름을 입력하세요..." className="w-full bg-white/50 border border-white/60 text-gray-800 text-sm font-medium rounded-2xl px-4 py-4 outline-none focus:border-blue-400 caret-blue-600 transition-all shadow-inner" />
-              )}
-              <div className="flex space-x-3 mt-8">
-                <button type="button" onClick={() => { setInputText(''); setNewCategoryName(''); setShowModal({ type: null, targetId: null }); }} className="flex-1 bg-white/70 backdrop-blur-sm text-gray-600 text-sm font-bold py-3.5 rounded-2xl hover:bg-white transition-colors border border-white/60 shadow-sm">취소</button>
-                <button type="submit" disabled={showModal.type === 'post_add' ? (!inputText.trim() || (isCreatingNewCat && !newCategoryName.trim())) : !inputText.trim()} className={`flex-1 text-sm font-bold py-3.5 rounded-2xl transition-all shadow-md border ${(!inputText.trim() || (showModal.type === 'post_add' && isCreatingNewCat && !newCategoryName.trim())) ? 'bg-gray-400/50 text-gray-200 border-transparent cursor-not-allowed' : 'bg-gray-900/90 text-white border-gray-800 hover:bg-black'}`} > 확인 </button>
-              </div>
-            </form>
+
+                    {/* ✅ 커스텀 시네마틱 드롭다운 */}
+                    <div className="relative z-20">
+                      <label className="text-xs font-bold text-gray-500 mb-1.5 block">카테고리 선택</label>
+                      <div className="flex items-center space-x-2 mb-2">
+                        
+                        <div className="relative flex-1">
+                          {/* 투명 백드롭 */}
+                          {isDropdownOpen && !isCreatingNewCat && (
+                            <div className="fixed inset-0 z-40" onClick={() => setIsDropdownOpen(false)}></div>
+                          )}
+                          
+                          <button
+                            type="button"
+                            disabled={isCreatingNewCat}
+                            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                            className={`w-full flex items-center justify-between bg-white/50 border border-white/60 text-gray-800 text-sm font-medium rounded-2xl px-4 py-3.5 outline-none transition-all ${isCreatingNewCat ? 'opacity-50 cursor-not-allowed' : 'hover:bg-white/80 focus:border-blue-400 focus:ring-4 focus:ring-blue-400/20 shadow-inner'}`}
+                          >
+                            <span className="truncate pr-2">
+                              {mediumCats.length === 0 ? '지정 가능한 폴더 없음' : (mediumCats.find(c => c.id === selectedMediumId)?.name || '카테고리 선택')}
+                            </span>
+                            <ChevronDown className={`w-4 h-4 text-gray-500 transition-transform duration-300 shrink-0 ${isDropdownOpen ? 'rotate-180' : ''}`} />
+                          </button>
+
+                          {/* 드롭다운 메뉴 리스트 */}
+                          <div className={`absolute left-0 right-0 top-full mt-2 bg-white/80 backdrop-blur-xl border border-white/60 rounded-2xl shadow-[0_15px_40px_-10px_rgba(0,0,0,0.15)] overflow-hidden transition-all duration-300 z-50 origin-top ${isDropdownOpen && !isCreatingNewCat ? 'opacity-100 scale-100 visible' : 'opacity-0 scale-95 invisible pointer-events-none'}`}>
+                            <div className="max-h-48 overflow-y-auto no-scrollbar py-2">
+                              {mediumCats.map(cat => (
+                                <div
+                                  key={cat.id}
+                                  onClick={() => { setSelectedMediumId(cat.id); setIsDropdownOpen(false); }}
+                                  className={`px-4 py-2.5 text-sm cursor-pointer transition-colors flex items-center space-x-2 ${selectedMediumId === cat.id ? 'bg-blue-50/80 text-blue-700 font-bold' : 'text-gray-700 hover:bg-white hover:text-gray-900 font-medium'}`}
+                                >
+                                  <Folder className={`w-4 h-4 ${selectedMediumId === cat.id ? 'text-blue-500' : 'text-gray-400'}`} />
+                                  <span className="truncate">{cat.name}</span>
+                                </div>
+                              ))}
+                              {mediumCats.length === 0 && (
+                                <div className="px-4 py-3 text-sm text-gray-500 font-medium text-center">폴더가 없습니다.</div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+
+                        <button type="button" onClick={() => setIsCreatingNewCat(!isCreatingNewCat)} className={`px-4 py-3.5 text-xs font-bold rounded-2xl border transition-all shrink-0 ${isCreatingNewCat ? 'bg-blue-600 text-white border-blue-600 shadow-sm' : 'bg-white/70 text-gray-600 border-white/60 hover:bg-white'}`}> {isCreatingNewCat ? '기존 폴더' : '직접 생성'} </button>
+                      </div>
+                      
+                      {isCreatingNewCat && (
+                        <input type="text" value={newCategoryName} onChange={(e) => setNewCategoryName(e.target.value)} maxLength={15} placeholder="새 폴더 이름 입력..." className="w-full bg-white/50 border border-white/60 text-gray-800 text-sm font-medium rounded-2xl px-4 py-3 outline-none focus:bg-white/80 focus:border-blue-400 focus:ring-4 focus:ring-blue-400/20 caret-blue-600 shadow-inner placeholder:text-gray-400 animate-fast-fade" />
+                      )}
+                    </div>
+                  </>
+                ) : (
+                  <input type="text" autoFocus value={inputText} onChange={(e) => setInputText(e.target.value)} maxLength={15} placeholder="이름을 입력하세요..." className="w-full bg-white/50 border border-white/60 text-gray-800 text-sm font-medium rounded-2xl px-4 py-4 outline-none focus:bg-white/80 focus:border-blue-400 focus:ring-4 focus:ring-blue-400/20 caret-blue-600 transition-all duration-300 shadow-inner placeholder:text-gray-400" />
+                )}
+                <div className="flex space-x-3 mt-8">
+                  <button type="button" onClick={() => { setInputText(''); setNewCategoryName(''); setIsDropdownOpen(false); setShowModal({ type: null, targetId: null }); }} className="flex-1 bg-white/70 backdrop-blur-sm text-gray-600 text-sm font-bold py-3.5 rounded-2xl hover:bg-white hover:text-gray-800 transition-colors border border-white/60 shadow-sm">취소</button>
+                  <button 
+                    type="submit" 
+                    disabled={showModal.type === 'post_add' ? (!inputText.trim() || (isCreatingNewCat && !newCategoryName.trim())) : !inputText.trim()}
+                    className={`flex-1 text-sm font-bold py-3.5 rounded-2xl transition-all shadow-md border ${(showModal.type === 'post_add' ? (!inputText.trim() || (isCreatingNewCat && !newCategoryName.trim())) : !inputText.trim()) ? 'bg-gray-400/50 text-gray-200 border-gray-400/30 cursor-not-allowed opacity-60' : 'bg-gray-900/90 backdrop-blur-sm text-white border-gray-800 hover:bg-black hover:shadow-lg'}`}
+                  >
+                    확인
+                  </button>
+                </div>
+              </form>
           </div>
         </div>
       )}
