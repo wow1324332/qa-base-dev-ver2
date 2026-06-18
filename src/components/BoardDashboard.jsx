@@ -215,7 +215,7 @@ export const BoardDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
           <div className="flex items-center space-x-2 text-sm font-semibold text-gray-500">
             <button onClick={() => onNavigate('board')} className="hover:text-blue-600 transition-colors">Functional Board</button>
             <ChevronRight className="w-4 h-4" />
-            <span className="text-gray-900">Board Dashboard</span>
+            <span className="text-gray-900">QA Board</span>
           </div>
         </div>
 
@@ -224,7 +224,7 @@ export const BoardDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
           <div className="w-full max-w-[1600px] mx-auto">
             <div className="flex justify-between items-end mb-8">
               <div>
-                <h1 className="text-3xl font-bold text-gray-800 mb-2">Board Dashboard</h1>
+                <h1 className="text-3xl font-bold text-gray-800 mb-2">QA Board</h1>
                 <p className="text-gray-600 font-medium">팀의 지식과 가이드를 체계적으로 관리하세요.</p>
               </div>
               {user?.role !== 'viewer' && (
@@ -461,7 +461,7 @@ export const BoardDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
           
           <button onClick={() => onNavigate('board')} className="hover:text-blue-600 transition-colors">Functional Board</button>
           <ChevronRight className="w-4 h-4" />
-          <button onClick={() => { setViewState('large_grid'); setActiveLargeId(null); }} className="hover:text-blue-600 transition-colors">Board</button>
+          <button onClick={() => { setViewState('large_grid'); setActiveLargeId(null); }} className="hover:text-blue-600 transition-colors">QA Board</button>
           <ChevronRight className="w-4 h-4" />
           <span className="text-gray-900">{activeLargeName}</span>
         </div>
@@ -469,7 +469,7 @@ export const BoardDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
         <div className="relative">
           <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
           <input 
-            type="text" placeholder="게시글 검색..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
+            type="text" placeholder="Search..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-9 pr-4 py-1.5 bg-gray-100 border-transparent rounded-full text-sm outline-none focus:bg-white focus:border-gray-300 focus:shadow-sm transition-all w-64"
           />
         </div>
@@ -499,7 +499,7 @@ export const BoardDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
                 ${activeMediumId === 'All' && !activePost ? 'bg-blue-50/80 text-blue-700 font-bold shadow-sm' : 'text-gray-600 hover:bg-white/50'}`}
             >
               <LayoutDashboard className="w-4 h-4" />
-              <span className="text-sm font-medium">전체 게시글</span>
+              <span className="text-sm font-medium">All Posts</span>
             </button>
 
             {/* 미디엄 카테고리 트리 */}
@@ -573,7 +573,7 @@ export const BoardDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
                   onClick={() => setShowModal({ type: 'post_add', targetId: activeMediumId === 'All' ? null : activeMediumId })} 
                   className="w-full flex items-center justify-center space-x-2 bg-gray-800/90 text-white px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-gray-900 transition-all shadow-md backdrop-blur-sm"
                 >
-                  <Edit3 className="w-4 h-4" /> <span>새 글 작성</span>
+                  <Edit3 className="w-4 h-4" /> <span>Create Post</span>
                 </button>
               </div>
             )}
@@ -600,7 +600,7 @@ export const BoardDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
           {!activePost && (
             <div className="p-10 overflow-y-auto w-full h-full">
               <h2 className="text-2xl font-bold text-gray-800 mb-6">
-                {activeMediumId === 'All' ? '전체 게시글' : mediumCats.find(m => m.id === activeMediumId)?.name}
+                {activeMediumId === 'All' ? 'All Posts' : mediumCats.find(m => m.id === activeMediumId)?.name}
                 <span className="text-gray-400 text-lg ml-2 font-medium">({filteredPosts.length})</span>
               </h2>
               {/* ✅ 너비를 고정(max-w-[600px])하고 1열 세로 목록(flex-col)으로 변경했습니다. */}
