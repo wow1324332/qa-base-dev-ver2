@@ -664,10 +664,7 @@ export const BoardDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
                         {mediumCats.map(cat => <option key={cat.id} value={cat.id}>{cat.name}</option>)}
                         {mediumCats.length === 0 && <option value="">지정 가능한 폴더 없음</option>}
                       </select>
-                      <button
-                        type="button" onClick={() => setIsCreatingNewCat(!isCreatingNewCat)}
-                        className={`px-4 py-3 text-xs font-bold rounded-2xl border transition-all ${isCreatingNewCat ? 'bg-blue-600 text-white border-blue-600 shadow-sm' : 'bg-white/70 text-gray-600 border-white/60 hover:bg-white'}`}
-                      >
+                      <button type="button" onClick={() => setIsCreatingNewCat(!isCreatingNewCat)} className={`px-4 py-3 text-xs font-bold rounded-2xl border transition-all ${isCreatingNewCat ? 'bg-blue-600 text-white border-blue-600 shadow-sm' : 'bg-white/70 text-gray-600 border-white/60 hover:bg-white'}`}>
                         {isCreatingNewCat ? '기존 폴더' : '직접 생성'}
                       </button>
                     </div>
@@ -700,9 +697,14 @@ export const BoardDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
           </div>
         </div>
       )}
+      
     </div>
   );
 };
+
+// --- 서브 컴포넌트: 게시글 읽기 및 플로팅 에디터 ---
+const PostEditorViewer = ({ post, isEditing, setIsEditing, onClose, onDelete, currentUser, db }) => {
+  const contentRef = useRef(null);
 
 // --- 서브 컴포넌트: 게시글 읽기 및 플로팅 에디터 ---
 const PostEditorViewer = ({ post, isEditing, setIsEditing, onClose, onDelete, currentUser, db }) => {
