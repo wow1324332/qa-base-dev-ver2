@@ -603,10 +603,10 @@ export const BoardDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
               db={db}
             />
           )}
-</main>
+        </main>
       </div>
 
-      {/* ✅ 보드 삭제 확인 시네마틱 모달 */}
+      {/* ✅ 보드 삭제 확인 모달 */}
       {deleteTargetId && (
         <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-md z-[130] flex items-center justify-center animate-fast-fade p-4">
           <div className="bg-white/60 backdrop-blur-2xl rounded-3xl shadow-[0_30px_60px_-15px_rgba(0,0,0,0.3)] p-8 w-full max-w-[380px] border border-white/60 relative overflow-hidden flex flex-col animate-scale-up text-center">
@@ -615,18 +615,16 @@ export const BoardDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
               <Trash2 className="w-8 h-8"/>
             </div>
             <h3 className="text-xl font-bold text-gray-800 mb-2 relative z-10 tracking-tight">보드 삭제</h3>
-            <p className="text-sm text-gray-500 mb-8 relative z-10 font-medium leading-relaxed">
-              이 보드를 정말 삭제하시겠습니까?<br/>내부의 모든 문서가 함께 삭제됩니다.
-            </p>
+            <p className="text-sm text-gray-500 mb-8 relative z-10 font-medium leading-relaxed">이 보드를 정말 삭제하시겠습니까?<br/>내부의 모든 문서가 함께 삭제됩니다.</p>
             <div className="flex space-x-3 relative z-10">
-              <button onClick={() => setDeleteTargetId(null)} className="flex-1 bg-white/70 backdrop-blur-sm text-gray-600 text-sm font-bold py-3.5 rounded-2xl hover:bg-white hover:text-gray-800 transition-colors border border-white/60 shadow-sm">취소</button>
+              <button onClick={() => setDeleteTargetId(null)} className="flex-1 bg-white/70 backdrop-blur-sm text-gray-600 text-sm font-bold py-3.5 rounded-2xl hover:bg-white transition-colors border border-white/60 shadow-sm">취소</button>
               <button onClick={executeDeleteLarge} className="flex-1 bg-red-500/90 backdrop-blur-sm text-white text-sm font-bold py-3.5 rounded-2xl hover:bg-red-600 transition-colors shadow-md border border-red-500 hover:shadow-lg">삭제</button>
             </div>
           </div>
         </div>
       )}
 
-      {/* ✅ 카테고리 설정 분기형 글래스모피즘 모달 */}
+      {/* ✅ 생성/수정/글쓰기 모달 */}
       {showModal.type && (
         <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-md z-[120] flex items-center justify-center animate-fast-fade p-4">
           <div className="bg-white/60 backdrop-blur-2xl rounded-3xl shadow-[0_30px_60px_-15px_rgba(0,0,0,0.3)] p-8 w-full max-w-[420px] border border-white/60 relative overflow-hidden flex flex-col animate-scale-up">
@@ -642,62 +640,38 @@ export const BoardDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
                 <p className="text-xs text-gray-500 mt-1 font-medium">분류 및 정보를 입력해 주세요.</p>
               </div>
             </div>
-            
-            <form id="boardCreateForm" onSubmit={handleCreateSubmit} className="relative z-10 space-y-4">
+            <form onSubmit={handleCreateSubmit} className="relative z-10 space-y-4">
               {showModal.type === 'post_add' ? (
                 <>
                   <div>
                     <label className="text-xs font-bold text-gray-500 mb-1.5 block">게시글 제목</label>
-                    <input 
-                      type="text" autoFocus value={inputText} onChange={(e) => setInputText(e.target.value)}
-                      placeholder="제목을 입력하세요..."
-                      className="w-full bg-white/50 border border-white/60 text-gray-800 text-sm font-medium rounded-2xl px-4 py-3.5 outline-none focus:bg-white/80 focus:border-blue-400 focus:ring-4 focus:ring-blue-400/20 caret-blue-600 transition-all duration-300 shadow-inner placeholder:text-gray-400"
-                    />
+                    <input type="text" autoFocus value={inputText} onChange={(e) => setInputText(e.target.value)} placeholder="제목을 입력하세요..." className="w-full bg-white/50 border border-white/60 text-gray-800 text-sm font-medium rounded-2xl px-4 py-3.5 outline-none focus:border-blue-400 caret-blue-600 transition-all shadow-inner" />
                   </div>
                   <div>
                     <label className="text-xs font-bold text-gray-500 mb-1.5 block">카테고리 선택</label>
                     <div className="flex items-center space-x-2 mb-2">
-                      <select
-                        disabled={isCreatingNewCat} value={selectedMediumId} onChange={(e) => setSelectedMediumId(e.target.value)}
-                        className="flex-1 bg-white/50 border border-white/60 text-gray-800 text-sm font-medium rounded-2xl px-3 py-3 outline-none focus:bg-white/80 focus:border-blue-400 disabled:opacity-50 disabled:cursor-not-allowed transition-all cursor-pointer"
-                      >
+                      <select disabled={isCreatingNewCat} value={selectedMediumId} onChange={(e) => setSelectedMediumId(e.target.value)} className="flex-1 bg-white/50 border border-white/60 text-gray-800 text-sm font-medium rounded-2xl px-3 py-3 outline-none focus:border-blue-400 cursor-pointer" >
                         {mediumCats.map(cat => <option key={cat.id} value={cat.id}>{cat.name}</option>)}
                         {mediumCats.length === 0 && <option value="">지정 가능한 폴더 없음</option>}
                       </select>
-                      <button type="button" onClick={() => setIsCreatingNewCat(!isCreatingNewCat)} className={`px-4 py-3 text-xs font-bold rounded-2xl border transition-all ${isCreatingNewCat ? 'bg-blue-600 text-white border-blue-600 shadow-sm' : 'bg-white/70 text-gray-600 border-white/60 hover:bg-white'}`}>
-                        {isCreatingNewCat ? '기존 폴더' : '직접 생성'}
-                      </button>
+                      <button type="button" onClick={() => setIsCreatingNewCat(!isCreatingNewCat)} className={`px-4 py-3 text-xs font-bold rounded-2xl border transition-all ${isCreatingNewCat ? 'bg-blue-600 text-white border-blue-600' : 'bg-white/70 text-gray-600 border-white/60'}`}> {isCreatingNewCat ? '기존 폴더' : '직접 생성'} </button>
                     </div>
                     {isCreatingNewCat && (
-                      <input 
-                        type="text" value={newCategoryName} onChange={(e) => setNewCategoryName(e.target.value)} maxLength={15}
-                        placeholder="새 폴더(카테고리) 이름 입력..."
-                        className="w-full bg-white/50 border border-white/60 text-gray-800 text-sm font-medium rounded-2xl px-4 py-3 outline-none focus:bg-white/80 focus:border-blue-400 focus:ring-4 focus:ring-blue-400/20 caret-blue-600 shadow-inner placeholder:text-gray-400 animate-fast-fade"
-                      />
+                      <input type="text" value={newCategoryName} onChange={(e) => setNewCategoryName(e.target.value)} maxLength={15} placeholder="새 폴더 이름 입력..." className="w-full bg-white/50 border border-white/60 text-gray-800 text-sm font-medium rounded-2xl px-4 py-3 outline-none focus:border-blue-400 caret-blue-600 shadow-inner animate-fast-fade" />
                     )}
                   </div>
                 </>
               ) : (
-                <input 
-                  type="text" autoFocus value={inputText} onChange={(e) => setInputText(e.target.value)} maxLength={15}
-                  placeholder="이름을 입력하세요..."
-                  className="w-full bg-white/50 border border-white/60 text-gray-800 text-sm font-medium rounded-2xl px-4 py-4 outline-none focus:bg-white/80 focus:border-blue-400 focus:ring-4 focus:ring-blue-400/20 caret-blue-600 transition-all duration-300 shadow-inner placeholder:text-gray-400"
-                />
+                <input type="text" autoFocus value={inputText} onChange={(e) => setInputText(e.target.value)} maxLength={15} placeholder="이름을 입력하세요..." className="w-full bg-white/50 border border-white/60 text-gray-800 text-sm font-medium rounded-2xl px-4 py-4 outline-none focus:border-blue-400 caret-blue-600 transition-all shadow-inner" />
               )}
               <div className="flex space-x-3 mt-8">
-                <button type="button" onClick={() => { setInputText(''); setNewCategoryName(''); setShowModal({ type: null, targetId: null }); }} className="flex-1 bg-white/70 backdrop-blur-sm text-gray-600 text-sm font-bold py-3.5 rounded-2xl hover:bg-white hover:text-gray-800 transition-colors border border-white/60 shadow-sm">취소</button>
-                <button 
-                  type="submit" disabled={showModal.type === 'post_add' ? (!inputText.trim() || (isCreatingNewCat && !newCategoryName.trim())) : !inputText.trim()}
-                  className={`flex-1 text-sm font-bold py-3.5 rounded-2xl transition-all shadow-md border ${(showModal.type === 'post_add' ? (!inputText.trim() || (isCreatingNewCat && !newCategoryName.trim())) : !inputText.trim()) ? 'bg-gray-400/50 text-gray-200 border-gray-400/30 cursor-not-allowed opacity-60' : 'bg-gray-900/90 backdrop-blur-sm text-white border-gray-800 hover:bg-black hover:shadow-lg'}`}
-                >
-                  확인
-                </button>
+                <button type="button" onClick={() => { setInputText(''); setNewCategoryName(''); setShowModal({ type: null, targetId: null }); }} className="flex-1 bg-white/70 backdrop-blur-sm text-gray-600 text-sm font-bold py-3.5 rounded-2xl hover:bg-white transition-colors border border-white/60 shadow-sm">취소</button>
+                <button type="submit" disabled={showModal.type === 'post_add' ? (!inputText.trim() || (isCreatingNewCat && !newCategoryName.trim())) : !inputText.trim()} className={`flex-1 text-sm font-bold py-3.5 rounded-2xl transition-all shadow-md border ${(!inputText.trim() || (showModal.type === 'post_add' && isCreatingNewCat && !newCategoryName.trim())) ? 'bg-gray-400/50 text-gray-200 border-transparent cursor-not-allowed' : 'bg-gray-900/90 text-white border-gray-800 hover:bg-black'}`} > 확인 </button>
               </div>
             </form>
           </div>
         </div>
       )}
-      
     </div>
   );
 };
@@ -705,40 +679,25 @@ export const BoardDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
 // --- 서브 컴포넌트: 게시글 읽기 및 플로팅 에디터 ---
 const PostEditorViewer = ({ post, isEditing, setIsEditing, onClose, onDelete, currentUser, db }) => {
   const contentRef = useRef(null);
-
-// --- 서브 컴포넌트: 게시글 읽기 및 플로팅 에디터 ---
-const PostEditorViewer = ({ post, isEditing, setIsEditing, onClose, onDelete, currentUser, db }) => {
-  const contentRef = useRef(null);
   const [localTitle, setLocalTitle] = useState(post.title);
-  
-  // ✅ 3. 작성자 본인만 편집/삭제 권한 부여
   const isAuthor = currentUser?.id === post.authorId || currentUser?.email === post.authorId;
 
-  // 에디터 명령어
   const execCmd = (cmd, arg = null) => {
     document.execCommand(cmd, false, arg);
     contentRef.current?.focus();
   };
 
-  // 저장 로직
   const handleSave = async () => {
     if (!isAuthor) return;
     const finalContent = contentRef.current ? contentRef.current.innerHTML : post.content;
-    await updateDoc(doc(db, 'boardPosts', post.id), {
-      title: localTitle,
-      content: finalContent,
-      updatedAt: serverTimestamp()
-    });
-    setIsEditing(false); // 저장 후 읽기 모드로 전환
+    await updateDoc(doc(db, 'boardPosts', post.id), { title: localTitle, content: finalContent, updatedAt: serverTimestamp() });
+    setIsEditing(false);
   };
 
   return (
     <div className="flex-1 flex flex-col bg-white overflow-hidden relative">
-      {/* 뷰어 상단 액션바 */}
       <div className="h-14 px-8 flex justify-between items-center border-b border-gray-100 shrink-0">
-        <button onClick={onClose} className="text-gray-400 hover:text-gray-800 text-sm font-semibold flex items-center">
-          <X className="w-4 h-4 mr-1"/> 닫기
-        </button>
+        <button onClick={onClose} className="text-gray-400 hover:text-gray-800 text-sm font-semibold flex items-center"> <X className="w-4 h-4 mr-1"/> 닫기 </button>
         <div className="flex items-center space-x-3">
           {isAuthor && !isEditing && (
             <>
@@ -747,44 +706,21 @@ const PostEditorViewer = ({ post, isEditing, setIsEditing, onClose, onDelete, cu
             </>
           )}
           {isAuthor && isEditing && (
-            <button onClick={handleSave} className="bg-blue-600 text-white px-4 py-1.5 rounded-lg text-sm font-semibold hover:bg-blue-700 shadow-sm flex items-center">
-              <Save className="w-4 h-4 mr-1.5"/> 저장
-            </button>
+            <button onClick={handleSave} className="bg-blue-600 text-white px-4 py-1.5 rounded-lg text-sm font-semibold hover:bg-blue-700 shadow-sm flex items-center"> <Save className="w-4 h-4 mr-1.5"/> 저장 </button>
           )}
-          {!isAuthor && (
-            <span className="text-xs text-gray-400 bg-gray-100 px-3 py-1 rounded-full">읽기 전용 (작성자: {post.authorName})</span>
-          )}
+          {!isAuthor && <span className="text-xs text-gray-400 bg-gray-100 px-3 py-1 rounded-full">읽기 전용 (작성자: {post.authorName})</span>}
         </div>
       </div>
-
-      {/* 본문 영역 */}
       <div className="flex-1 overflow-y-auto no-scrollbar pb-32">
         <div className="max-w-3xl mx-auto py-12 px-8">
-          
           {isEditing ? (
-            <input 
-              type="text" value={localTitle} onChange={(e) => setLocalTitle(e.target.value)}
-              className="w-full bg-transparent outline-none font-black text-4xl text-gray-900 mb-8 border-b border-dashed border-gray-300 pb-4 focus:border-blue-500"
-              placeholder="제목을 입력하세요"
-            />
+            <input type="text" value={localTitle} onChange={(e) => setLocalTitle(e.target.value)} className="w-full bg-transparent outline-none font-black text-4xl text-gray-900 mb-8 border-b border-dashed border-gray-300 pb-4 focus:border-blue-500" placeholder="제목을 입력하세요" />
           ) : (
             <h1 className="font-black text-4xl text-gray-900 mb-8 pb-4 border-b border-gray-100">{post.title}</h1>
           )}
-
-          <div 
-            ref={contentRef}
-            contentEditable={isEditing}
-            suppressContentEditableWarning
-            spellCheck={false}
-            data-placeholder={isEditing ? "내용을 작성하세요..." : ""}
-            className={`outline-none text-base leading-loose min-h-[500px] text-gray-800
-              ${isEditing ? 'cursor-text empty:before:content-[attr(data-placeholder)] empty:before:text-gray-300' : 'cursor-default'}`}
-            dangerouslySetInnerHTML={{ __html: post.content || '' }}
-          />
+          <div ref={contentRef} contentEditable={isEditing} suppressContentEditableWarning spellCheck={false} data-placeholder={isEditing ? "내용을 작성하세요..." : ""} className={`outline-none text-base leading-loose min-h-[500px] text-gray-800 ${isEditing ? 'cursor-text empty:before:content-[attr(data-placeholder)] empty:before:text-gray-300' : 'cursor-default'}`} dangerouslySetInnerHTML={{ __html: post.content || '' }} />
         </div>
       </div>
-
-      {/* 플로팅 에디터 툴바 (편집 모드일 때만, 그리고 하단 중앙에 메모앱과 동일한 디자인으로 등장) */}
       {isEditing && (
         <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center space-x-1 bg-white/95 backdrop-blur-md px-4 py-2 rounded-full shadow-[0_10px_40px_rgba(0,0,0,0.15)] border border-gray-200/80 animate-scale-up">
           <button onClick={() => execCmd('bold')} className="p-2 rounded-full hover:bg-gray-100 text-gray-700 transition-colors" title="굵게"><Bold className="w-4 h-4" /></button>
