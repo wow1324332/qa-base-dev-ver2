@@ -28,10 +28,24 @@ export const BoardDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
   const [showModal, setShowModal] = useState({ type: null, targetId: null }); // type: 'large', 'medium', 'post_add'
   const [inputText, setInputText] = useState('');
 
+// ✅ 새 글 작성 모달 내 카테고리 선택/생성을 위한 상태 추가
+  const [selectedMediumId, setSelectedMediumId] = useState('');
+  const [isCreatingNewCat, setIsCreatingNewCat] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState('');
+
   // ✅ 1. 여기에 롱프레스를 위한 상태 및 타이머를 추가합니다!
   const [activeCardId, setActiveCardId] = useState(null);
   const pressTimer = useRef(null);
 
+  // ✅ 버그 방지: 모달 열릴 때 카테고리 선택 상태 초기화
+  useEffect(() => {
+    if (showModal.type === 'post_add') {
+      setSelectedMediumId(showModal.targetId || mediumCats[0]?.id || '');
+      setIsCreatingNewCat(false);
+      setNewCategoryName('');
+    }
+  }, [showModal, mediumCats]);
+  
   // --- 데이터 구독 ---
   useEffect(() => {
     if (!user) return;
@@ -67,15 +81,30 @@ export const BoardDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
 
     if (showModal.type === 'large') {
       await addDoc(collection(db, 'boardLargeCategories'), { name: inputText, createdAt: serverTimestamp(), authorId: user.id || user.email });
-    } else if (showModal.type === 'edit_large') { // ✅ 보드 이름 수정 로직 추가
+    } else if (showModal.type === 'edit_large') {
       await updateDoc(doc(db, 'boardLargeCategories', showModal.targetId), { name: inputText, updatedAt: serverTimestamp() });
     } else if (showModal.type === 'medium') {
       await addDoc(collection(db, 'boardMediumCategories'), { largeId: activeLargeId, name: inputText, createdAt: serverTimestamp(), authorId: user.id || user.email });
     } else if (showModal.type === 'post_add') {
-      // 새 게시글 작성 시작
+      
+      // ✅ [카테고리 동적 처리] 새 카테고리를 직접 입력해 생성하는 경우 처리
+      let targetMediumId = selectedMediumId;
+      if (isCreatingNewCat && newCategoryName.trim()) {
+        const newCatRef = await addDoc(collection(db, 'boardMediumCategories'), {
+          largeId: activeLargeId,
+          name: newCategoryName.trim(),
+          createdAt: serverTimestamp(),
+          authorId: user.id || user.email
+        });
+        targetMediumId = newCatRef.id; // 신규 생성된 카테고리 ID 할당
+      }
+
+      if (!targetMediumId) targetMediumId = 'Uncategorized';
+
+      // 게시글 생성
       const newPostRef = await addDoc(collection(db, 'boardPosts'), {
         largeId: activeLargeId,
-        mediumId: showModal.targetId || mediumCats[0]?.id || 'Uncategorized', // 특정 미디엄 카테고리 지정
+        mediumId: targetMediumId, // ✅ 동적으로 매핑된 카테고리 ID 주입
         title: inputText,
         content: '',
         authorId: user.id || user.email,
@@ -83,12 +112,13 @@ export const BoardDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp()
       });
-      const newPost = { id: newPostRef.id, largeId: activeLargeId, mediumId: showModal.targetId, title: inputText, content: '', authorId: user.id || user.email };
+      const newPost = { id: newPostRef.id, largeId: activeLargeId, mediumId: targetMediumId, title: inputText, content: '', authorId: user.id || user.email };
       setActivePost(newPost);
-      setIsEditing(true); // 바로 편집 모드로 진입
+      setIsEditing(true);
     }
     
     setInputText('');
+    setNewCategoryName('');
     setShowModal({ type: null, targetId: null });
   };
 
@@ -276,7 +306,7 @@ export const BoardDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
           </div>
         )}
         
-        {/* 생성 모달 (공용) */}
+{/* ✅ 업그레이드 된 카테고리 설정 분기형 글래스모피즘 모달 */}
         {showModal.type && (
           <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-md z-[120] flex items-center justify-center animate-fast-fade p-4">
             <div className="bg-white/60 backdrop-blur-2xl rounded-3xl shadow-[0_30px_60px_-15px_rgba(0,0,0,0.3)] p-8 w-full max-w-[420px] border border-white/60 relative overflow-hidden flex flex-col animate-scale-up">
@@ -291,24 +321,78 @@ export const BoardDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
                   <h3 className="text-xl font-bold text-gray-800 tracking-tight">
                     {showModal.type === 'large' ? '새 보드 생성' : showModal.type === 'edit_large' ? '보드 이름 수정' : showModal.type === 'medium' ? '새 폴더 생성' : '새 게시글 작성'}
                   </h3>
-                  <p className="text-xs text-gray-500 mt-1 font-medium">이름을 입력하고 등록해주세요. (최대 15자)</p>
+                  <p className="text-xs text-gray-500 mt-1 font-medium">분류 및 정보를 입력해 주세요.</p>
                 </div>
               </div>
               
-              <form id="boardCreateForm" onSubmit={handleCreateSubmit} className="relative z-10">
-                <input 
-                  type="text" autoFocus value={inputText} onChange={(e) => setInputText(e.target.value)}
-                  maxLength={15} // ✅ 글자수 15자 제한
-                  placeholder={showModal.type === 'post_add' ? "게시글 제목 입력..." : "이름을 입력하세요..."}
-                  className="w-full bg-white/50 border border-white/60 text-gray-800 text-sm font-medium rounded-2xl px-4 py-4 outline-none focus:bg-white/80 focus:border-blue-400 focus:ring-4 focus:ring-blue-400/20 caret-blue-600 transition-all duration-300 shadow-inner placeholder:text-gray-400"
-                />
+              <form id="boardCreateForm" onSubmit={handleCreateSubmit} className="relative z-10 space-y-4">
+                {showModal.type === 'post_add' ? (
+                  <>
+                    {/* 게시글 제목 */}
+                    <div>
+                      <label className="text-xs font-bold text-gray-500 mb-1.5 block">게시글 제목</label>
+                      <input 
+                        type="text" autoFocus value={inputText} onChange={(e) => setInputText(e.target.value)}
+                        placeholder="제목을 입력하세요..."
+                        className="w-full bg-white/50 border border-white/60 text-gray-800 text-sm font-medium rounded-2xl px-4 py-3.5 outline-none focus:bg-white/80 focus:border-blue-400 focus:ring-4 focus:ring-blue-400/20 caret-blue-600 transition-all duration-300 shadow-inner placeholder:text-gray-400"
+                      />
+                    </div>
+
+                    {/* 카테고리 분류 및 직접 생성 토글 */}
+                    <div>
+                      <label className="text-xs font-bold text-gray-500 mb-1.5 block">카테고리 선택</label>
+                      <div className="flex items-center space-x-2 mb-2">
+                        <select
+                          disabled={isCreatingNewCat}
+                          value={selectedMediumId}
+                          onChange={(e) => setSelectedMediumId(e.target.value)}
+                          className="flex-1 bg-white/50 border border-white/60 text-gray-800 text-sm font-medium rounded-2xl px-3 py-3 outline-none focus:bg-white/80 focus:border-blue-400 disabled:opacity-50 disabled:cursor-not-allowed transition-all cursor-pointer"
+                        >
+                          {mediumCats.map(cat => (
+                            <option key={cat.id} value={cat.id}>{cat.name}</option>
+                          ))}
+                          {mediumCats.length === 0 && <option value="">지정 가능한 폴더 없음</option>}
+                        </select>
+                        
+                        <button
+                          type="button"
+                          onClick={() => setIsCreatingNewCat(!isCreatingNewCat)}
+                          className={`px-4 py-3 text-xs font-bold rounded-2xl border transition-all ${isCreatingNewCat ? 'bg-blue-600 text-white border-blue-600 shadow-sm' : 'bg-white/70 text-gray-600 border-white/60 hover:bg-white'}`}
+                        >
+                          {isCreatingNewCat ? '기존 폴더' : '직접 생성'}
+                        </button>
+                      </div>
+
+                      {/* 직접 생성 선택 시 등장하는 입력창 */}
+                      {isCreatingNewCat && (
+                        <input 
+                          type="text" value={newCategoryName} onChange={(e) => setNewCategoryName(e.target.value)}
+                          maxLength={15}
+                          placeholder="새 폴der(카테고리) 이름 입력..."
+                          className="w-full bg-white/50 border border-white/60 text-gray-800 text-sm font-medium rounded-2xl px-4 py-3 outline-none focus:bg-white/80 focus:border-blue-400 focus:ring-4 focus:ring-blue-400/20 caret-blue-600 shadow-inner placeholder:text-gray-400 animate-fast-fade"
+                        />
+                      )}
+                    </div>
+                  </>
+                ) : (
+                  /* 기존의 단일 필드 모달 (보드 생성, 수정 등) */
+                  <input 
+                    type="text" autoFocus value={inputText} onChange={(e) => setInputText(e.target.value)}
+                    maxLength={15}
+                    placeholder="이름을 입력하세요..."
+                    className="w-full bg-white/50 border border-white/60 text-gray-800 text-sm font-medium rounded-2xl px-4 py-4 outline-none focus:bg-white/80 focus:border-blue-400 focus:ring-4 focus:ring-blue-400/20 caret-blue-600 transition-all duration-300 shadow-inner placeholder:text-gray-400"
+                  />
+                )}
+
+                {/* 하단 제어 버튼 (동적 비활성화 유효성 검사 적용) */}
                 <div className="flex space-x-3 mt-8">
-                  <button type="button" onClick={() => { setInputText(''); setShowModal({ type: null, targetId: null }); }} className="flex-1 bg-white/70 backdrop-blur-sm text-gray-600 text-sm font-bold py-3.5 rounded-2xl hover:bg-white hover:text-gray-800 transition-colors border border-white/60 shadow-sm">취소</button>
+                  <button type="button" onClick={() => { setInputText(''); setNewCategoryName(''); setShowModal({ type: null, targetId: null }); }} className="flex-1 bg-white/70 backdrop-blur-sm text-gray-600 text-sm font-bold py-3.5 rounded-2xl hover:bg-white hover:text-gray-800 transition-colors border border-white/60 shadow-sm">취소</button>
                   <button 
                     type="submit" 
-                    disabled={!inputText.trim()} // ✅ 미입력 시 기능 비활성화
+                    // ✅ 조건별 확인 버튼 활성/비활성 처리
+                    disabled={showModal.type === 'post_add' ? (!inputText.trim() || (isCreatingNewCat && !newCategoryName.trim())) : !inputText.trim()}
                     className={`flex-1 text-sm font-bold py-3.5 rounded-2xl transition-all shadow-md border 
-                      ${!inputText.trim() ? 'bg-gray-400/50 text-gray-200 border-gray-400/30 cursor-not-allowed opacity-60' : 'bg-gray-900/90 backdrop-blur-sm text-white border-gray-800 hover:bg-black hover:shadow-lg'}`}
+                      ${(showModal.type === 'post_add' ? (!inputText.trim() || (isCreatingNewCat && !newCategoryName.trim())) : !inputText.trim()) ? 'bg-gray-400/50 text-gray-200 border-gray-400/30 cursor-not-allowed opacity-60' : 'bg-gray-900/90 backdrop-blur-sm text-white border-gray-800 hover:bg-black hover:shadow-lg'}`}
                   >
                     확인
                   </button>
@@ -318,9 +402,6 @@ export const BoardDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
             </div>
           </div>
         )}
-      </div>
-    );
-  }
 
   // =========================================================================
   // VIEW 2: 대분류 상세 보드 (사이드바 + 게시글 목록/에디터)
@@ -525,53 +606,102 @@ export const BoardDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
         </main>
       </div>
 
-      {/* 생성 모달 (공용) 중복 코드 재활용 */}
-      {showModal.type && (
+{/* ✅ 업그레이드 된 카테고리 설정 분기형 글래스모피즘 모달 */}
+        {showModal.type && (
           <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-md z-[120] flex items-center justify-center animate-fast-fade p-4">
-            
-            {/* 1. 글래스모피즘 컨테이너: 배경 투명도 낮춤(bg-white/60), 블러 강화(backdrop-blur-2xl) */}
             <div className="bg-white/60 backdrop-blur-2xl rounded-3xl shadow-[0_30px_60px_-15px_rgba(0,0,0,0.3)] p-8 w-full max-w-[420px] border border-white/60 relative overflow-hidden flex flex-col animate-scale-up">
               
-              {/* 장식용 그라데이션 배경 효과 */}
               <div className="absolute -top-24 -right-24 w-48 h-48 bg-blue-500/20 rounded-full blur-3xl pointer-events-none"></div>
-              
-              {/* ❌ 닫기(X) 버튼은 요청하신 대로 깔끔하게 제거되었습니다! */}
               
               <div className="flex items-center mb-6 relative z-10">
                 <div className="w-12 h-12 bg-white/80 text-gray-700 rounded-2xl flex items-center justify-center mr-4 shadow-sm border border-white/50 backdrop-blur-sm">
-                  {showModal.type === 'large' ? <LayoutDashboard className="w-6 h-6"/> : showModal.type === 'medium' ? <Folder className="w-6 h-6"/> : <FileText className="w-6 h-6"/>}
+                  {showModal.type === 'large' || showModal.type === 'edit_large' ? <LayoutDashboard className="w-6 h-6"/> : showModal.type === 'medium' ? <Folder className="w-6 h-6"/> : <FileText className="w-6 h-6"/>}
                 </div>
                 <div>
                   <h3 className="text-xl font-bold text-gray-800 tracking-tight">
-                    {showModal.type === 'large' ? '새 보드 생성' : showModal.type === 'medium' ? '새 폴더 생성' : '새 게시글 작성'}
+                    {showModal.type === 'large' ? '새 보드 생성' : showModal.type === 'edit_large' ? '보드 이름 수정' : showModal.type === 'medium' ? '새 폴더 생성' : '새 게시글 작성'}
                   </h3>
-                  <p className="text-xs text-gray-500 mt-1 font-medium">이름을 입력하고 등록해주세요.</p>
+                  <p className="text-xs text-gray-500 mt-1 font-medium">분류 및 정보를 입력해 주세요.</p>
                 </div>
               </div>
               
-              <form id="boardCreateForm" onSubmit={handleCreateSubmit} className="relative z-10">
-                <input 
-                  type="text" autoFocus value={inputText} onChange={(e) => setInputText(e.target.value)}
-                  placeholder={showModal.type === 'post_add' ? "게시글 제목 입력..." : "이름을 입력하세요..."}
-                  // ✅ 2. 시네마틱 입력창: 
-                  // 칙칙한 검정 테두리(focus:border-gray-800) 제거
-                  // 은은한 블루 포커스 링(focus:ring-4 focus:ring-blue-400/20) 및 파란색 깜빡임 커서(caret-blue-600) 적용
-                  className="w-full bg-white/50 border border-white/60 text-gray-800 text-sm font-medium rounded-2xl px-4 py-4 outline-none focus:bg-white/80 focus:border-blue-400 focus:ring-4 focus:ring-blue-400/20 caret-blue-600 transition-all duration-300 shadow-inner placeholder:text-gray-400"
-                />
+              <form id="boardCreateForm" onSubmit={handleCreateSubmit} className="relative z-10 space-y-4">
+                {showModal.type === 'post_add' ? (
+                  <>
+                    {/* 게시글 제목 */}
+                    <div>
+                      <label className="text-xs font-bold text-gray-500 mb-1.5 block">게시글 제목</label>
+                      <input 
+                        type="text" autoFocus value={inputText} onChange={(e) => setInputText(e.target.value)}
+                        placeholder="제목을 입력하세요..."
+                        className="w-full bg-white/50 border border-white/60 text-gray-800 text-sm font-medium rounded-2xl px-4 py-3.5 outline-none focus:bg-white/80 focus:border-blue-400 focus:ring-4 focus:ring-blue-400/20 caret-blue-600 transition-all duration-300 shadow-inner placeholder:text-gray-400"
+                      />
+                    </div>
+
+                    {/* 카테고리 분류 및 직접 생성 토글 */}
+                    <div>
+                      <label className="text-xs font-bold text-gray-500 mb-1.5 block">카테고리 선택</label>
+                      <div className="flex items-center space-x-2 mb-2">
+                        <select
+                          disabled={isCreatingNewCat}
+                          value={selectedMediumId}
+                          onChange={(e) => setSelectedMediumId(e.target.value)}
+                          className="flex-1 bg-white/50 border border-white/60 text-gray-800 text-sm font-medium rounded-2xl px-3 py-3 outline-none focus:bg-white/80 focus:border-blue-400 disabled:opacity-50 disabled:cursor-not-allowed transition-all cursor-pointer"
+                        >
+                          {mediumCats.map(cat => (
+                            <option key={cat.id} value={cat.id}>{cat.name}</option>
+                          ))}
+                          {mediumCats.length === 0 && <option value="">지정 가능한 폴더 없음</option>}
+                        </select>
+                        
+                        <button
+                          type="button"
+                          onClick={() => setIsCreatingNewCat(!isCreatingNewCat)}
+                          className={`px-4 py-3 text-xs font-bold rounded-2xl border transition-all ${isCreatingNewCat ? 'bg-blue-600 text-white border-blue-600 shadow-sm' : 'bg-white/70 text-gray-600 border-white/60 hover:bg-white'}`}
+                        >
+                          {isCreatingNewCat ? '기존 폴더' : '직접 생성'}
+                        </button>
+                      </div>
+
+                      {/* 직접 생성 선택 시 등장하는 입력창 */}
+                      {isCreatingNewCat && (
+                        <input 
+                          type="text" value={newCategoryName} onChange={(e) => setNewCategoryName(e.target.value)}
+                          maxLength={15}
+                          placeholder="새 폴der(카테고리) 이름 입력..."
+                          className="w-full bg-white/50 border border-white/60 text-gray-800 text-sm font-medium rounded-2xl px-4 py-3 outline-none focus:bg-white/80 focus:border-blue-400 focus:ring-4 focus:ring-blue-400/20 caret-blue-600 shadow-inner placeholder:text-gray-400 animate-fast-fade"
+                        />
+                      )}
+                    </div>
+                  </>
+                ) : (
+                  /* 기존의 단일 필드 모달 (보드 생성, 수정 등) */
+                  <input 
+                    type="text" autoFocus value={inputText} onChange={(e) => setInputText(e.target.value)}
+                    maxLength={15}
+                    placeholder="이름을 입력하세요..."
+                    className="w-full bg-white/50 border border-white/60 text-gray-800 text-sm font-medium rounded-2xl px-4 py-4 outline-none focus:bg-white/80 focus:border-blue-400 focus:ring-4 focus:ring-blue-400/20 caret-blue-600 transition-all duration-300 shadow-inner placeholder:text-gray-400"
+                  />
+                )}
+
+                {/* 하단 제어 버튼 (동적 비활성화 유효성 검사 적용) */}
                 <div className="flex space-x-3 mt-8">
-                  {/* 취소/확인 버튼도 글래스모피즘 컨셉에 맞춰 부드럽게 튜닝했습니다. */}
-                  <button type="button" onClick={() => setShowModal({ type: null, targetId: null })} className="flex-1 bg-white/70 backdrop-blur-sm text-gray-600 text-sm font-bold py-3.5 rounded-2xl hover:bg-white hover:text-gray-800 transition-colors border border-white/60 shadow-sm">취소</button>
-                  <button type="submit" className="flex-1 bg-gray-900/90 backdrop-blur-sm text-white text-sm font-bold py-3.5 rounded-2xl hover:bg-black transition-colors shadow-md border border-gray-800 hover:shadow-lg">확인</button>
+                  <button type="button" onClick={() => { setInputText(''); setNewCategoryName(''); setShowModal({ type: null, targetId: null }); }} className="flex-1 bg-white/70 backdrop-blur-sm text-gray-600 text-sm font-bold py-3.5 rounded-2xl hover:bg-white hover:text-gray-800 transition-colors border border-white/60 shadow-sm">취소</button>
+                  <button 
+                    type="submit" 
+                    // ✅ 조건별 확인 버튼 활성/비활성 처리
+                    disabled={showModal.type === 'post_add' ? (!inputText.trim() || (isCreatingNewCat && !newCategoryName.trim())) : !inputText.trim()}
+                    className={`flex-1 text-sm font-bold py-3.5 rounded-2xl transition-all shadow-md border 
+                      ${(showModal.type === 'post_add' ? (!inputText.trim() || (isCreatingNewCat && !newCategoryName.trim())) : !inputText.trim()) ? 'bg-gray-400/50 text-gray-200 border-gray-400/30 cursor-not-allowed opacity-60' : 'bg-gray-900/90 backdrop-blur-sm text-white border-gray-800 hover:bg-black hover:shadow-lg'}`}
+                  >
+                    확인
+                  </button>
                 </div>
               </form>
               
             </div>
           </div>
         )}
-
-    </div>
-  );
-};
 
 // --- 서브 컴포넌트: 게시글 읽기 및 플로팅 에디터 ---
 const PostEditorViewer = ({ post, isEditing, setIsEditing, onClose, onDelete, currentUser, db }) => {
