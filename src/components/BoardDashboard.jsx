@@ -181,7 +181,7 @@ export const BoardDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
                 <p className="text-gray-600 font-medium">팀의 지식과 가이드를 체계적으로 관리하세요.</p>
               </div>
               <button 
-                onClick={() => setShowModal({ type: 'large', targetId: null })}
+                onClick={() => { setInputText(''); setShowModal({ type: 'large', targetId: null }); }}
                 className="bg-gray-800 text-white px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-gray-900 transition-all shadow-md flex items-center hover-breath"
               >
                 <Plus className="w-4 h-4 mr-2" /> 새 보드 생성
@@ -193,7 +193,7 @@ export const BoardDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
               <div className="fixed inset-0 z-10" onClick={() => setActiveCardId(null)}></div>
             )}
             
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6 relative z-20">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6 relative z-20">
               {largeCats.map(cat => (
                 <div 
                   key={cat.id} 
@@ -295,7 +295,7 @@ export const BoardDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
                   className="w-full bg-white/50 border border-white/60 text-gray-800 text-sm font-medium rounded-2xl px-4 py-4 outline-none focus:bg-white/80 focus:border-blue-400 focus:ring-4 focus:ring-blue-400/20 caret-blue-600 transition-all duration-300 shadow-inner placeholder:text-gray-400"
                 />
                 <div className="flex space-x-3 mt-8">
-                  <button type="button" onClick={() => setShowModal({ type: null, targetId: null })} className="flex-1 bg-white/70 backdrop-blur-sm text-gray-600 text-sm font-bold py-3.5 rounded-2xl hover:bg-white hover:text-gray-800 transition-colors border border-white/60 shadow-sm">취소</button>
+                  <button type="button" onClick={() => { setInputText(''); setShowModal({ type: null, targetId: null }); }} className="flex-1 bg-white/70 backdrop-blur-sm text-gray-600 text-sm font-bold py-3.5 rounded-2xl hover:bg-white hover:text-gray-800 transition-colors border border-white/60 shadow-sm">취소</button>
                   <button 
                     type="submit" 
                     disabled={!inputText.trim()} // ✅ 미입력 시 기능 비활성화
