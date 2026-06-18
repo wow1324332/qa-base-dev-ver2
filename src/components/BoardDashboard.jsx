@@ -156,11 +156,17 @@ export const BoardDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
     if (pressTimer.current) clearTimeout(pressTimer.current);
   };
 
-  const handleDeletePost = async (postId) => {
-    if (window.confirm('이 게시글을 삭제하시겠습니까?')) {
-      await deleteDoc(doc(db, 'boardPosts', postId));
-      setActivePost(null);
-    }
+  const [postDeleteTargetId, setPostDeleteTargetId] = useState(null);
+
+  const handleDeletePost = (postId) => {
+    setPostDeleteTargetId(postId);
+  };
+
+  const executeDeletePost = async () => {
+    if (!postDeleteTargetId) return;
+    await deleteDoc(doc(db, 'boardPosts', postDeleteTargetId));
+    setPostDeleteTargetId(null);
+    setActivePost(null);
   };
 
   // --- UI 렌더링 헬퍼 ---
@@ -221,12 +227,14 @@ export const BoardDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
                 <h1 className="text-3xl font-bold text-gray-800 mb-2">Board Dashboard</h1>
                 <p className="text-gray-600 font-medium">팀의 지식과 가이드를 체계적으로 관리하세요.</p>
               </div>
-              <button 
-                onClick={() => { setInputText(''); setShowModal({ type: 'large', targetId: null }); }}
-                className="bg-gray-800 text-white px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-gray-900 transition-all shadow-md flex items-center hover-breath"
-              >
-                <Plus className="w-4 h-4 mr-2" /> 새 보드 생성
-              </button>
+              {user?.role !== 'viewer' && (
+                <button 
+                  onClick={() => { setInputText(''); setShowModal({ type: 'large', targetId: null }); }}
+                  className="bg-gray-800 text-white px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-gray-900 transition-all shadow-md flex items-center hover-breath"
+                >
+                  <Plus className="w-4 h-4 mr-2" /> 새 보드 생성
+                </button>
+              )}
             </div>
 
             {/* ✅ 카드 영역 (기능 보드와 동일한 시네마틱 디자인 적용) */}
@@ -238,10 +246,10 @@ export const BoardDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
               {largeCats.map(cat => (
                 <div 
                   key={cat.id} 
-                  onMouseDown={() => handlePressStart(cat.id)}
+                  onMouseDown={() => { if (user?.role !== 'viewer') handlePressStart(cat.id); }}
                   onMouseUp={handlePressEnd}
                   onMouseLeave={handlePressEnd}
-                  onTouchStart={() => handlePressStart(cat.id)}
+                  onTouchStart={() => { if (user?.role !== 'viewer') handlePressStart(cat.id); }}
                   onTouchEnd={handlePressEnd}
                   onClick={() => { 
                     if (activeCardId === cat.id) return;
@@ -479,7 +487,9 @@ export const BoardDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
           <div className="p-5 overflow-y-auto no-scrollbar w-64 flex-1 flex flex-col">
             <div className="flex items-center justify-between mb-4 px-1">
               <span className="text-xs font-bold text-gray-400 tracking-wider">FOLDERS</span>
-              <button onClick={() => setShowModal({ type: 'medium', targetId: null })} className="text-gray-400 hover:text-gray-800 transition-colors"><Plus className="w-4 h-4" /></button>
+              {user?.role !== 'viewer' && (
+                <button onClick={() => setShowModal({ type: 'medium', targetId: null })} className="text-gray-400 hover:text-gray-800 transition-colors"><Plus className="w-4 h-4" /></button>
+              )}
             </div>
             
             {/* 전체 게시글 버튼 */}
@@ -522,9 +532,11 @@ export const BoardDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
 
                       {/* 2. 우측 아이콘 영역 (글쓰기 & 드롭다운 토글) */}
                       <div className="flex items-center space-x-1 shrink-0">
-                        <button onClick={(e) => { e.stopPropagation(); setShowModal({ type: 'post_add', targetId: mCat.id }); }} className="opacity-0 group-hover:opacity-100 p-1 text-gray-400 hover:text-blue-600 transition-opacity" title="이 폴더에 글쓰기">
-                          <Plus className="w-3.5 h-3.5" />
-                        </button>
+                        {user?.role !== 'viewer' && (
+                          <button onClick={(e) => { e.stopPropagation(); setShowModal({ type: 'post_add', targetId: mCat.id }); }} className="opacity-0 group-hover:opacity-100 p-1 text-gray-400 hover:text-blue-600 transition-opacity" title="이 폴더에 글쓰기">
+                            <Plus className="w-3.5 h-3.5" />
+                          </button>
+                        )}
                         
                         {/* 👇 드롭다운 영역: toggleFolder 이벤트 연결! */}
                         <div onClick={(e) => toggleFolder(e, mCat.id)} className="p-1 cursor-pointer text-gray-400 hover:text-gray-800 hover:bg-gray-200/50 rounded-md transition-all">
@@ -555,14 +567,16 @@ export const BoardDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
             </div>
 
             {/* 새 글 작성 버튼 (목록과 즐겨찾기 사이) */}
-            <div className="pt-3 border-t border-gray-200/50">
-              <button 
-                onClick={() => setShowModal({ type: 'post_add', targetId: activeMediumId === 'All' ? null : activeMediumId })} 
-                className="w-full flex items-center justify-center space-x-2 bg-gray-800/90 text-white px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-gray-900 transition-all shadow-md backdrop-blur-sm"
-              >
-                <Edit3 className="w-4 h-4" /> <span>새 글 작성</span>
-              </button>
-            </div>
+            {user?.role !== 'viewer' && (
+              <div className="pt-3 border-t border-gray-200/50">
+                <button 
+                  onClick={() => setShowModal({ type: 'post_add', targetId: activeMediumId === 'All' ? null : activeMediumId })} 
+                  className="w-full flex items-center justify-center space-x-2 bg-gray-800/90 text-white px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-gray-900 transition-all shadow-md backdrop-blur-sm"
+                >
+                  <Edit3 className="w-4 h-4" /> <span>새 글 작성</span>
+                </button>
+              </div>
+            )}
           </div>
           
           {/* 하단 즐겨찾기 컴포넌트 연결 */}
@@ -651,6 +665,24 @@ export const BoardDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
         </div>
       )}
 
+      {/* ✅ 신설된 게시글(문서) 전용 삭제 확인 시네마틱 모달 */}
+      {postDeleteTargetId && (
+        <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-md z-[140] flex items-center justify-center animate-fast-fade p-4">
+          <div className="bg-white/60 backdrop-blur-2xl rounded-3xl shadow-[0_30px_60px_-15px_rgba(0,0,0,0.3)] p-8 w-full max-w-[380px] flex flex-col relative text-center animate-scale-up">
+            <div className="absolute -top-24 -right-24 w-48 h-48 bg-red-500/10 rounded-full blur-3xl pointer-events-none"></div>
+            <div className="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-5 shadow-sm border border-red-100/50 backdrop-blur-sm relative z-10">
+              <Trash2 className="w-7 h-7"/>
+            </div>
+            <h3 className="text-xl font-bold text-gray-800 mb-2 relative z-10 tracking-tight">게시글 삭제</h3>
+            <p className="text-sm text-gray-500 mb-8 relative z-10 font-medium leading-relaxed">이 문서를 정말 삭제하시겠습니까?<br/>삭제된 데이터는 복구할 수 없습니다.</p>
+            <div className="flex space-x-3 relative z-10">
+              <button type="button" onClick={() => setPostDeleteTargetId(null)} className="flex-1 bg-white/70 backdrop-blur-sm text-gray-600 text-sm font-bold py-3.5 rounded-2xl hover:bg-white transition-colors border border-white/60 shadow-sm">취소</button>
+              <button type="button" onClick={executeDeletePost} className="flex-1 bg-red-500/90 backdrop-blur-sm text-white text-sm font-bold py-3.5 rounded-2xl hover:bg-red-600 transition-colors shadow-md border border-red-500 hover:shadow-lg">삭제</button>
+            </div>
+          </div>
+        </div>
+      )}
+      
       {/* ✅ 생성/수정/글쓰기 모달 */}
       {showModal.type && (
         <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-md z-[120] flex items-center justify-center animate-fast-fade p-4">
@@ -756,7 +788,7 @@ export const BoardDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
   const PostEditorViewer = ({ post, isEditing, setIsEditing, onClose, onDelete, currentUser, db }) => {
   const contentRef = useRef(null);
   const [localTitle, setLocalTitle] = useState(post.title);
-  const isAuthor = currentUser?.id === post.authorId || currentUser?.email === post.authorId;
+  const isAuthor = currentUser?.role !== 'viewer' && (currentUser?.id === post.authorId || currentUser?.email === post.authorId);
 
   // ✅ [추가됨] 폰트, 색상 등 드롭다운 메뉴가 열려있는지 기억하는 상태값
   const [activeMenu, setActiveMenu] = useState(null);
