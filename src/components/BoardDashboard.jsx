@@ -28,6 +28,10 @@ export const BoardDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
   const [showModal, setShowModal] = useState({ type: null, targetId: null }); // type: 'large', 'medium', 'post_add'
   const [inputText, setInputText] = useState('');
 
+  // ✅ 1. 여기에 롱프레스를 위한 상태 및 타이머를 추가합니다!
+  const [activeCardId, setActiveCardId] = useState(null);
+  const pressTimer = useRef(null);
+
   // --- 데이터 구독 ---
   useEffect(() => {
     if (!user) return;
@@ -55,12 +59,16 @@ export const BoardDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
   }, [activeLargeId]);
 
   // --- CRUD 로직 ---
+  
+  // ✅ 2. handleCreateSubmit 함수를 이걸로 통째로 덮어씌워 주세요 (보드 이름 수정 로직이 추가되었습니다)
   const handleCreateSubmit = async (e) => {
     e.preventDefault();
     if (!inputText.trim()) return;
 
     if (showModal.type === 'large') {
       await addDoc(collection(db, 'boardLargeCategories'), { name: inputText, createdAt: serverTimestamp(), authorId: user.id || user.email });
+    } else if (showModal.type === 'edit_large') { // ✅ 보드 이름 수정 로직 추가
+      await updateDoc(doc(db, 'boardLargeCategories', showModal.targetId), { name: inputText, updatedAt: serverTimestamp() });
     } else if (showModal.type === 'medium') {
       await addDoc(collection(db, 'boardMediumCategories'), { largeId: activeLargeId, name: inputText, createdAt: serverTimestamp(), authorId: user.id || user.email });
     } else if (showModal.type === 'post_add') {
@@ -82,6 +90,23 @@ export const BoardDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
     
     setInputText('');
     setShowModal({ type: null, targetId: null });
+  };
+
+  // ✅ 3. 그리고 그 바로 밑에 이 함수들(삭제 및 롱프레스 이벤트)을 새로 붙여넣어 주세요!
+  const handleDeleteLarge = async (id, e) => {
+    e.stopPropagation();
+    if (window.confirm('이 보드를 삭제하시겠습니까?')) {
+      await deleteDoc(doc(db, 'boardLargeCategories', id));
+      setActiveCardId(null);
+    }
+  };
+
+  const handlePressStart = (id) => {
+    pressTimer.current = setTimeout(() => setActiveCardId(id), 500); // 0.5초 길게 누르면 발동
+  };
+  
+  const handlePressEnd = () => {
+    if (pressTimer.current) clearTimeout(pressTimer.current);
   };
 
   const handleDeletePost = async (postId) => {
@@ -159,31 +184,51 @@ export const BoardDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
 
             {/* ✅ 카드 영역 (기능 보드와 동일한 시네마틱 디자인 적용) */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
-              {largeCats.map(cat => (
+{largeCats.map(cat => (
                 <div 
                   key={cat.id} 
-                  onClick={() => { setActiveLargeId(cat.id); setViewState('detail'); setActivePost(null); setActiveMediumId('All'); }}
-                  // 👇 높이를 줄이기 위해 p-8을 p-6으로 줄이고, 그림자를 훨씬 깊고 선명하게(0.1 ~ 0.15) 강화했습니다. border 속성은 완전히 제거했습니다.
-                  className="relative overflow-hidden bg-white/60 backdrop-blur-md rounded-2xl p-6 cursor-pointer shadow-[0_15px_35px_rgba(0,0,0,0.08)] hover:shadow-[0_25px_50px_rgba(0,0,0,0.15)] hover:-translate-y-1 transition-all duration-300 group"
+                  onMouseDown={() => handlePressStart(cat.id)}
+                  onMouseUp={handlePressEnd}
+                  onMouseLeave={handlePressEnd}
+                  onTouchStart={() => handlePressStart(cat.id)}
+                  onTouchEnd={handlePressEnd}
+                  onClick={() => { 
+                    if (activeCardId === cat.id) return; // 편집 메뉴가 켜져있을 땐 진입 방지
+                    setActiveLargeId(cat.id); setViewState('detail'); setActivePost(null); setActiveMediumId('All'); 
+                  }}
+                  className="relative overflow-hidden bg-white/60 backdrop-blur-md rounded-2xl p-6 cursor-pointer shadow-[0_15px_35px_rgba(0,0,0,0.08)] hover:shadow-[0_25px_50px_rgba(0,0,0,0.15)] hover:-translate-y-1 transition-all duration-300 group select-none"
                 >
                   <div className="absolute inset-0 bg-[url('/Functioncard.jpg')] bg-cover bg-center opacity-[0.4] mix-blend-multiply transition-opacity duration-500 group-hover:opacity-[0.6] pointer-events-none"></div>
                   
-                  {/* 👇 세로 정렬(flex-col)을 가로 정렬(flex items-center)로 바꾸고 여백을 줄였습니다. */}
                   <div className="relative z-10 flex items-center">
-                    
-                    {/* 아이콘 크기와 둥글기도 전체 비율에 맞춰 살짝(w-12, rounded-xl) 줄였습니다. */}
                     <div className="w-12 h-12 shrink-0 bg-white/90 backdrop-blur-sm rounded-xl flex items-center justify-center mr-4 group-hover:bg-gray-800 transition-colors duration-500 shadow-sm">
                       <Folder className="w-5 h-5 text-gray-700 group-hover:text-white transition-colors duration-500" strokeWidth={1.5} />
                     </div>
-                    
-                    {/* 폰트 크기를 줄이고(text-lg) 가로로 길어질 때 잘리도록(truncate) 설정했습니다. */}
                     <h3 className="text-lg font-bold text-gray-800 group-hover:text-gray-900 transition-colors tracking-tight truncate">
                       {cat.name}
                     </h3>
-                    
+                  </div>
+
+                  {/* 🌟 롱프레스 시 나타나는 수정/삭제 오버레이 메뉴 */}
+                  <div className={`absolute inset-0 bg-white/80 backdrop-blur-md flex items-center justify-center space-x-4 transition-all duration-300 z-20 ${activeCardId === cat.id ? 'opacity-100 visible scale-100' : 'opacity-0 invisible scale-95 pointer-events-none'}`}>
+                    <button 
+                      onClick={(e) => { e.stopPropagation(); setShowModal({type: 'edit_large', targetId: cat.id}); setInputText(cat.name); setActiveCardId(null); }} 
+                      className="p-3 bg-gray-100 text-gray-700 rounded-full hover:bg-gray-200 transition-all shadow-sm hover:scale-110" title="수정"
+                    >
+                      <Edit3 className="w-5 h-5" />
+                    </button>
+                    <button 
+                      onClick={(e) => handleDeleteLarge(cat.id, e)} 
+                      className="p-3 bg-red-50 text-red-500 rounded-full hover:bg-red-100 transition-all shadow-sm hover:scale-110" title="삭제"
+                    >
+                      <Trash2 className="w-5 h-5" />
+                    </button>
+                    <button onClick={(e) => { e.stopPropagation(); setActiveCardId(null); }} className="absolute top-2 right-2 p-1.5 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-200/50 transition-colors">
+                      <X className="w-4 h-4" />
+                    </button>
                   </div>
                 </div>
-              ))}          
+              ))}       
             </div>
           </div>
         </main>
@@ -191,40 +236,39 @@ export const BoardDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
         {/* 생성 모달 (공용) */}
         {showModal.type && (
           <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-md z-[120] flex items-center justify-center animate-fast-fade p-4">
-            
-            {/* 1. 글래스모피즘 컨테이너: 배경 투명도 낮춤(bg-white/60), 블러 강화(backdrop-blur-2xl) */}
             <div className="bg-white/60 backdrop-blur-2xl rounded-3xl shadow-[0_30px_60px_-15px_rgba(0,0,0,0.3)] p-8 w-full max-w-[420px] border border-white/60 relative overflow-hidden flex flex-col animate-scale-up">
               
-              {/* 장식용 그라데이션 배경 효과 */}
               <div className="absolute -top-24 -right-24 w-48 h-48 bg-blue-500/20 rounded-full blur-3xl pointer-events-none"></div>
-              
-              {/* ❌ 닫기(X) 버튼은 요청하신 대로 깔끔하게 제거되었습니다! */}
               
               <div className="flex items-center mb-6 relative z-10">
                 <div className="w-12 h-12 bg-white/80 text-gray-700 rounded-2xl flex items-center justify-center mr-4 shadow-sm border border-white/50 backdrop-blur-sm">
-                  {showModal.type === 'large' ? <LayoutDashboard className="w-6 h-6"/> : showModal.type === 'medium' ? <Folder className="w-6 h-6"/> : <FileText className="w-6 h-6"/>}
+                  {showModal.type === 'large' || showModal.type === 'edit_large' ? <LayoutDashboard className="w-6 h-6"/> : showModal.type === 'medium' ? <Folder className="w-6 h-6"/> : <FileText className="w-6 h-6"/>}
                 </div>
                 <div>
                   <h3 className="text-xl font-bold text-gray-800 tracking-tight">
-                    {showModal.type === 'large' ? '새 보드 생성' : showModal.type === 'medium' ? '새 폴더 생성' : '새 게시글 작성'}
+                    {showModal.type === 'large' ? '새 보드 생성' : showModal.type === 'edit_large' ? '보드 이름 수정' : showModal.type === 'medium' ? '새 폴더 생성' : '새 게시글 작성'}
                   </h3>
-                  <p className="text-xs text-gray-500 mt-1 font-medium">이름을 입력하고 등록해주세요.</p>
+                  <p className="text-xs text-gray-500 mt-1 font-medium">이름을 입력하고 등록해주세요. (최대 15자)</p>
                 </div>
               </div>
               
               <form id="boardCreateForm" onSubmit={handleCreateSubmit} className="relative z-10">
                 <input 
                   type="text" autoFocus value={inputText} onChange={(e) => setInputText(e.target.value)}
+                  maxLength={15} // ✅ 글자수 15자 제한
                   placeholder={showModal.type === 'post_add' ? "게시글 제목 입력..." : "이름을 입력하세요..."}
-                  // ✅ 2. 시네마틱 입력창: 
-                  // 칙칙한 검정 테두리(focus:border-gray-800) 제거
-                  // 은은한 블루 포커스 링(focus:ring-4 focus:ring-blue-400/20) 및 파란색 깜빡임 커서(caret-blue-600) 적용
                   className="w-full bg-white/50 border border-white/60 text-gray-800 text-sm font-medium rounded-2xl px-4 py-4 outline-none focus:bg-white/80 focus:border-blue-400 focus:ring-4 focus:ring-blue-400/20 caret-blue-600 transition-all duration-300 shadow-inner placeholder:text-gray-400"
                 />
                 <div className="flex space-x-3 mt-8">
-                  {/* 취소/확인 버튼도 글래스모피즘 컨셉에 맞춰 부드럽게 튜닝했습니다. */}
                   <button type="button" onClick={() => setShowModal({ type: null, targetId: null })} className="flex-1 bg-white/70 backdrop-blur-sm text-gray-600 text-sm font-bold py-3.5 rounded-2xl hover:bg-white hover:text-gray-800 transition-colors border border-white/60 shadow-sm">취소</button>
-                  <button type="submit" className="flex-1 bg-gray-900/90 backdrop-blur-sm text-white text-sm font-bold py-3.5 rounded-2xl hover:bg-black transition-colors shadow-md border border-gray-800 hover:shadow-lg">확인</button>
+                  <button 
+                    type="submit" 
+                    disabled={!inputText.trim()} // ✅ 미입력 시 기능 비활성화
+                    className={`flex-1 text-sm font-bold py-3.5 rounded-2xl transition-all shadow-md border 
+                      ${!inputText.trim() ? 'bg-gray-400/50 text-gray-200 border-gray-400/30 cursor-not-allowed opacity-60' : 'bg-gray-900/90 backdrop-blur-sm text-white border-gray-800 hover:bg-black hover:shadow-lg'}`}
+                  >
+                    확인
+                  </button>
                 </div>
               </form>
               
