@@ -790,7 +790,7 @@ export const BoardDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
       {/* ✅ [신설] 저장하지 않고 이탈 시 발생하는 미니 시네마틱 경고 모달 */}
       {showLeaveConfirm && (
         <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-md z-[200] flex items-center justify-center animate-fast-fade p-4">
-          <div className="bg-white/60 backdrop-blur-2xl rounded-3xl shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)] p-6 w-full max-w-[340px] flex flex-col relative text-center border border-white/60 animate-scale-up">
+          <div className="bg-white/60 backdrop-blur-2xl rounded-3xl shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)] p-6 w-full max-w-[340px] flex flex-col relative text-center animate-scale-up">
             <div className="w-12 h-12 bg-amber-50 text-amber-500 rounded-full flex items-center justify-center mx-auto mb-4 border border-amber-100/50 backdrop-blur-sm shadow-sm">
               <AlertCircle className="w-6 h-6"/>
             </div>
