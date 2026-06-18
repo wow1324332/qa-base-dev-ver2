@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { 
   Folder, FileText, Plus, Search, ChevronRight, LayoutDashboard, 
-  LogOut, Power, Bold, Italic, Underline, Trash2, Edit3, X, ChevronDown, Save, Users, Menu
+  LogOut, Power, Bold, Italic, Underline, Trash2, Edit3, X, ChevronDown, Save, Users, Menu, ChevronLeft
 } from 'lucide-react';
 import { collection, onSnapshot, doc, updateDoc, addDoc, deleteDoc, query, where, serverTimestamp } from "firebase/firestore";
 import { db } from '../firebaseConfig'; // 🔥 경로 확인
@@ -535,8 +535,9 @@ export const BoardDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
                     </div>
                     
                     {/* 하위 게시글(스몰 카테고리) 목록 (isExpanded 기준으로 노출) */}
-                    {isExpanded && (
-                      <div className="mt-1 ml-4 pl-3 border-l border-gray-300/50 space-y-1">
+                    {/* ✅ 부드럽게 '스르륵' 열리고 닫히는 애니메이션 래퍼 추가 */}
+                    <div className={`overflow-hidden transition-all duration-300 ease-in-out ${isExpanded ? 'max-h-[800px] opacity-100 mt-1' : 'max-h-0 opacity-0 mt-0'}`}>
+                      <div className="ml-4 pl-3 border-l border-gray-300/50 space-y-1 pb-1">
                         {catPosts.length === 0 ? (
                           <div className="px-3 py-2 text-xs text-gray-400 font-medium">게시글이 없습니다.</div>
                         ) : (
@@ -547,7 +548,7 @@ export const BoardDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
                           ))
                         )}
                       </div>
-                    )}
+                    </div>
                   </div>
                 );
               })}
@@ -769,25 +770,38 @@ export const BoardDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
     setIsEditing(false);
   };
 
-  return (
-    <div className="flex-1 flex flex-col bg-white overflow-hidden relative">
-      <div className="h-14 px-8 flex justify-between items-center border-b border-gray-100 shrink-0">
-        <button onClick={onClose} className="text-gray-400 hover:text-gray-800 text-sm font-semibold flex items-center"> <X className="w-4 h-4 mr-1"/> 닫기 </button>
-        <div className="flex items-center space-x-3">
-          {isAuthor && !isEditing && (
-            <>
-              <button onClick={() => setIsEditing(true)} className="text-gray-500 hover:text-blue-600 text-sm font-semibold flex items-center"><Edit3 className="w-4 h-4 mr-1"/> 편집</button>
-              <button onClick={onDelete} className="text-gray-400 hover:text-red-500 text-sm font-semibold flex items-center"><Trash2 className="w-4 h-4 mr-1"/> 삭제</button>
-            </>
-          )}
-          {isAuthor && isEditing && (
-            <button onClick={handleSave} className="bg-blue-600 text-white px-4 py-1.5 rounded-lg text-sm font-semibold hover:bg-blue-700 shadow-sm flex items-center"> <Save className="w-4 h-4 mr-1.5"/> 저장 </button>
-          )}
-          {!isAuthor && <span className="text-xs text-gray-400 bg-gray-100 px-3 py-1 rounded-full">읽기 전용 (작성자: {post.authorName})</span>}
+return (
+    // ✅ 1. 여백을 줘서 사이드바 핸들과 절대 겹치지 않도록 전체 래퍼 수정
+    <div className="absolute inset-0 flex flex-col items-center overflow-y-auto no-scrollbar p-6 lg:p-12 bg-transparent">
+      
+      {/* ✅ 2. A4 용지 느낌의 '페이퍼' 래퍼 (너비를 850px로 확 줄이고, 입체감 있는 그림자 추가) */}
+      <div className="w-full max-w-[850px] bg-white rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.08)] border border-gray-200/60 flex flex-col shrink-0 min-h-[calc(100vh-160px)] relative overflow-hidden">
+        
+        {/* ✅ 3. 시네마틱 헤더 (본문과 확연히 구분되도록 배경색과 하단 테두리 추가) */}
+        <div className="h-16 px-6 flex justify-between items-center bg-gray-50/80 backdrop-blur-md border-b border-gray-200 shrink-0 relative z-10">
+          
+          {/* ✅ 4. 구린 닫기 버튼 대신 세련된 '< 목록으로' 버튼으로 변경 */}
+          <button onClick={onClose} className="flex items-center text-gray-500 hover:text-gray-900 font-semibold transition-colors group px-2 py-1.5 rounded-xl hover:bg-gray-200/50">
+            <ChevronLeft className="w-5 h-5 mr-1 transition-transform group-hover:-translate-x-1"/> 
+            <span className="text-sm">목록으로</span>
+          </button>
+
+          <div className="flex items-center space-x-3">
+            {isAuthor && !isEditing && (
+              <>
+                <button onClick={() => setIsEditing(true)} className="text-gray-500 hover:text-blue-600 text-sm font-semibold flex items-center"><Edit3 className="w-4 h-4 mr-1"/> 편집</button>
+                <button onClick={onDelete} className="text-gray-400 hover:text-red-500 text-sm font-semibold flex items-center"><Trash2 className="w-4 h-4 mr-1"/> 삭제</button>
+              </>
+            )}
+            {isAuthor && isEditing && (
+              <button onClick={handleSave} className="bg-blue-600 text-white px-4 py-1.5 rounded-lg text-sm font-semibold hover:bg-blue-700 shadow-sm flex items-center"><Save className="w-4 h-4 mr-1.5"/> 저장 </button>
+            )}
+            {!isAuthor && <span className="text-xs text-gray-400 bg-gray-100 px-3 py-1 rounded-full">읽기 전용 (작성자: {post.authorName})</span>}
+          </div>
         </div>
-      </div>
-      <div className="flex-1 overflow-y-auto no-scrollbar pb-32">
-        <div className="max-w-3xl mx-auto py-12 px-8">
+
+        {/* 본문 영역 */}
+        <div className="flex-1 px-10 py-12">
           {isEditing ? (
             <input type="text" value={localTitle} onChange={(e) => setLocalTitle(e.target.value)} className="w-full bg-transparent outline-none font-black text-4xl text-gray-900 mb-8 border-b border-dashed border-gray-300 pb-4 focus:border-blue-500" placeholder="제목을 입력하세요" />
           ) : (
@@ -796,8 +810,10 @@ export const BoardDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
           <div ref={contentRef} contentEditable={isEditing} suppressContentEditableWarning spellCheck={false} data-placeholder={isEditing ? "내용을 작성하세요..." : ""} className={`outline-none text-base leading-loose min-h-[500px] text-gray-800 ${isEditing ? 'cursor-text empty:before:content-[attr(data-placeholder)] empty:before:text-gray-300' : 'cursor-default'}`} dangerouslySetInnerHTML={{ __html: post.content || '' }} />
         </div>
       </div>
+
+      {/* 에디터 툴바 (스크롤 시에도 화면 하단에 고정되도록 fixed 적용) */}
       {isEditing && (
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center space-x-1 bg-white/95 backdrop-blur-md px-4 py-2 rounded-full shadow-[0_10px_40px_rgba(0,0,0,0.15)] border border-gray-200/80 animate-scale-up">
+        <div className="fixed bottom-10 left-1/2 -translate-x-1/2 flex items-center space-x-1 bg-white/95 backdrop-blur-md px-4 py-2 rounded-full shadow-[0_10px_40px_rgba(0,0,0,0.15)] border border-gray-200/80 animate-scale-up z-50">
           <button onClick={() => execCmd('bold')} className="p-2 rounded-full hover:bg-gray-100 text-gray-700 transition-colors" title="굵게"><Bold className="w-4 h-4" /></button>
           <button onClick={() => execCmd('italic')} className="p-2 rounded-full hover:bg-gray-100 text-gray-700 transition-colors" title="기울임"><Italic className="w-4 h-4" /></button>
           <button onClick={() => execCmd('underline')} className="p-2 rounded-full hover:bg-gray-100 text-gray-700 transition-colors" title="밑줄"><Underline className="w-4 h-4" /></button>
@@ -807,4 +823,3 @@ export const BoardDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
       )}
     </div>
   );
-};
