@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { 
   Folder, FileText, Plus, Search, ChevronRight, LayoutDashboard, 
-  LogOut, Power, Bold, Italic, Underline, Trash2, Edit3, X, ChevronDown, Save, Users, Menu, ChevronLeft, Type, Palette, Minus
+  LogOut, Power, Bold, Italic, Underline, Trash2, Edit3, X, ChevronDown, Save, Users, Menu, ChevronLeft, Type, Palette, Minus, AlertCircle
 } from 'lucide-react';
 import { collection, onSnapshot, doc, updateDoc, addDoc, deleteDoc, query, where, serverTimestamp } from "firebase/firestore";
 import { db } from '../firebaseConfig'; // 🔥 경로 확인
@@ -29,6 +29,9 @@ export const BoardDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
       prev.includes(folderId) ? prev.filter(id => id !== folderId) : [...prev, folderId]
     );
   };
+
+  const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
+  const [pendingLeaveAction, setPendingLeaveAction] = useState(null); // 사용자가 가려고 했던 다음 행동(함수)을 임시 보관
   
   const [isEditing, setIsEditing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -169,6 +172,15 @@ export const BoardDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
     setActivePost(null);
   };
 
+  const checkPendingLeave = (action) => {
+    if (isEditing) {
+      setPendingLeaveAction(() => action); // 가려던 행동을 보관
+      setShowLeaveConfirm(true);           // 시네마틱 경고 팝업 오픈
+    } else {
+      action(); // 편집 중이 아니라면 바로 이동
+    }
+  };
+
   // --- UI 렌더링 헬퍼 ---
   const filteredPosts = posts.filter(p => {
     const matchCategory = activeMediumId === 'All' || p.mediumId === activeMediumId;
@@ -255,14 +267,14 @@ export const BoardDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
                     if (activeCardId === cat.id) return;
                     
                     // ✅ 버그 픽스: 상세 화면으로 넘어가기 전에 이전 보드의 데이터를 깨끗하게 지웁니다!
+                  checkPendingLeave(() => {
                     setPosts([]); 
                     setMediumCats([]);
-                    
                     setActiveLargeId(cat.id); 
                     setViewState('detail'); 
                     setActivePost(null); 
                     setActiveMediumId('All'); 
-                  }}
+                  });
                   // 선택된 카드만 z-index를 높여서 투명 백드롭 위로 올라오게 합니다.
                   style={{ zIndex: activeCardId === cat.id ? 30 : 1 }}
                   className="relative overflow-hidden bg-white/60 backdrop-blur-md rounded-2xl p-6 cursor-pointer shadow-[0_15px_35px_rgba(0,0,0,0.08)] hover:shadow-[0_25px_50px_rgba(0,0,0,0.15)] hover:-translate-y-1 transition-all duration-300 group select-none"
@@ -461,7 +473,7 @@ export const BoardDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
           
           <button onClick={() => onNavigate('board')} className="hover:text-blue-600 transition-colors">Functional Board</button>
           <ChevronRight className="w-4 h-4" />
-          <button onClick={() => { setViewState('large_grid'); setActiveLargeId(null); }} className="hover:text-blue-600 transition-colors">QA Board</button>
+          <button onClick={() => checkPendingLeave(() => { setViewState('large_grid'); setActiveLargeId(null); })} className="hover:text-blue-600 transition-colors">QA Board</button>
           <ChevronRight className="w-4 h-4" />
           <span className="text-gray-900">{activeLargeName}</span>
         </div>
@@ -494,7 +506,7 @@ export const BoardDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
             
             {/* 전체 게시글 버튼 */}
             <button 
-              onClick={() => { setActiveMediumId('All'); setActivePost(null); }}
+              onClick={() => checkPendingLeave(() => { setActiveMediumId('All'); setActivePost(null); })}
               className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl transition-colors select-none mb-4
                 ${activeMediumId === 'All' && !activePost ? 'bg-blue-50/80 text-blue-700 font-bold shadow-sm' : 'text-gray-600 hover:bg-white/50'}`}
             >
@@ -519,11 +531,7 @@ export const BoardDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
                       
                       {/* 1. 카테고리명 영역 (클릭 시 화면 이동 & 폴더 열기) */}
                       <div 
-                        onClick={() => { 
-                          setActiveMediumId(mCat.id); setActivePost(null); 
-                          // 닫혀있다면 열어줌
-                          if (!expandedFolders.includes(mCat.id)) setExpandedFolders(prev => [...prev, mCat.id]);
-                        }} 
+                        onClick={() => checkPendingLeave(() => { setActiveMediumId(mCat.id); setActivePost(null); if (!expandedFolders.includes(mCat.id)) setExpandedFolders(prev => [...prev, mCat.id]); })}
                         className="flex items-center space-x-2 overflow-hidden flex-1 cursor-pointer"
                       >
                         <Folder className={`w-4 h-4 shrink-0 ${isActive ? 'text-gray-800' : 'text-gray-400'}`} />
@@ -639,7 +647,7 @@ export const BoardDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
               post={activePost}
               isEditing={isEditing} 
               setIsEditing={setIsEditing} 
-              onClose={() => setActivePost(null)}
+              onClose={() => checkPendingLeave(() => setActivePost(null))}
               onDelete={() => handleDeletePost(activePost.id)}
               currentUser={user}
               db={db}
@@ -781,6 +789,24 @@ export const BoardDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
           </div>
         </div>
       )}
+
+      {/* ✅ [신설] 저장하지 않고 이탈 시 발생하는 미니 시네마틱 경고 모달 */}
+      {showLeaveConfirm && (
+        <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-md z-[200] flex items-center justify-center animate-fast-fade p-4">
+          <div className="bg-white/60 backdrop-blur-2xl rounded-3xl shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)] p-6 w-full max-w-[340px] flex flex-col relative text-center border border-white/60 animate-scale-up">
+            <div className="w-12 h-12 bg-amber-50 text-amber-500 rounded-full flex items-center justify-center mx-auto mb-4 border border-amber-100/50 backdrop-blur-sm shadow-sm">
+              <AlertCircle className="w-6 h-6"/>
+            </div>
+            <h3 className="text-lg font-bold text-gray-800 mb-1 tracking-tight">변경사항 저장 안 됨</h3>
+            <p className="text-xs text-gray-500 mb-6 font-medium leading-relaxed">수정한 내용이 저장되지 않았습니다.<br/>정말 편집을 취소하고 이동하시겠습니까?</p>
+            <div className="flex space-x-2.5">
+              <button type="button" onClick={() => { setShowLeaveConfirm(false); setPendingLeaveAction(null); }} className="flex-1 bg-white/70 text-gray-600 text-xs font-bold py-2.5 rounded-xl hover:bg-white transition-colors border border-white/60 shadow-sm">계속 편집</button>
+              <button type="button" onClick={() => { setIsEditing(false); setShowLeaveConfirm(false); if (pendingLeaveAction) pendingLeaveAction(); setPendingLeaveAction(null); }} className="flex-1 bg-amber-500 text-white text-xs font-bold py-2.5 rounded-xl hover:bg-amber-600 transition-colors shadow-md border border-amber-500">저장 안함</button>
+            </div>
+          </div>
+        </div>
+      )}
+      
     </div>
   );
 };
