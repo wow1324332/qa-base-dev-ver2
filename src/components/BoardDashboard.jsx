@@ -461,7 +461,7 @@ export const BoardDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
           
           <button onClick={() => onNavigate('board')} className="hover:text-blue-600 transition-colors">Functional Board</button>
           <ChevronRight className="w-4 h-4" />
-          <button onClick={() => setViewState('large_grid')} className="hover:text-blue-600 transition-colors">Board</button>
+          <button onClick={() => { setViewState('large_grid'); setActiveLargeId(null); }} className="hover:text-blue-600 transition-colors">Board</button>
           <ChevronRight className="w-4 h-4" />
           <span className="text-gray-900">{activeLargeName}</span>
         </div>
