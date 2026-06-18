@@ -585,6 +585,8 @@ export const BoardDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
               </div>
             )}
           </div>
+            
+       </div>
           
           {/* 하단 즐겨찾기 컴포넌트 연결 */}
           <SidebarFavorites db={db} user={user} onNavigate={onNavigate} sidebarOpen={sidebarOpen} currentModule="board" />
