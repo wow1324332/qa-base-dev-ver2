@@ -163,20 +163,27 @@ export const BoardDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
                 <div 
                   key={cat.id} 
                   onClick={() => { setActiveLargeId(cat.id); setViewState('detail'); setActivePost(null); setActiveMediumId('All'); }}
-                  className="relative overflow-hidden bg-white/50 backdrop-blur-md rounded-3xl p-8 cursor-pointer shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_20px_40px_rgb(0,0,0,0.08)] hover:-translate-y-1 transition-all duration-300 group"
+                  // 👇 높이를 줄이기 위해 p-8을 p-6으로 줄이고, 그림자를 훨씬 깊고 선명하게(0.1 ~ 0.15) 강화했습니다. border 속성은 완전히 제거했습니다.
+                  className="relative overflow-hidden bg-white/60 backdrop-blur-md rounded-2xl p-6 cursor-pointer shadow-[0_15px_35px_rgba(0,0,0,0.08)] hover:shadow-[0_25px_50px_rgba(0,0,0,0.15)] hover:-translate-y-1 transition-all duration-300 group"
                 >
-                  {/* 배경 이미지의 기본 투명도를 0.4, 호버시 0.6으로 올려 선명하게 만들었습니다 */}
                   <div className="absolute inset-0 bg-[url('/Functioncard.jpg')] bg-cover bg-center opacity-[0.4] mix-blend-multiply transition-opacity duration-500 group-hover:opacity-[0.6] pointer-events-none"></div>
                   
-                  <div className="relative z-10 flex flex-col h-full justify-between">
-                    <div className="w-14 h-14 bg-white/90 backdrop-blur-sm rounded-2xl flex items-center justify-center mb-6 group-hover:bg-gray-800 transition-colors duration-500 shadow-sm border border-white/50">
-                      <Folder className="w-6 h-6 text-gray-700 group-hover:text-white transition-colors duration-500" strokeWidth={1.5} />
+                  {/* 👇 세로 정렬(flex-col)을 가로 정렬(flex items-center)로 바꾸고 여백을 줄였습니다. */}
+                  <div className="relative z-10 flex items-center">
+                    
+                    {/* 아이콘 크기와 둥글기도 전체 비율에 맞춰 살짝(w-12, rounded-xl) 줄였습니다. */}
+                    <div className="w-12 h-12 shrink-0 bg-white/90 backdrop-blur-sm rounded-xl flex items-center justify-center mr-4 group-hover:bg-gray-800 transition-colors duration-500 shadow-sm">
+                      <Folder className="w-5 h-5 text-gray-700 group-hover:text-white transition-colors duration-500" strokeWidth={1.5} />
                     </div>
-                    {/* 불필요한 p 태그를 지우고, 제목(h3)의 크기를 키워 레이아웃을 꽉 채웠습니다 */}
-                    <h3 className="text-2xl font-bold text-gray-800 group-hover:text-gray-900 transition-colors tracking-tight">{cat.name}</h3>
+                    
+                    {/* 폰트 크기를 줄이고(text-lg) 가로로 길어질 때 잘리도록(truncate) 설정했습니다. */}
+                    <h3 className="text-lg font-bold text-gray-800 group-hover:text-gray-900 transition-colors tracking-tight truncate">
+                      {cat.name}
+                    </h3>
+                    
                   </div>
                 </div>
-              ))}              
+              ))}          
             </div>
           </div>
         </main>
@@ -184,27 +191,24 @@ export const BoardDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
         {/* 생성 모달 (공용) */}
         {showModal.type && (
           <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-md z-[120] flex items-center justify-center animate-fast-fade p-4">
-            <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-[0_20px_60px_-15px_rgba(0,0,0,0.2)] p-8 w-full max-w-[420px] border border-white/50 relative overflow-hidden flex flex-col animate-scale-up">
+            
+            {/* 1. 글래스모피즘 컨테이너: 배경 투명도 낮춤(bg-white/60), 블러 강화(backdrop-blur-2xl) */}
+            <div className="bg-white/60 backdrop-blur-2xl rounded-3xl shadow-[0_30px_60px_-15px_rgba(0,0,0,0.3)] p-8 w-full max-w-[420px] border border-white/60 relative overflow-hidden flex flex-col animate-scale-up">
               
               {/* 장식용 그라데이션 배경 효과 */}
-              <div className="absolute -top-24 -right-24 w-48 h-48 bg-blue-500/10 rounded-full blur-3xl pointer-events-none"></div>
+              <div className="absolute -top-24 -right-24 w-48 h-48 bg-blue-500/20 rounded-full blur-3xl pointer-events-none"></div>
               
-              <button 
-                onClick={() => setShowModal({ type: null, targetId: null })} 
-                className="absolute top-5 right-5 text-gray-400 hover:text-gray-800 hover:bg-gray-100/50 p-1.5 rounded-full transition-all"
-              >
-                <X className="w-5 h-5"/>
-              </button>
+              {/* ❌ 닫기(X) 버튼은 요청하신 대로 깔끔하게 제거되었습니다! */}
               
               <div className="flex items-center mb-6 relative z-10">
-                <div className="w-12 h-12 bg-gray-50 text-gray-700 rounded-2xl flex items-center justify-center mr-4 shadow-sm border border-gray-200/50">
+                <div className="w-12 h-12 bg-white/80 text-gray-700 rounded-2xl flex items-center justify-center mr-4 shadow-sm border border-white/50 backdrop-blur-sm">
                   {showModal.type === 'large' ? <LayoutDashboard className="w-6 h-6"/> : showModal.type === 'medium' ? <Folder className="w-6 h-6"/> : <FileText className="w-6 h-6"/>}
                 </div>
                 <div>
                   <h3 className="text-xl font-bold text-gray-800 tracking-tight">
                     {showModal.type === 'large' ? '새 보드 생성' : showModal.type === 'medium' ? '새 폴더 생성' : '새 게시글 작성'}
                   </h3>
-                  <p className="text-xs text-gray-500 mt-1">이름을 입력하고 등록해주세요.</p>
+                  <p className="text-xs text-gray-500 mt-1 font-medium">이름을 입력하고 등록해주세요.</p>
                 </div>
               </div>
               
@@ -212,13 +216,18 @@ export const BoardDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
                 <input 
                   type="text" autoFocus value={inputText} onChange={(e) => setInputText(e.target.value)}
                   placeholder={showModal.type === 'post_add' ? "게시글 제목 입력..." : "이름을 입력하세요..."}
-                  className="w-full bg-gray-50/50 border border-gray-200 text-gray-800 text-sm font-medium rounded-2xl px-4 py-4 outline-none focus:border-gray-800 focus:bg-white transition-all shadow-inner placeholder:text-gray-400"
+                  // ✅ 2. 시네마틱 입력창: 
+                  // 칙칙한 검정 테두리(focus:border-gray-800) 제거
+                  // 은은한 블루 포커스 링(focus:ring-4 focus:ring-blue-400/20) 및 파란색 깜빡임 커서(caret-blue-600) 적용
+                  className="w-full bg-white/50 border border-white/60 text-gray-800 text-sm font-medium rounded-2xl px-4 py-4 outline-none focus:bg-white/80 focus:border-blue-400 focus:ring-4 focus:ring-blue-400/20 caret-blue-600 transition-all duration-300 shadow-inner placeholder:text-gray-400"
                 />
                 <div className="flex space-x-3 mt-8">
-                  <button type="button" onClick={() => setShowModal({ type: null, targetId: null })} className="flex-1 bg-white text-gray-600 text-sm font-bold py-3.5 rounded-2xl hover:bg-gray-50 transition-colors border border-gray-200 shadow-sm">취소</button>
-                  <button type="submit" className="flex-1 bg-gray-900 text-white text-sm font-bold py-3.5 rounded-2xl hover:bg-gray-800 transition-colors shadow-md border border-gray-800 hover:shadow-lg">확인</button>
+                  {/* 취소/확인 버튼도 글래스모피즘 컨셉에 맞춰 부드럽게 튜닝했습니다. */}
+                  <button type="button" onClick={() => setShowModal({ type: null, targetId: null })} className="flex-1 bg-white/70 backdrop-blur-sm text-gray-600 text-sm font-bold py-3.5 rounded-2xl hover:bg-white hover:text-gray-800 transition-colors border border-white/60 shadow-sm">취소</button>
+                  <button type="submit" className="flex-1 bg-gray-900/90 backdrop-blur-sm text-white text-sm font-bold py-3.5 rounded-2xl hover:bg-black transition-colors shadow-md border border-gray-800 hover:shadow-lg">확인</button>
                 </div>
               </form>
+              
             </div>
           </div>
         )}
@@ -426,27 +435,24 @@ export const BoardDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
       {/* 생성 모달 (공용) 중복 코드 재활용 */}
       {showModal.type && (
           <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-md z-[120] flex items-center justify-center animate-fast-fade p-4">
-            <div className="bg-white/95 backdrop-blur-xl rounded-3xl shadow-[0_20px_60px_-15px_rgba(0,0,0,0.2)] p-8 w-full max-w-[420px] border border-white/50 relative overflow-hidden flex flex-col animate-scale-up">
+            
+            {/* 1. 글래스모피즘 컨테이너: 배경 투명도 낮춤(bg-white/60), 블러 강화(backdrop-blur-2xl) */}
+            <div className="bg-white/60 backdrop-blur-2xl rounded-3xl shadow-[0_30px_60px_-15px_rgba(0,0,0,0.3)] p-8 w-full max-w-[420px] border border-white/60 relative overflow-hidden flex flex-col animate-scale-up">
               
               {/* 장식용 그라데이션 배경 효과 */}
-              <div className="absolute -top-24 -right-24 w-48 h-48 bg-blue-500/10 rounded-full blur-3xl pointer-events-none"></div>
+              <div className="absolute -top-24 -right-24 w-48 h-48 bg-blue-500/20 rounded-full blur-3xl pointer-events-none"></div>
               
-              <button 
-                onClick={() => setShowModal({ type: null, targetId: null })} 
-                className="absolute top-5 right-5 text-gray-400 hover:text-gray-800 hover:bg-gray-100/50 p-1.5 rounded-full transition-all"
-              >
-                <X className="w-5 h-5"/>
-              </button>
+              {/* ❌ 닫기(X) 버튼은 요청하신 대로 깔끔하게 제거되었습니다! */}
               
               <div className="flex items-center mb-6 relative z-10">
-                <div className="w-12 h-12 bg-gray-50 text-gray-700 rounded-2xl flex items-center justify-center mr-4 shadow-sm border border-gray-200/50">
+                <div className="w-12 h-12 bg-white/80 text-gray-700 rounded-2xl flex items-center justify-center mr-4 shadow-sm border border-white/50 backdrop-blur-sm">
                   {showModal.type === 'large' ? <LayoutDashboard className="w-6 h-6"/> : showModal.type === 'medium' ? <Folder className="w-6 h-6"/> : <FileText className="w-6 h-6"/>}
                 </div>
                 <div>
                   <h3 className="text-xl font-bold text-gray-800 tracking-tight">
                     {showModal.type === 'large' ? '새 보드 생성' : showModal.type === 'medium' ? '새 폴더 생성' : '새 게시글 작성'}
                   </h3>
-                  <p className="text-xs text-gray-500 mt-1">이름을 입력하고 등록해주세요.</p>
+                  <p className="text-xs text-gray-500 mt-1 font-medium">이름을 입력하고 등록해주세요.</p>
                 </div>
               </div>
               
@@ -454,13 +460,18 @@ export const BoardDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
                 <input 
                   type="text" autoFocus value={inputText} onChange={(e) => setInputText(e.target.value)}
                   placeholder={showModal.type === 'post_add' ? "게시글 제목 입력..." : "이름을 입력하세요..."}
-                  className="w-full bg-gray-50/50 border border-gray-200 text-gray-800 text-sm font-medium rounded-2xl px-4 py-4 outline-none focus:border-gray-800 focus:bg-white transition-all shadow-inner placeholder:text-gray-400"
+                  // ✅ 2. 시네마틱 입력창: 
+                  // 칙칙한 검정 테두리(focus:border-gray-800) 제거
+                  // 은은한 블루 포커스 링(focus:ring-4 focus:ring-blue-400/20) 및 파란색 깜빡임 커서(caret-blue-600) 적용
+                  className="w-full bg-white/50 border border-white/60 text-gray-800 text-sm font-medium rounded-2xl px-4 py-4 outline-none focus:bg-white/80 focus:border-blue-400 focus:ring-4 focus:ring-blue-400/20 caret-blue-600 transition-all duration-300 shadow-inner placeholder:text-gray-400"
                 />
                 <div className="flex space-x-3 mt-8">
-                  <button type="button" onClick={() => setShowModal({ type: null, targetId: null })} className="flex-1 bg-white text-gray-600 text-sm font-bold py-3.5 rounded-2xl hover:bg-gray-50 transition-colors border border-gray-200 shadow-sm">취소</button>
-                  <button type="submit" className="flex-1 bg-gray-900 text-white text-sm font-bold py-3.5 rounded-2xl hover:bg-gray-800 transition-colors shadow-md border border-gray-800 hover:shadow-lg">확인</button>
+                  {/* 취소/확인 버튼도 글래스모피즘 컨셉에 맞춰 부드럽게 튜닝했습니다. */}
+                  <button type="button" onClick={() => setShowModal({ type: null, targetId: null })} className="flex-1 bg-white/70 backdrop-blur-sm text-gray-600 text-sm font-bold py-3.5 rounded-2xl hover:bg-white hover:text-gray-800 transition-colors border border-white/60 shadow-sm">취소</button>
+                  <button type="submit" className="flex-1 bg-gray-900/90 backdrop-blur-sm text-white text-sm font-bold py-3.5 rounded-2xl hover:bg-black transition-colors shadow-md border border-gray-800 hover:shadow-lg">확인</button>
                 </div>
               </form>
+              
             </div>
           </div>
         )}
