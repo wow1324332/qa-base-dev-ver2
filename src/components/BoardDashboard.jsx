@@ -402,7 +402,9 @@ export const BoardDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
             </div>
           </div>
         )}
-
+      </div>
+    );
+  }
   // =========================================================================
   // VIEW 2: 대분류 상세 보드 (사이드바 + 게시글 목록/에디터)
   // =========================================================================
@@ -677,7 +679,7 @@ export const BoardDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
 };
 
 // --- 서브 컴포넌트: 게시글 읽기 및 플로팅 에디터 ---
-const PostEditorViewer = ({ post, isEditing, setIsEditing, onClose, onDelete, currentUser, db }) => {
+  const PostEditorViewer = ({ post, isEditing, setIsEditing, onClose, onDelete, currentUser, db }) => {
   const contentRef = useRef(null);
   const [localTitle, setLocalTitle] = useState(post.title);
   const isAuthor = currentUser?.id === post.authorId || currentUser?.email === post.authorId;
