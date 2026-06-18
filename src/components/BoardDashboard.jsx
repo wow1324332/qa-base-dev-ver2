@@ -209,7 +209,7 @@ export const BoardDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
           <div className="flex items-center space-x-2 text-sm font-semibold text-gray-500">
             <button onClick={() => onNavigate('board')} className="hover:text-blue-600 transition-colors">Functional Board</button>
             <ChevronRight className="w-4 h-4" />
-            <span className="text-gray-900">Knowledge Base</span>
+            <span className="text-gray-900">Board Dashboard</span>
           </div>
         </div>
 
@@ -218,7 +218,7 @@ export const BoardDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
           <div className="w-full max-w-[1600px] mx-auto">
             <div className="flex justify-between items-end mb-8">
               <div>
-                <h1 className="text-3xl font-bold text-gray-800 mb-2">Knowledge Base</h1>
+                <h1 className="text-3xl font-bold text-gray-800 mb-2">Board Dashboard</h1>
                 <p className="text-gray-600 font-medium">팀의 지식과 가이드를 체계적으로 관리하세요.</p>
               </div>
               <button 
@@ -453,7 +453,7 @@ export const BoardDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
           
           <button onClick={() => onNavigate('board')} className="hover:text-blue-600 transition-colors">Functional Board</button>
           <ChevronRight className="w-4 h-4" />
-          <button onClick={() => setViewState('large_grid')} className="hover:text-blue-600 transition-colors">Knowledge Base</button>
+          <button onClick={() => setViewState('large_grid')} className="hover:text-blue-600 transition-colors">Board</button>
           <ChevronRight className="w-4 h-4" />
           <span className="text-gray-900">{activeLargeName}</span>
         </div>
