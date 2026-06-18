@@ -635,7 +635,8 @@ export const BoardDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
           {/* 상태 B: 특정 게시글을 선택해서 읽거나 편집할 때 (리더 / 에디터 뷰) */}
           {activePost && (
             <PostEditorViewer 
-              post={activePost} 
+              key={activePost.id} {/* ✅ [버그 해결] 아이디가 바뀔 때마다 에디터의 이전 기억(상태)을 완벽하게 포맷합니다. */}
+              post={activePost}
               isEditing={isEditing} 
               setIsEditing={setIsEditing} 
               onClose={() => setActivePost(null)}
