@@ -481,22 +481,28 @@ export const BoardDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
                 {activeMediumId === 'All' ? '전체 게시글' : mediumCats.find(m => m.id === activeMediumId)?.name}
                 <span className="text-gray-400 text-lg ml-2 font-medium">({filteredPosts.length})</span>
               </h2>
-              
-              <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+              {/* ✅ 너비를 고정(max-w-[600px])하고 1열 세로 목록(flex-col)으로 변경했습니다. */}
+              <div className="flex flex-col space-y-3 max-w-[600px]">
                 {filteredPosts.map(post => {
                   const parentFolder = mediumCats.find(m => m.id === post.mediumId)?.name || '미분류';
                   return (
                     <div 
                       key={post.id} onClick={() => { setActivePost(post); setIsEditing(false); }}
-                      className="bg-white p-5 rounded-2xl shadow-sm border border-gray-200 hover:border-gray-300 hover:shadow-md transition-all cursor-pointer group"
+                      // ✅ 패딩을 줄이고 가로 정렬(flex justify-between)로 변경하여 깔끔한 리스트 아이템 형태로 만들었습니다.
+                      className="bg-white p-4 rounded-xl shadow-[0_2px_10px_rgba(0,0,0,0.02)] border border-gray-100 hover:border-gray-300 hover:shadow-md transition-all cursor-pointer group flex items-center justify-between"
                     >
-                      <div className="text-xs font-semibold text-blue-600 mb-2 flex items-center"><Folder className="w-3 h-3 mr-1"/> {parentFolder}</div>
-                      <h3 className="text-lg font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">{post.title}</h3>
-                      {/* HTML 태그를 제거하고 텍스트만 미리보기 */}
-                      <p className="text-sm text-gray-500 line-clamp-2 leading-relaxed">
-                        {post.content ? post.content.replace(/<[^>]*>?/gm, '') : '내용이 없습니다.'}
-                      </p>
-                      <div className="mt-4 text-xs text-gray-400 font-medium">By {post.authorName}</div>
+                      <div className="flex flex-col overflow-hidden pr-4">
+                        <div className="text-[10px] font-bold text-blue-500 mb-1 flex items-center tracking-wide">
+                          <Folder className="w-3 h-3 mr-1"/> {parentFolder}
+                        </div>
+                        {/* ✅ 본문 미리보기와 작성자를 없애고, 제목만 깔끔하게 남겼습니다. (글자가 너무 길면 ...으로 잘리도록 truncate 적용) */}
+                        <h3 className="text-base font-bold text-gray-800 group-hover:text-blue-600 transition-colors truncate">
+                          {post.title}
+                        </h3>
+                      </div>
+                      
+                      {/* 👉 우측 끝에 진입 화살표를 추가해 클릭할 수 있는 목록임을 시각적으로 강조 */}
+                      <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-blue-500 transition-colors shrink-0" />
                     </div>
                   );
                 })}
