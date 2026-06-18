@@ -8,7 +8,6 @@ import { db } from '../firebaseConfig'; // 🔥 경로 확인
 import { SidebarFavorites } from './SidebarFavorites';
 
 export const BoardDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
-  const isGuestUser = user?.role === 'viewer';
   // --- 상태 관리 ---
   const [viewState, setViewState] = useState('large_grid'); // 'large_grid' | 'detail'
   const [activeLargeId, setActiveLargeId] = useState(null);
@@ -312,7 +311,7 @@ export const BoardDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
                 <h1 className="text-3xl font-bold text-gray-800 mb-2">Board Dashboard</h1>
                 <p className="text-gray-600 font-medium">팀의 지식과 가이드를 체계적으로 관리하세요.</p>
               </div>
-            {!isGuest && (
+            {user?.role !== 'viewer' && (
               <button onClick={() => { setInputText(''); setShowModal({ type: 'large', targetId: null }); }} className="bg-gray-800 text-white px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-gray-900 transition-all shadow-md flex items-center hover-breath">
               <Plus className="w-4 h-4 mr-2" /> 새 보드 생성
               </button>
@@ -328,10 +327,10 @@ export const BoardDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
               {largeCats.map(cat => (
                 <div 
                   key={cat.id} 
-                  onMouseDown={() => { if (!isGuest) handlePressStart(cat.id); }}
+                  onMouseDown={() => { if (user?.role !== 'viewer') handlePressStart(cat.id); }}
                   onMouseUp={handlePressEnd}
                   onMouseLeave={handlePressEnd}
-                  onTouchStart={() => { if (!isGuest) handlePressStart(cat.id); }}
+                  onTouchStart={() => { if (user?.role !== 'viewer') handlePressStart(cat.id); }}
                   onTouchEnd={handlePressEnd}
                   onClick={() => { 
                     if (activeCardId === cat.id) return;
@@ -581,7 +580,7 @@ export const BoardDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
           <div className="p-5 overflow-y-auto no-scrollbar w-64 flex-1 flex flex-col">
             <div className="flex items-center justify-between mb-4 px-1">
               <span className="text-xs font-bold text-gray-400 tracking-wider">FOLDERS</span>
-              {!isGuest && (
+              {user?.role !== 'viewer' && (
                 <button onClick={() => setShowModal({ type: 'medium', targetId: null })} className="text-gray-400 hover:text-gray-800 transition-colors"><Plus className="w-4 h-4" /></button>
               )}
             </div>
@@ -626,7 +625,7 @@ export const BoardDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
 
                       {/* 2. 우측 아이콘 영역 (글쓰기 & 드롭다운 토글) */}
                       <div className="flex items-center space-x-1 shrink-0">
-                      {!isGuest && (
+                      {user?.role !== 'viewer' && (
                         <button onClick={(e) => { e.stopPropagation(); setShowModal({ type: 'post_add', targetId: mCat.id }); }} className="opacity-0 group-hover:opacity-100 p-1 text-gray-400 hover:text-blue-600 transition-opacity" title="이 폴더에 글쓰기">
                           <Plus className="w-3.5 h-3.5" />
                         </button>
@@ -662,7 +661,7 @@ export const BoardDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
 
             {/* 새 글 작성 버튼 (목록과 즐겨찾기 사이) */}
             <div className="pt-3 border-t border-gray-200/50">
-            {!isGuest && (
+            {user?.role !== 'viewer' && (
               <div className="pt-3 border-t border-gray-200/50">
                 <button onClick={() => setShowModal({ type: 'post_add', targetId: activeMediumId === 'All' ? null : activeMediumId })} className="w-full flex items-center justify-center space-x-2 bg-gray-800/90 text-white px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-gray-900 transition-all shadow-md backdrop-blur-sm">
                   <Edit3 className="w-4 h-4" /> <span>새 글 작성</span>
@@ -880,8 +879,7 @@ export const BoardDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
   const PostEditorViewer = ({ post, isEditing, setIsEditing, onClose, onDelete, currentUser, db }) => {
   const contentRef = useRef(null);
   const [localTitle, setLocalTitle] = useState(post.title);
-  const isGuestUser = currentUser?.role === 'viewer';
-  const isAuthor = currentUser?.id === post.authorId || currentUser?.email === post.authorId;
+  const isAuthor = (currentUser?.role !== 'viewer') && (currentUser?.id === post.authorId || currentUser?.email === post.authorId);
 
 
   // ✅ [추가됨] 폰트, 색상 등 드롭다운 메뉴가 열려있는지 기억하는 상태값
