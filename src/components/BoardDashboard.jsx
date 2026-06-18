@@ -204,7 +204,15 @@ export const BoardDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
                   onTouchEnd={handlePressEnd}
                   onClick={() => { 
                     if (activeCardId === cat.id) return;
-                    setActiveLargeId(cat.id); setViewState('detail'); setActivePost(null); setActiveMediumId('All'); 
+                    
+                    // ✅ 버그 픽스: 상세 화면으로 넘어가기 전에 이전 보드의 데이터를 깨끗하게 지웁니다!
+                    setPosts([]); 
+                    setMediumCats([]);
+                    
+                    setActiveLargeId(cat.id); 
+                    setViewState('detail'); 
+                    setActivePost(null); 
+                    setActiveMediumId('All'); 
                   }}
                   // 선택된 카드만 z-index를 높여서 투명 백드롭 위로 올라오게 합니다.
                   style={{ zIndex: activeCardId === cat.id ? 30 : 1 }}
