@@ -163,7 +163,7 @@ export const BoardDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
                 <div 
                   key={cat.id} 
                   onClick={() => { setActiveLargeId(cat.id); setViewState('detail'); setActivePost(null); setActiveMediumId('All'); }}
-                  className="relative overflow-hidden bg-white/50 backdrop-blur-md rounded-3xl p-8 cursor-pointer shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_20px_40px_rgb(0,0,0,0.08)] border border-white/60 hover:-translate-y-1 transition-all duration-300 group"
+                  className="relative overflow-hidden bg-white/50 backdrop-blur-md rounded-3xl p-8 cursor-pointer shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_20px_40px_rgb(0,0,0,0.08)] hover:-translate-y-1 transition-all duration-300 group"
                 >
                   {/* 배경 이미지의 기본 투명도를 0.4, 호버시 0.6으로 올려 선명하게 만들었습니다 */}
                   <div className="absolute inset-0 bg-[url('/Functioncard.jpg')] bg-cover bg-center opacity-[0.4] mix-blend-multiply transition-opacity duration-500 group-hover:opacity-[0.6] pointer-events-none"></div>
