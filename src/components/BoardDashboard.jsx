@@ -8,6 +8,7 @@ import { db } from '../firebaseConfig'; // 🔥 경로 확인
 import { SidebarFavorites } from './SidebarFavorites';
 
 export const BoardDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
+  const isGuestUser = user?.role === 'viewer';
   // --- 상태 관리 ---
   const [viewState, setViewState] = useState('large_grid'); // 'large_grid' | 'detail'
   const [activeLargeId, setActiveLargeId] = useState(null);
@@ -47,9 +48,6 @@ export const BoardDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
   // ✅ 1. 여기에 롱프레스를 위한 상태 및 타이머를 추가합니다!
   const [activeCardId, setActiveCardId] = useState(null);
   const pressTimer = useRef(null);
-
-  // ✅ 1. 게스트 판별식 통합 (권한 뚫림 방지)
-  const isGuest = user?.isGuest || user?.role === 'guest' || user?.email?.includes('guest');
 
   // ✅ 2. 하단에 있던 상태값들을 규칙에 맞게 위로 이동 (검은 화면 방지)
   const [deleteTargetId, setDeleteTargetId] = useState(null);
@@ -882,7 +880,9 @@ export const BoardDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
   const PostEditorViewer = ({ post, isEditing, setIsEditing, onClose, onDelete, currentUser, db }) => {
   const contentRef = useRef(null);
   const [localTitle, setLocalTitle] = useState(post.title);
+  const isGuestUser = currentUser?.role === 'viewer';
   const isAuthor = currentUser?.id === post.authorId || currentUser?.email === post.authorId;
+
 
   // ✅ [추가됨] 폰트, 색상 등 드롭다운 메뉴가 열려있는지 기억하는 상태값
   const [activeMenu, setActiveMenu] = useState(null);
