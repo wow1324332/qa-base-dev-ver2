@@ -8,7 +8,6 @@ import { db } from '../firebaseConfig'; // 🔥 경로 확인
 import { SidebarFavorites } from './SidebarFavorites';
 
 export const BoardDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
-  const isGuest = user?.isGuest || user?.role === 'guest' || user?.email?.includes('guest');
   // --- 상태 관리 ---
   const [viewState, setViewState] = useState('large_grid'); // 'large_grid' | 'detail'
   const [activeLargeId, setActiveLargeId] = useState(null);
