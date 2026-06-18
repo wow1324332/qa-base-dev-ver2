@@ -274,7 +274,7 @@ export const BoardDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
                     setViewState('detail'); 
                     setActivePost(null); 
                     setActiveMediumId('All'); 
-                  });
+                  })
                   // 선택된 카드만 z-index를 높여서 투명 백드롭 위로 올라오게 합니다.
                   style={{ zIndex: activeCardId === cat.id ? 30 : 1 }}
                   className="relative overflow-hidden bg-white/60 backdrop-blur-md rounded-2xl p-6 cursor-pointer shadow-[0_15px_35px_rgba(0,0,0,0.08)] hover:shadow-[0_25px_50px_rgba(0,0,0,0.15)] hover:-translate-y-1 transition-all duration-300 group select-none"
