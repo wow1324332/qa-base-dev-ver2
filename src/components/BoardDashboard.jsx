@@ -311,7 +311,7 @@ export const BoardDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
 {/* ✅ 업그레이드 된 카테고리 설정 분기형 글래스모피즘 모달 */}
         {showModal.type && (
           <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-md z-[120] flex items-center justify-center animate-fast-fade p-4">
-            <div className="bg-white/60 backdrop-blur-2xl rounded-3xl shadow-[0_30px_60px_-15px_rgba(0,0,0,0.3)] p-8 w-full max-w-[420px] border border-white/60 relative overflow-hidden flex flex-col animate-scale-up">
+            <div className="bg-white/60 backdrop-blur-2xl rounded-3xl shadow-[0_30px_60px_-15px_rgba(0,0,0,0.3)] p-8 w-full max-w-[420px] relative flex flex-col animate-scale-up">
               
               <div className="absolute -top-24 -right-24 w-48 h-48 bg-blue-500/20 rounded-full blur-3xl pointer-events-none"></div>
               
@@ -636,7 +636,7 @@ export const BoardDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
       {/* ✅ 생성/수정/글쓰기 모달 */}
       {showModal.type && (
         <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-md z-[120] flex items-center justify-center animate-fast-fade p-4">
-          <div className="bg-white/60 backdrop-blur-2xl rounded-3xl shadow-[0_30px_60px_-15px_rgba(0,0,0,0.3)] p-8 w-full max-w-[420px] border border-white/60 relative overflow-hidden flex flex-col animate-scale-up">
+          <div className="bg-white/60 backdrop-blur-2xl rounded-3xl shadow-[0_30px_60px_-15px_rgba(0,0,0,0.3)] p-8 w-full max-w-[420px] relative flex flex-col animate-scale-up">
             <div className="absolute -top-24 -right-24 w-48 h-48 bg-blue-500/20 rounded-full blur-3xl pointer-events-none"></div>
             <div className="flex items-center mb-6 relative z-10">
               <div className="w-12 h-12 bg-white/80 text-gray-700 rounded-2xl flex items-center justify-center mr-4 shadow-sm border border-white/50 backdrop-blur-sm">
