@@ -816,66 +816,68 @@ return (
         </div>
 
         {/* ✅ 시네마틱 에디터 툴바 (페이퍼 내부에 sticky로 배치되어 항상 페이퍼 중앙에 완벽 정렬됨) */}
+      {/* ✅ 화면(Screen)이 아닌 페이퍼(Paper) 중앙에 완벽하게 정렬되는 아담한 sticky 툴바 */}
       {isEditing && (
-        <div className="fixed bottom-10 left-1/2 -translate-x-1/2 flex items-center space-x-1.5 bg-white/40 backdrop-blur-xl px-6 py-3 rounded-full shadow-[0_20px_50px_rgba(0,0,0,0.12)] border border-white/60 animate-scale-up z-[100]">
-          
-          {/* 1. 폰트 글씨체 (드롭다운) */}
-          <div className="relative">
-            <button type="button" onClick={() => setActiveMenu(activeMenu === 'font' ? null : 'font')} className={`p-2 rounded-xl transition-colors flex items-center ${activeMenu === 'font' ? 'bg-blue-100/70 text-blue-600' : 'hover:bg-white/60 text-gray-700'}`} title="글꼴">
-              <span className="font-bold text-sm leading-none px-1">가</span><ChevronDown className="w-3 h-3 ml-1" />
-            </button>
-            {activeMenu === 'font' && (
-              <div className="absolute bottom-full mb-3 left-0 w-36 bg-white/80 backdrop-blur-xl rounded-2xl shadow-xl border border-white/50 p-2 flex flex-col space-y-1 animate-scale-up">
-                <button type="button" onClick={() => execCmd('fontName', 'Pretendard')} className="px-3 py-2 text-sm text-left hover:bg-blue-50 rounded-xl font-sans">기본 고딕</button>
-                <button type="button" onClick={() => execCmd('fontName', 'serif')} className="px-3 py-2 text-sm text-left hover:bg-blue-50 rounded-xl font-serif">명조체</button>
-                <button type="button" onClick={() => execCmd('fontName', 'monospace')} className="px-3 py-2 text-sm text-left hover:bg-blue-50 rounded-xl font-mono">고정폭</button>
-              </div>
-            )}
+        <div className="sticky bottom-8 z-[100] mt-4 mb-4">
+          <div className="flex items-center space-x-1 bg-white/40 backdrop-blur-xl px-4 py-2 rounded-full shadow-[0_15px_30px_rgba(0,0,0,0.1)] border border-white/60 animate-scale-up">
+            
+            {/* 1. 폰트 글씨체 */}
+            <div className="relative">
+              <button type="button" onClick={() => setActiveMenu(activeMenu === 'font' ? null : 'font')} className={`p-1.5 rounded-lg transition-colors flex items-center ${activeMenu === 'font' ? 'bg-blue-100/70 text-blue-600' : 'hover:bg-white/60 text-gray-700'}`} title="글꼴">
+                <span className="font-bold text-xs leading-none px-1">가</span><ChevronDown className="w-3 h-3 ml-0.5" />
+              </button>
+              {activeMenu === 'font' && (
+                <div className="absolute bottom-full mb-2 left-0 w-32 bg-white/80 backdrop-blur-xl rounded-xl shadow-lg border border-white/50 p-1.5 flex flex-col space-y-0.5 animate-scale-up">
+                  <button type="button" onMouseDown={(e) => { e.preventDefault(); execCmd('fontName', 'Pretendard'); }} className="px-2 py-1.5 text-xs text-left hover:bg-blue-50 rounded-lg font-sans">기본 고딕</button>
+                  <button type="button" onMouseDown={(e) => { e.preventDefault(); execCmd('fontName', 'serif'); }} className="px-2 py-1.5 text-xs text-left hover:bg-blue-50 rounded-lg font-serif">명조체</button>
+                  <button type="button" onMouseDown={(e) => { e.preventDefault(); execCmd('fontName', 'monospace'); }} className="px-2 py-1.5 text-xs text-left hover:bg-blue-50 rounded-lg font-mono">고정폭</button>
+                </div>
+              )}
+            </div>
+
+            {/* 2. 폰트 크기 (선별된 7단계) */}
+            <div className="relative">
+              <button type="button" onClick={() => setActiveMenu(activeMenu === 'size' ? null : 'size')} className={`p-1.5 rounded-lg transition-colors flex items-center ${activeMenu === 'size' ? 'bg-blue-100/70 text-blue-600' : 'hover:bg-white/60 text-gray-700'}`} title="크기">
+                <Type className="w-3.5 h-3.5" /><ChevronDown className="w-3 h-3 ml-0.5" />
+              </button>
+              {activeMenu === 'size' && (
+                <div className="absolute bottom-full mb-2 left-0 w-28 bg-white/80 backdrop-blur-xl rounded-xl shadow-lg border border-white/50 p-1.5 flex flex-col space-y-0.5 animate-scale-up">
+                  {[
+                    { val: '1', label: '10px' }, { val: '2', label: '11px' }, { val: '3', label: '13px' },
+                    { val: '4', label: '16px' }, { val: '5', label: '18px' }, { val: '6', label: '24px' }, { val: '7', label: '32px' }
+                  ].map(s => (
+                    <button type="button" key={s.val} onMouseDown={(e) => { e.preventDefault(); execCmd('fontSize', s.val); }} className="px-2 py-1.5 text-xs text-left hover:bg-blue-50 rounded-lg">{s.label}</button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* 3. 폰트 색상 */}
+            <div className="relative">
+              <button type="button" onClick={() => setActiveMenu(activeMenu === 'color' ? null : 'color')} className={`p-1.5 rounded-lg transition-colors flex items-center ${activeMenu === 'color' ? 'bg-blue-100/70 text-blue-600' : 'hover:bg-white/60 text-gray-700'}`} title="색상">
+                <Palette className="w-3.5 h-3.5" /><ChevronDown className="w-3 h-3 ml-0.5" />
+              </button>
+              {activeMenu === 'color' && (
+                <div className="absolute bottom-full mb-2 left-0 w-40 bg-white/80 backdrop-blur-xl rounded-xl shadow-lg border border-white/50 p-2 grid grid-cols-4 gap-1.5 animate-scale-up">
+                  {['#000000', '#4B5563', '#EF4444', '#F97316', '#F59E0B', '#10B981', '#3B82F6', '#8B5CF6', '#EC4899', '#6366F1', '#14B8A6', '#84CC16'].map(c => (
+                    <button type="button" key={c} onMouseDown={(e) => { e.preventDefault(); execCmd('foreColor', c); }} className="w-6 h-6 rounded-full border border-gray-200/50 hover:scale-110 transition-transform shadow-sm" style={{ backgroundColor: c }}></button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="w-px h-5 bg-gray-300/50 mx-1"></div>
+
+            <button type="button" onMouseDown={(e) => { e.preventDefault(); execCmd('bold'); }} className="p-1.5 rounded-lg hover:bg-white/60 text-gray-700 transition-colors" title="굵게"><Bold className="w-3.5 h-3.5" /></button>
+            <button type="button" onMouseDown={(e) => { e.preventDefault(); execCmd('italic'); }} className="p-1.5 rounded-lg hover:bg-white/60 text-gray-700 transition-colors" title="기울임"><Italic className="w-3.5 h-3.5" /></button>
+            <button type="button" onMouseDown={(e) => { e.preventDefault(); execCmd('underline'); }} className="p-1.5 rounded-lg hover:bg-white/60 text-gray-700 transition-colors" title="밑줄"><Underline className="w-3.5 h-3.5" /></button>
+            
+            <div className="w-px h-5 bg-gray-300/50 mx-1"></div>
+
+            <button type="button" onMouseDown={(e) => { e.preventDefault(); execCmd('formatBlock', '<h2>'); }} className="p-1.5 rounded-lg hover:bg-white/60 text-gray-700 transition-colors font-bold text-xs" title="소제목">H2</button>
+            <button type="button" onMouseDown={(e) => { e.preventDefault(); execCmd('insertUnorderedList'); }} className="p-1.5 rounded-lg hover:bg-white/60 text-gray-700 transition-colors font-bold text-xs" title="글머리 기호">•</button>
+            <button type="button" onMouseDown={(e) => { e.preventDefault(); execCmd('insertHorizontalRule'); }} className="p-1.5 rounded-lg hover:bg-white/60 text-gray-700 transition-colors" title="구분선 삽입"><Minus className="w-3.5 h-3.5" /></button>
           </div>
-
-          {/* 2. 폰트 크기 (드롭다운) */}
-          <div className="relative">
-            <button type="button" onClick={() => setActiveMenu(activeMenu === 'size' ? null : 'size')} className={`p-2 rounded-xl transition-colors flex items-center ${activeMenu === 'size' ? 'bg-blue-100/70 text-blue-600' : 'hover:bg-white/60 text-gray-700'}`} title="크기">
-              <Type className="w-4 h-4" /><ChevronDown className="w-3 h-3 ml-1" />
-            </button>
-            {activeMenu === 'size' && (
-              <div className="absolute bottom-full mb-3 left-0 w-32 bg-white/80 backdrop-blur-xl rounded-2xl shadow-xl border border-white/50 p-2 flex flex-col space-y-1 animate-scale-up">
-                {[
-                  { val: '1', label: '9px' }, { val: '2', label: '13px' }, { val: '3', label: '16px' },
-                  { val: '4', label: '18px' }, { val: '5', label: '24px' }, { val: '6', label: '32px' }, { val: '7', label: '48px' }
-                ].map(s => (
-                  <button type="button" key={s.val} onClick={() => execCmd('fontSize', s.val)} className="px-3 py-1.5 text-sm text-left hover:bg-blue-50 rounded-xl">{s.label}</button>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* 3. 폰트 색상 (드롭다운) */}
-          <div className="relative">
-            <button type="button" onClick={() => setActiveMenu(activeMenu === 'color' ? null : 'color')} className={`p-2 rounded-xl transition-colors flex items-center ${activeMenu === 'color' ? 'bg-blue-100/70 text-blue-600' : 'hover:bg-white/60 text-gray-700'}`} title="색상">
-              <Palette className="w-4 h-4" /><ChevronDown className="w-3 h-3 ml-1" />
-            </button>
-            {activeMenu === 'color' && (
-              <div className="absolute bottom-full mb-3 left-0 w-48 bg-white/80 backdrop-blur-xl rounded-2xl shadow-xl border border-white/50 p-3 grid grid-cols-4 gap-2 animate-scale-up">
-                {['#000000', '#4B5563', '#EF4444', '#F97316', '#F59E0B', '#10B981', '#3B82F6', '#8B5CF6', '#EC4899', '#6366F1', '#14B8A6', '#84CC16'].map(c => (
-                  <button type="button" key={c} onMouseDown={(e) => { e.preventDefault(); execCmd('foreColor', c); }} className="w-7 h-7 rounded-full border border-gray-200/50 hover:scale-110 transition-transform shadow-sm" style={{ backgroundColor: c }}></button>
-                ))}
-              </div>
-            )}
-          </div>
-
-          <div className="w-px h-6 bg-gray-300/50 mx-1.5"></div>
-
-          {/* 스타일 및 서식 버튼 목록 */}
-          <button type="button" onMouseDown={(e) => { e.preventDefault(); execCmd('bold'); }} className="p-2 rounded-xl hover:bg-white/60 text-gray-700 transition-colors" title="굵게"><Bold className="w-4 h-4" /></button>
-          <button type="button" onMouseDown={(e) => { e.preventDefault(); execCmd('italic'); }} className="p-2 rounded-xl hover:bg-white/60 text-gray-700 transition-colors" title="기울임"><Italic className="w-4 h-4" /></button>
-          <button type="button" onMouseDown={(e) => { e.preventDefault(); execCmd('underline'); }} className="p-2 rounded-xl hover:bg-white/60 text-gray-700 transition-colors" title="밑줄"><Underline className="w-4 h-4" /></button>
-          
-          <div className="w-px h-6 bg-gray-300/50 mx-1.5"></div>
-
-          <button type="button" onMouseDown={(e) => { e.preventDefault(); execCmd('formatBlock', '<h2>'); }} className="p-2 rounded-xl hover:bg-white/60 text-gray-700 transition-colors font-bold text-sm" title="소제목">H2</button>
-          <button type="button" onMouseDown={(e) => { e.preventDefault(); execCmd('insertUnorderedList'); }} className="p-2 rounded-xl hover:bg-white/60 text-gray-700 transition-colors font-bold text-sm" title="글머리 기호">•</button>
-          <button type="button" onMouseDown={(e) => { e.preventDefault(); execCmd('insertHorizontalRule'); }} className="p-2 rounded-xl hover:bg-white/60 text-gray-700 transition-colors" title="구분선 삽입"><Minus className="w-4 h-4" /></button>
         </div>
       )}
 
