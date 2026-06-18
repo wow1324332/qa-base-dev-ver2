@@ -8,6 +8,7 @@ import { db } from '../firebaseConfig'; // 🔥 경로 확인
 import { SidebarFavorites } from './SidebarFavorites';
 
 export const BoardDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
+  const isGuest = user?.isGuest || user?.role === 'guest' || user?.email?.includes('guest');
   // --- 상태 관리 ---
   const [viewState, setViewState] = useState('large_grid'); // 'large_grid' | 'detail'
   const [activeLargeId, setActiveLargeId] = useState(null);
@@ -227,7 +228,7 @@ export const BoardDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
                 <h1 className="text-3xl font-bold text-gray-800 mb-2">Board Dashboard</h1>
                 <p className="text-gray-600 font-medium">팀의 지식과 가이드를 체계적으로 관리하세요.</p>
               </div>
-            {!user?.isGuest && (
+            {!isGuest && (
               <button onClick={() => { setInputText(''); setShowModal({ type: 'large', targetId: null }); }} className="bg-gray-800 text-white px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-gray-900 transition-all shadow-md flex items-center hover-breath">
               <Plus className="w-4 h-4 mr-2" /> 새 보드 생성
               ㅋ</button>
@@ -243,10 +244,10 @@ export const BoardDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
               {largeCats.map(cat => (
                 <div 
                   key={cat.id} 
-                  onMouseDown={() => { if (!user?.isGuest) handlePressStart(cat.id); }}
+                  onMouseDown={() => { if (!isGuest) handlePressStart(cat.id); }}
                   onMouseUp={handlePressEnd}
                   onMouseLeave={handlePressEnd}
-                  onTouchStart={() => { if (!user?.isGuest) handlePressStart(cat.id); }}
+                  onTouchStart={() => { if (!isGuest) handlePressStart(cat.id); }}
                   onTouchEnd={handlePressEnd}
                   onClick={() => { 
                     if (activeCardId === cat.id) return;
@@ -496,7 +497,7 @@ export const BoardDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
           <div className="p-5 overflow-y-auto no-scrollbar w-64 flex-1 flex flex-col">
             <div className="flex items-center justify-between mb-4 px-1">
               <span className="text-xs font-bold text-gray-400 tracking-wider">FOLDERS</span>
-              {!user?.isGuest && (
+              {!isGuest && (
                 <button onClick={() => setShowModal({ type: 'medium', targetId: null })} className="text-gray-400 hover:text-gray-800 transition-colors"><Plus className="w-4 h-4" /></button>
               )}
             </div>
@@ -541,7 +542,7 @@ export const BoardDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
 
                       {/* 2. 우측 아이콘 영역 (글쓰기 & 드롭다운 토글) */}
                       <div className="flex items-center space-x-1 shrink-0">
-                      {!user?.isGuest && (
+                      {!isGuest && (
                         <button onClick={(e) => { e.stopPropagation(); setShowModal({ type: 'post_add', targetId: mCat.id }); }} className="opacity-0 group-hover:opacity-100 p-1 text-gray-400 hover:text-blue-600 transition-opacity" title="이 폴더에 글쓰기">
                           <Plus className="w-3.5 h-3.5" />
                         </button>
@@ -577,7 +578,7 @@ export const BoardDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
 
             {/* 새 글 작성 버튼 (목록과 즐겨찾기 사이) */}
             <div className="pt-3 border-t border-gray-200/50">
-            {!user?.isGuest && (
+            {!isGuest && (
               <div className="pt-3 border-t border-gray-200/50">
                 <button onClick={() => setShowModal({ type: 'post_add', targetId: activeMediumId === 'All' ? null : activeMediumId })} className="w-full flex items-center justify-center space-x-2 bg-gray-800/90 text-white px-4 py-2.5 rounded-xl text-sm font-semibold hover:bg-gray-900 transition-all shadow-md backdrop-blur-sm">
                   <Edit3 className="w-4 h-4" /> <span>새 글 작성</span>
@@ -774,7 +775,23 @@ export const BoardDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
     </div>
   );
 };
-
+{/* ✅ 2. 신설된 게시글(문서) 전용 삭제 확인 시네마틱 모달 */}
+      {postDeleteTargetId && (
+        <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-md z-[140] flex items-center justify-center animate-fast-fade p-4">
+          <div className="bg-white/60 backdrop-blur-2xl rounded-3xl shadow-[0_30px_60px_-15px_rgba(0,0,0,0.3)] p-8 w-full max-w-[380px] flex flex-col relative text-center animate-scale-up">
+            <div className="absolute -top-24 -right-24 w-48 h-48 bg-red-500/10 rounded-full blur-3xl pointer-events-none"></div>
+            <div className="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-5 shadow-sm border border-red-100/50 backdrop-blur-sm relative z-10">
+              <Trash2 className="w-7 h-7"/>
+            </div>
+            <h3 className="text-xl font-bold text-gray-800 mb-2 relative z-10 tracking-tight">게시글 삭제</h3>
+            <p className="text-sm text-gray-500 mb-8 relative z-10 font-medium leading-relaxed">이 문서를 정말 삭제하시겠습니까?<br/>삭제된 데이터는 복구할 수 없습니다.</p>
+            <div className="flex space-x-3 relative z-10">
+              <button type="button" onClick={() => setPostDeleteTargetId(null)} className="flex-1 bg-white/70 backdrop-blur-sm text-gray-600 text-sm font-bold py-3.5 rounded-2xl hover:bg-white transition-colors border border-white/60 shadow-sm">취소</button>
+              <button type="button" onClick={executeDeletePost} className="flex-1 bg-red-500/90 backdrop-blur-sm text-white text-sm font-bold py-3.5 rounded-2xl hover:bg-red-600 transition-colors shadow-md border border-red-500 hover:shadow-lg">삭제</button>
+            </div>
+          </div>
+        </div>
+      )}
 // --- 서브 컴포넌트: 게시글 읽기 및 플로팅 에디터 ---
   const PostEditorViewer = ({ post, isEditing, setIsEditing, onClose, onDelete, currentUser, db }) => {
   const contentRef = useRef(null);
