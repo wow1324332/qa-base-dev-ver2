@@ -776,77 +776,79 @@ export const BoardDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
   };
 
 return (
-    // ✅ 1. 여백을 줘서 사이드바 핸들과 절대 겹치지 않도록 전체 래퍼 수정
-    <div className="absolute inset-0 flex flex-col items-center overflow-y-auto no-scrollbar p-6 lg:p-12 bg-transparent">
+    // ✅ 1. 가장 바깥 껍데기: 사이드바를 제외한 "메인 영역"에 꽉 차도록 absolute 적용
+    <div className="absolute inset-0 flex flex-col overflow-hidden bg-transparent">
       
-      {/* ✅ 2. A4 용지 느낌의 '페이퍼' 래퍼 (너비를 850px로 확 줄이고, 입체감 있는 그림자 추가) */}
-      <div className="w-full max-w-[850px] bg-white rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.08)] border border-gray-200/60 flex flex-col shrink-0 min-h-[calc(100vh-160px)] relative overflow-hidden">
+      {/* ✅ 2. 실제 스크롤되는 영역 (이 안에서 A4 페이퍼만 위아래로 움직임) */}
+      <div className="flex-1 overflow-y-auto no-scrollbar p-6 lg:p-12 flex flex-col items-center">
         
-        {/* ✅ 3. 시네마틱 헤더 (본문과 확연히 구분되도록 배경색과 하단 테두리 추가) */}
-        <div className="h-16 px-6 flex justify-between items-center bg-gray-50/80 backdrop-blur-md border-b border-gray-200 shrink-0 relative z-10">
+        {/* A4 용지 페이퍼 영역 */}
+        <div className="w-full max-w-[850px] bg-white rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.08)] border border-gray-200/60 flex flex-col shrink-0 min-h-[calc(100vh-160px)]">
           
-          {/* ✅ 4. 구린 닫기 버튼 대신 세련된 '< 목록으로' 버튼으로 변경 */}
-          <button onClick={onClose} className="flex items-center text-gray-500 hover:text-gray-900 font-semibold transition-colors group px-2 py-1.5 rounded-xl hover:bg-gray-200/50">
-            <ChevronLeft className="w-5 h-5 mr-1 transition-transform group-hover:-translate-x-1"/> 
-            <span className="text-sm">목록으로</span>
-          </button>
+          {/* 시네마틱 헤더 */}
+          <div className="h-16 px-6 flex justify-between items-center bg-gray-50/80 backdrop-blur-md border-b border-gray-200 shrink-0 rounded-t-3xl relative z-10">
+            <button onClick={onClose} className="flex items-center text-gray-500 hover:text-gray-900 font-semibold transition-colors group px-2 py-1.5 rounded-xl hover:bg-gray-200/50">
+              <ChevronLeft className="w-5 h-5 mr-1 transition-transform group-hover:-translate-x-1"/> 
+              <span className="text-sm">목록으로</span>
+            </button>
 
-          <div className="flex items-center space-x-3">
-            {isAuthor && !isEditing && (
-              <>
-                <button onClick={() => setIsEditing(true)} className="text-gray-500 hover:text-blue-600 text-sm font-semibold flex items-center"><Edit3 className="w-4 h-4 mr-1"/> 편집</button>
-                <button onClick={onDelete} className="text-gray-400 hover:text-red-500 text-sm font-semibold flex items-center"><Trash2 className="w-4 h-4 mr-1"/> 삭제</button>
-              </>
+            <div className="flex items-center space-x-3">
+              {isAuthor && !isEditing && (
+                <>
+                  <button onClick={() => setIsEditing(true)} className="text-gray-500 hover:text-blue-600 text-sm font-semibold flex items-center"><Edit3 className="w-4 h-4 mr-1"/> 편집</button>
+                  <button onClick={onDelete} className="text-gray-400 hover:text-red-500 text-sm font-semibold flex items-center"><Trash2 className="w-4 h-4 mr-1"/> 삭제</button>
+                </>
+              )}
+              {isAuthor && isEditing && (
+                <button onClick={handleSave} className="bg-blue-600 text-white px-4 py-1.5 rounded-lg text-sm font-semibold hover:bg-blue-700 shadow-sm flex items-center"><Save className="w-4 h-4 mr-1.5"/> 저장 </button>
+              )}
+              {!isAuthor && <span className="text-xs text-gray-400 bg-gray-100 px-3 py-1 rounded-full">읽기 전용 (작성자: {post.authorName})</span>}
+            </div>
+          </div>
+
+          {/* 본문 영역 */}
+          <div className="flex-1 px-10 py-12">
+            {isEditing ? (
+              <input type="text" value={localTitle} onChange={(e) => setLocalTitle(e.target.value)} className="w-full bg-transparent outline-none font-black text-4xl text-gray-900 mb-8 border-b border-dashed border-gray-300 pb-4 focus:border-blue-500" placeholder="제목을 입력하세요" />
+            ) : (
+              <h1 className="font-black text-4xl text-gray-900 mb-8 pb-4 border-b border-gray-100">{post.title}</h1>
             )}
-            {isAuthor && isEditing && (
-              <button onClick={handleSave} className="bg-blue-600 text-white px-4 py-1.5 rounded-lg text-sm font-semibold hover:bg-blue-700 shadow-sm flex items-center"><Save className="w-4 h-4 mr-1.5"/> 저장 </button>
-            )}
-            {!isAuthor && <span className="text-xs text-gray-400 bg-gray-100 px-3 py-1 rounded-full">읽기 전용 (작성자: {post.authorName})</span>}
+            <div ref={contentRef} contentEditable={isEditing} suppressContentEditableWarning spellCheck={false} data-placeholder={isEditing ? "내용을 작성하세요..." : ""} className={`outline-none text-base leading-loose min-h-[500px] text-gray-800 ${isEditing ? 'cursor-text empty:before:content-[attr(data-placeholder)] empty:before:text-gray-300' : 'cursor-default'}`} dangerouslySetInnerHTML={{ __html: post.content || '' }} />
           </div>
         </div>
+      </div>
 
-        {/* 본문 영역 */}
-        <div className="flex-1 px-10 py-12">
-          {isEditing ? (
-            <input type="text" value={localTitle} onChange={(e) => setLocalTitle(e.target.value)} className="w-full bg-transparent outline-none font-black text-4xl text-gray-900 mb-8 border-b border-dashed border-gray-300 pb-4 focus:border-blue-500" placeholder="제목을 입력하세요" />
-          ) : (
-            <h1 className="font-black text-4xl text-gray-900 mb-8 pb-4 border-b border-gray-100">{post.title}</h1>
-          )}
-          <div ref={contentRef} contentEditable={isEditing} suppressContentEditableWarning spellCheck={false} data-placeholder={isEditing ? "내용을 작성하세요..." : ""} className={`outline-none text-base leading-loose min-h-[500px] text-gray-800 ${isEditing ? 'cursor-text empty:before:content-[attr(data-placeholder)] empty:before:text-gray-300' : 'cursor-default'}`} dangerouslySetInnerHTML={{ __html: post.content || '' }} />
-        </div>
-
-        {/* ✅ 시네마틱 에디터 툴바 (페이퍼 내부에 sticky로 배치되어 항상 페이퍼 중앙에 완벽 정렬됨) */}
-      {/* ✅ 화면(Screen)이 아닌 페이퍼(Paper) 중앙에 완벽하게 정렬되는 아담한 sticky 툴바 */}
+      {/* ✅ 3. 에디터 툴바 (스크롤 영역 바깥에 absolute로 띄워서, 페이퍼 중앙 하단에 완벽 고정) */}
       {isEditing && (
-        <div className="sticky bottom-8 z-[100] mt-4 mb-4">
-          <div className="flex items-center space-x-1 bg-white/40 backdrop-blur-xl px-4 py-2 rounded-full shadow-[0_15px_30px_rgba(0,0,0,0.1)] border border-white/60 animate-scale-up">
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-50 pointer-events-auto">
+          <div className="flex items-center space-x-1 bg-white/70 backdrop-blur-2xl px-4 py-2.5 rounded-full shadow-[0_15px_40px_rgba(0,0,0,0.15)] border border-white/60 animate-scale-up">
             
             {/* 1. 폰트 글씨체 */}
             <div className="relative">
-              <button type="button" onClick={() => setActiveMenu(activeMenu === 'font' ? null : 'font')} className={`p-1.5 rounded-lg transition-colors flex items-center ${activeMenu === 'font' ? 'bg-blue-100/70 text-blue-600' : 'hover:bg-white/60 text-gray-700'}`} title="글꼴">
+              <button type="button" onClick={() => setActiveMenu(activeMenu === 'font' ? null : 'font')} className={`p-1.5 rounded-xl transition-colors flex items-center ${activeMenu === 'font' ? 'bg-blue-100/70 text-blue-600' : 'hover:bg-white/60 text-gray-700'}`} title="글꼴">
                 <span className="font-bold text-xs leading-none px-1">가</span><ChevronDown className="w-3 h-3 ml-0.5" />
               </button>
               {activeMenu === 'font' && (
-                <div className="absolute bottom-full mb-2 left-0 w-32 bg-white/80 backdrop-blur-xl rounded-xl shadow-lg border border-white/50 p-1.5 flex flex-col space-y-0.5 animate-scale-up">
-                  <button type="button" onMouseDown={(e) => { e.preventDefault(); execCmd('fontName', 'Pretendard'); }} className="px-2 py-1.5 text-xs text-left hover:bg-blue-50 rounded-lg font-sans">기본 고딕</button>
-                  <button type="button" onMouseDown={(e) => { e.preventDefault(); execCmd('fontName', 'serif'); }} className="px-2 py-1.5 text-xs text-left hover:bg-blue-50 rounded-lg font-serif">명조체</button>
-                  <button type="button" onMouseDown={(e) => { e.preventDefault(); execCmd('fontName', 'monospace'); }} className="px-2 py-1.5 text-xs text-left hover:bg-blue-50 rounded-lg font-mono">고정폭</button>
+                <div className="absolute bottom-full mb-3 left-0 w-32 bg-white/90 backdrop-blur-xl rounded-2xl shadow-xl border border-white/50 p-1.5 flex flex-col space-y-1 animate-scale-up origin-bottom">
+                  <button type="button" onMouseDown={(e) => { e.preventDefault(); execCmd('fontName', 'Pretendard'); }} className="px-2 py-1.5 text-xs text-left hover:bg-blue-50 rounded-xl font-sans">기본 고딕</button>
+                  <button type="button" onMouseDown={(e) => { e.preventDefault(); execCmd('fontName', 'serif'); }} className="px-2 py-1.5 text-xs text-left hover:bg-blue-50 rounded-xl font-serif">명조체</button>
+                  <button type="button" onMouseDown={(e) => { e.preventDefault(); execCmd('fontName', 'monospace'); }} className="px-2 py-1.5 text-xs text-left hover:bg-blue-50 rounded-xl font-mono">고정폭</button>
                 </div>
               )}
             </div>
 
-            {/* 2. 폰트 크기 (선별된 7단계) */}
+            {/* 2. 폰트 크기 */}
             <div className="relative">
-              <button type="button" onClick={() => setActiveMenu(activeMenu === 'size' ? null : 'size')} className={`p-1.5 rounded-lg transition-colors flex items-center ${activeMenu === 'size' ? 'bg-blue-100/70 text-blue-600' : 'hover:bg-white/60 text-gray-700'}`} title="크기">
+              <button type="button" onClick={() => setActiveMenu(activeMenu === 'size' ? null : 'size')} className={`p-1.5 rounded-xl transition-colors flex items-center ${activeMenu === 'size' ? 'bg-blue-100/70 text-blue-600' : 'hover:bg-white/60 text-gray-700'}`} title="크기">
                 <Type className="w-3.5 h-3.5" /><ChevronDown className="w-3 h-3 ml-0.5" />
               </button>
               {activeMenu === 'size' && (
-                <div className="absolute bottom-full mb-2 left-0 w-28 bg-white/80 backdrop-blur-xl rounded-xl shadow-lg border border-white/50 p-1.5 flex flex-col space-y-0.5 animate-scale-up">
+                <div className="absolute bottom-full mb-3 left-0 w-28 bg-white/90 backdrop-blur-xl rounded-2xl shadow-xl border border-white/50 p-1.5 flex flex-col space-y-1 animate-scale-up origin-bottom">
                   {[
                     { val: '1', label: '10px' }, { val: '2', label: '11px' }, { val: '3', label: '13px' },
                     { val: '4', label: '16px' }, { val: '5', label: '18px' }, { val: '6', label: '24px' }, { val: '7', label: '32px' }
                   ].map(s => (
-                    <button type="button" key={s.val} onMouseDown={(e) => { e.preventDefault(); execCmd('fontSize', s.val); }} className="px-2 py-1.5 text-xs text-left hover:bg-blue-50 rounded-lg">{s.label}</button>
+                    <button type="button" key={s.val} onMouseDown={(e) => { e.preventDefault(); execCmd('fontSize', s.val); }} className="px-2 py-1.5 text-xs text-left hover:bg-blue-50 rounded-xl">{s.label}</button>
                   ))}
                 </div>
               )}
@@ -854,11 +856,11 @@ return (
 
             {/* 3. 폰트 색상 */}
             <div className="relative">
-              <button type="button" onClick={() => setActiveMenu(activeMenu === 'color' ? null : 'color')} className={`p-1.5 rounded-lg transition-colors flex items-center ${activeMenu === 'color' ? 'bg-blue-100/70 text-blue-600' : 'hover:bg-white/60 text-gray-700'}`} title="색상">
+              <button type="button" onClick={() => setActiveMenu(activeMenu === 'color' ? null : 'color')} className={`p-1.5 rounded-xl transition-colors flex items-center ${activeMenu === 'color' ? 'bg-blue-100/70 text-blue-600' : 'hover:bg-white/60 text-gray-700'}`} title="색상">
                 <Palette className="w-3.5 h-3.5" /><ChevronDown className="w-3 h-3 ml-0.5" />
               </button>
               {activeMenu === 'color' && (
-                <div className="absolute bottom-full mb-2 left-0 w-40 bg-white/80 backdrop-blur-xl rounded-xl shadow-lg border border-white/50 p-2 grid grid-cols-4 gap-1.5 animate-scale-up">
+                <div className="absolute bottom-full mb-3 left-0 w-44 bg-white/90 backdrop-blur-xl rounded-2xl shadow-xl border border-white/50 p-2 grid grid-cols-4 gap-1.5 animate-scale-up origin-bottom">
                   {['#000000', '#4B5563', '#EF4444', '#F97316', '#F59E0B', '#10B981', '#3B82F6', '#8B5CF6', '#EC4899', '#6366F1', '#14B8A6', '#84CC16'].map(c => (
                     <button type="button" key={c} onMouseDown={(e) => { e.preventDefault(); execCmd('foreColor', c); }} className="w-6 h-6 rounded-full border border-gray-200/50 hover:scale-110 transition-transform shadow-sm" style={{ backgroundColor: c }}></button>
                   ))}
@@ -866,22 +868,21 @@ return (
               )}
             </div>
 
-            <div className="w-px h-5 bg-gray-300/50 mx-1"></div>
+            <div className="w-px h-5 bg-gray-300/50 mx-1.5"></div>
 
-            <button type="button" onMouseDown={(e) => { e.preventDefault(); execCmd('bold'); }} className="p-1.5 rounded-lg hover:bg-white/60 text-gray-700 transition-colors" title="굵게"><Bold className="w-3.5 h-3.5" /></button>
-            <button type="button" onMouseDown={(e) => { e.preventDefault(); execCmd('italic'); }} className="p-1.5 rounded-lg hover:bg-white/60 text-gray-700 transition-colors" title="기울임"><Italic className="w-3.5 h-3.5" /></button>
-            <button type="button" onMouseDown={(e) => { e.preventDefault(); execCmd('underline'); }} className="p-1.5 rounded-lg hover:bg-white/60 text-gray-700 transition-colors" title="밑줄"><Underline className="w-3.5 h-3.5" /></button>
+            <button type="button" onMouseDown={(e) => { e.preventDefault(); execCmd('bold'); }} className="p-1.5 rounded-xl hover:bg-white/60 text-gray-700 transition-colors" title="굵게"><Bold className="w-3.5 h-3.5" /></button>
+            <button type="button" onMouseDown={(e) => { e.preventDefault(); execCmd('italic'); }} className="p-1.5 rounded-xl hover:bg-white/60 text-gray-700 transition-colors" title="기울임"><Italic className="w-3.5 h-3.5" /></button>
+            <button type="button" onMouseDown={(e) => { e.preventDefault(); execCmd('underline'); }} className="p-1.5 rounded-xl hover:bg-white/60 text-gray-700 transition-colors" title="밑줄"><Underline className="w-3.5 h-3.5" /></button>
             
-            <div className="w-px h-5 bg-gray-300/50 mx-1"></div>
+            <div className="w-px h-5 bg-gray-300/50 mx-1.5"></div>
 
-            <button type="button" onMouseDown={(e) => { e.preventDefault(); execCmd('formatBlock', '<h2>'); }} className="p-1.5 rounded-lg hover:bg-white/60 text-gray-700 transition-colors font-bold text-xs" title="소제목">H2</button>
-            <button type="button" onMouseDown={(e) => { e.preventDefault(); execCmd('insertUnorderedList'); }} className="p-1.5 rounded-lg hover:bg-white/60 text-gray-700 transition-colors font-bold text-xs" title="글머리 기호">•</button>
-            <button type="button" onMouseDown={(e) => { e.preventDefault(); execCmd('insertHorizontalRule'); }} className="p-1.5 rounded-lg hover:bg-white/60 text-gray-700 transition-colors" title="구분선 삽입"><Minus className="w-3.5 h-3.5" /></button>
+            <button type="button" onMouseDown={(e) => { e.preventDefault(); execCmd('formatBlock', '<h2>'); }} className="p-1.5 rounded-xl hover:bg-white/60 text-gray-700 transition-colors font-bold text-xs" title="소제목">H2</button>
+            <button type="button" onMouseDown={(e) => { e.preventDefault(); execCmd('insertUnorderedList'); }} className="p-1.5 rounded-xl hover:bg-white/60 text-gray-700 transition-colors font-bold text-xs" title="글머리 기호">•</button>
+            <button type="button" onMouseDown={(e) => { e.preventDefault(); execCmd('insertHorizontalRule'); }} className="p-1.5 rounded-xl hover:bg-white/60 text-gray-700 transition-colors" title="구분선 삽입"><Minus className="w-3.5 h-3.5" /></button>
           </div>
         </div>
       )}
 
-      </div> 
     </div>
   );
 };
