@@ -263,18 +263,16 @@ export const BoardDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
                   onMouseLeave={handlePressEnd}
                   onTouchStart={() => { if (user?.role !== 'viewer') handlePressStart(cat.id); }}
                   onTouchEnd={handlePressEnd}
-                  onClick={() => { 
-                    if (activeCardId === cat.id) return;
-                    
-                    // ✅ 버그 픽스: 상세 화면으로 넘어가기 전에 이전 보드의 데이터를 깨끗하게 지웁니다!
-                  checkPendingLeave(() => {
-                    setPosts([]); 
-                    setMediumCats([]);
-                    setActiveLargeId(cat.id); 
-                    setViewState('detail'); 
-                    setActivePost(null); 
-                    setActiveMediumId('All'); 
-                  })}
+                  onClick={() => {
+                    checkPendingLeave(() => { 
+                      setPosts([]); 
+                      setMediumCats([]);
+                      setActiveLargeId(cat.id); 
+                      setViewState('detail'); 
+                      setActivePost(null); 
+                      setActiveMediumId('All'); 
+                    });
+                  }}
                   style={{ zIndex: activeCardId === cat.id ? 30 : 1 }}
                   className="relative overflow-hidden bg-white/60 backdrop-blur-md rounded-2xl p-6 cursor-pointer shadow-[0_15px_35px_rgba(0,0,0,0.08)] hover:shadow-[0_25px_50px_rgba(0,0,0,0.15)] hover:-translate-y-1 transition-all duration-300 group select-none"
                 >
