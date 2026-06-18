@@ -703,7 +703,6 @@ export const BoardDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
           </div>
         )}
         
-      {/* 👇 ❌ 아마 이 세 줄이 지워져서 에러가 났을 것입니다. 반드시 추가해 주세요! 👇 */}
       </div>
     );
   };
