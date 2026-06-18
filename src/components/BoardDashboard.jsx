@@ -20,6 +20,15 @@ export const BoardDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
   
   const [activeMediumId, setActiveMediumId] = useState('All'); // 'All' 또는 특정 미디엄 카테고리 ID
   const [activePost, setActivePost] = useState(null);
+
+  const [expandedFolders, setExpandedFolders] = useState([]); // 열려있는 폴더 ID 목록
+  
+  const toggleFolder = (e, folderId) => {
+    e.stopPropagation(); // 클릭이 부모로 퍼져나가는 것을 막아 화면 이동을 방지합니다.
+    setExpandedFolders(prev => 
+      prev.includes(folderId) ? prev.filter(id => id !== folderId) : [...prev, folderId]
+    );
+  };
   
   const [isEditing, setIsEditing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -487,45 +496,53 @@ export const BoardDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
             <div className="space-y-1 flex-1 overflow-y-auto no-scrollbar pb-4">
               {mediumCats.map(mCat => {
                 const catPosts = posts.filter(p => p.mediumId === mCat.id);
-                const isExpanded = activeMediumId === mCat.id;
+                
+                // ✅ '현재 보는 중(isActive)'과 '펼쳐짐(isExpanded)' 상태를 완전히 분리합니다.
+                const isActive = activeMediumId === mCat.id;
+                const isExpanded = expandedFolders.includes(mCat.id);
                 
                 return (
                   <div key={mCat.id} className="mb-1 select-none">
-                    <div 
-                      onClick={() => { setActiveMediumId(mCat.id); setActivePost(null); }}
-                      className={`w-full flex items-center justify-between px-3 py-2 rounded-xl cursor-pointer transition-colors group
-                        ${isExpanded && !activePost ? 'bg-white/80 text-gray-900 font-bold shadow-sm' : 'text-gray-600 hover:bg-white/50'}`}
-                    >
-                      <div className="flex items-center space-x-2 overflow-hidden">
-                        <Folder className={`w-4 h-4 shrink-0 ${isExpanded ? 'text-gray-800' : 'text-gray-400'}`} />
-                        <span className="text-sm truncate w-36">{mCat.name}</span>
+                    
+                    {/* ✅ 최상위 div의 클릭을 제거하고 배경색(isActive 기준)만 남깁니다. */}
+                    <div className={`w-full flex items-center justify-between px-3 py-2 rounded-xl transition-colors group ${isActive && !activePost ? 'bg-white/80 text-gray-900 font-bold shadow-sm' : 'text-gray-600 hover:bg-white/50'}`}>
+                      
+                      {/* 1. 카테고리명 영역 (클릭 시 화면 이동 & 폴더 열기) */}
+                      <div 
+                        onClick={() => { 
+                          setActiveMediumId(mCat.id); setActivePost(null); 
+                          // 닫혀있다면 열어줌
+                          if (!expandedFolders.includes(mCat.id)) setExpandedFolders(prev => [...prev, mCat.id]);
+                        }} 
+                        className="flex items-center space-x-2 overflow-hidden flex-1 cursor-pointer"
+                      >
+                        <Folder className={`w-4 h-4 shrink-0 ${isActive ? 'text-gray-800' : 'text-gray-400'}`} />
+                        <span className="text-sm truncate w-32">{mCat.name}</span>
                       </div>
+
+                      {/* 2. 우측 아이콘 영역 (글쓰기 & 드롭다운 토글) */}
                       <div className="flex items-center space-x-1 shrink-0">
-                        <button 
-                          onClick={(e) => { e.stopPropagation(); setShowModal({ type: 'post_add', targetId: mCat.id }); }} 
-                          className="opacity-0 group-hover:opacity-100 p-1 text-gray-400 hover:text-blue-600 transition-opacity" title="이 폴더에 글쓰기"
-                        >
+                        <button onClick={(e) => { e.stopPropagation(); setShowModal({ type: 'post_add', targetId: mCat.id }); }} className="opacity-0 group-hover:opacity-100 p-1 text-gray-400 hover:text-blue-600 transition-opacity" title="이 폴더에 글쓰기">
                           <Plus className="w-3.5 h-3.5" />
                         </button>
-                        <ChevronDown className={`w-3.5 h-3.5 text-gray-400 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+                        
+                        {/* 👇 드롭다운 영역: toggleFolder 이벤트 연결! */}
+                        <div onClick={(e) => toggleFolder(e, mCat.id)} className="p-1 cursor-pointer text-gray-400 hover:text-gray-800 hover:bg-gray-200/50 rounded-md transition-all">
+                          <ChevronDown className={`w-3.5 h-3.5 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+                        </div>
                       </div>
+                      
                     </div>
                     
-                    {/* 하위 스몰 카테고리 (게시글) 목록 */}
+                    {/* 하위 게시글(스몰 카테고리) 목록 (isExpanded 기준으로 노출) */}
                     {isExpanded && (
                       <div className="mt-1 ml-4 pl-3 border-l border-gray-300/50 space-y-1">
                         {catPosts.length === 0 ? (
                           <div className="px-3 py-2 text-xs text-gray-400 font-medium">게시글이 없습니다.</div>
                         ) : (
                           catPosts.map(post => (
-                            <button 
-                              key={post.id}
-                              onClick={() => { setActivePost(post); setIsEditing(false); }}
-                              className={`w-full flex items-center space-x-2 px-3 py-2 rounded-lg text-sm text-left transition-colors truncate
-                                ${activePost?.id === post.id ? 'bg-blue-50/80 text-blue-700 font-semibold shadow-sm' : 'text-gray-500 hover:text-gray-900 hover:bg-white/60'}`}
-                            >
-                              <FileText className="w-3.5 h-3.5 shrink-0" />
-                              <span className="truncate">{post.title}</span>
+                            <button key={post.id} onClick={() => { setActivePost(post); setIsEditing(false); }} className={`w-full flex items-center space-x-2 px-3 py-2 rounded-lg text-sm text-left transition-colors truncate ${activePost?.id === post.id ? 'bg-blue-50/80 text-blue-700 font-semibold shadow-sm' : 'text-gray-500 hover:text-gray-900 hover:bg-white/60'}`}>
+                              <FileText className="w-3.5 h-3.5 shrink-0" /><span className="truncate">{post.title}</span>
                             </button>
                           ))
                         )}
