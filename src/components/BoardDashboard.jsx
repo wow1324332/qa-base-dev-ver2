@@ -93,12 +93,18 @@ export const BoardDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
   };
 
   // ✅ 3. 그리고 그 바로 밑에 이 함수들(삭제 및 롱프레스 이벤트)을 새로 붙여넣어 주세요!
-  const handleDeleteLarge = async (id, e) => {
+  const [deleteTargetId, setDeleteTargetId] = useState(null);
+
+  const confirmDeleteLarge = (id, e) => {
     e.stopPropagation();
-    if (window.confirm('이 보드를 삭제하시겠습니까?')) {
-      await deleteDoc(doc(db, 'boardLargeCategories', id));
-      setActiveCardId(null);
-    }
+    setDeleteTargetId(id); // 기본 알림창 대신 우리의 예쁜 팝업을 띄웁니다!
+  };
+
+  const executeDeleteLarge = async () => {
+    if (!deleteTargetId) return;
+    await deleteDoc(doc(db, 'boardLargeCategories', deleteTargetId));
+    setDeleteTargetId(null);
+    setActiveCardId(null);
   };
 
   const handlePressStart = (id) => {
@@ -183,8 +189,12 @@ export const BoardDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
             </div>
 
             {/* ✅ 카드 영역 (기능 보드와 동일한 시네마틱 디자인 적용) */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
-{largeCats.map(cat => (
+            {activeCardId && (
+              <div className="fixed inset-0 z-10" onClick={() => setActiveCardId(null)}></div>
+            )}
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6 relative z-20">
+              {largeCats.map(cat => (
                 <div 
                   key={cat.id} 
                   onMouseDown={() => handlePressStart(cat.id)}
@@ -193,45 +203,70 @@ export const BoardDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
                   onTouchStart={() => handlePressStart(cat.id)}
                   onTouchEnd={handlePressEnd}
                   onClick={() => { 
-                    if (activeCardId === cat.id) return; // 편집 메뉴가 켜져있을 땐 진입 방지
+                    if (activeCardId === cat.id) return;
                     setActiveLargeId(cat.id); setViewState('detail'); setActivePost(null); setActiveMediumId('All'); 
                   }}
+                  // 선택된 카드만 z-index를 높여서 투명 백드롭 위로 올라오게 합니다.
+                  style={{ zIndex: activeCardId === cat.id ? 30 : 1 }}
                   className="relative overflow-hidden bg-white/60 backdrop-blur-md rounded-2xl p-6 cursor-pointer shadow-[0_15px_35px_rgba(0,0,0,0.08)] hover:shadow-[0_25px_50px_rgba(0,0,0,0.15)] hover:-translate-y-1 transition-all duration-300 group select-none"
                 >
                   <div className="absolute inset-0 bg-[url('/Functioncard.jpg')] bg-cover bg-center opacity-[0.4] mix-blend-multiply transition-opacity duration-500 group-hover:opacity-[0.6] pointer-events-none"></div>
                   
                   <div className="relative z-10 flex items-center">
-                    <div className="w-12 h-12 shrink-0 bg-white/90 backdrop-blur-sm rounded-xl flex items-center justify-center mr-4 group-hover:bg-gray-800 transition-colors duration-500 shadow-sm">
+                    <div className="w-12 h-12 shrink-0 bg-white/90 backdrop-blur-sm rounded-xl flex items-center justify-center mr-4 group-hover:bg-gray-800 transition-colors duration-500 shadow-sm border border-white/50">
                       <Folder className="w-5 h-5 text-gray-700 group-hover:text-white transition-colors duration-500" strokeWidth={1.5} />
                     </div>
-                    <h3 className="text-lg font-bold text-gray-800 group-hover:text-gray-900 transition-colors tracking-tight truncate">
+                    <h3 className="text-lg font-bold text-gray-800 group-hover:text-gray-900 transition-colors tracking-tight truncate pr-4">
                       {cat.name}
                     </h3>
                   </div>
 
-                  {/* 🌟 롱프레스 시 나타나는 수정/삭제 오버레이 메뉴 */}
-                  <div className={`absolute inset-0 bg-white/80 backdrop-blur-md flex items-center justify-center space-x-4 transition-all duration-300 z-20 ${activeCardId === cat.id ? 'opacity-100 visible scale-100' : 'opacity-0 invisible scale-95 pointer-events-none'}`}>
+                  {/* 🌟 수정/삭제 우측 상단 미니 오버레이 (닫기 버튼 제거) */}
+                  <div className={`absolute top-3 right-3 bg-white/90 backdrop-blur-md flex items-center space-x-1 px-2 py-1.5 rounded-full shadow-[0_5px_15px_rgba(0,0,0,0.12)] border border-white transition-all duration-300 z-30 ${activeCardId === cat.id ? 'opacity-100 visible scale-100' : 'opacity-0 invisible scale-95 pointer-events-none'}`}>
                     <button 
                       onClick={(e) => { e.stopPropagation(); setShowModal({type: 'edit_large', targetId: cat.id}); setInputText(cat.name); setActiveCardId(null); }} 
-                      className="p-3 bg-gray-100 text-gray-700 rounded-full hover:bg-gray-200 transition-all shadow-sm hover:scale-110" title="수정"
+                      className="p-1 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-full transition-colors" title="수정"
                     >
-                      <Edit3 className="w-5 h-5" />
+                      <Edit3 className="w-4 h-4" />
                     </button>
+                    <div className="w-px h-3 bg-gray-300"></div>
                     <button 
-                      onClick={(e) => handleDeleteLarge(cat.id, e)} 
-                      className="p-3 bg-red-50 text-red-500 rounded-full hover:bg-red-100 transition-all shadow-sm hover:scale-110" title="삭제"
+                      onClick={(e) => confirmDeleteLarge(cat.id, e)} 
+                      className="p-1 text-gray-500 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors" title="삭제"
                     >
-                      <Trash2 className="w-5 h-5" />
-                    </button>
-                    <button onClick={(e) => { e.stopPropagation(); setActiveCardId(null); }} className="absolute top-2 right-2 p-1.5 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-200/50 transition-colors">
-                      <X className="w-4 h-4" />
+                      <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
                 </div>
-              ))}       
+              ))}
             </div>
           </div>
         </main>
+
+        {/* ✅ 보드 삭제 확인 시네마틱 모달 (경고를 위한 붉은 톤 그라데이션) */}
+        {deleteTargetId && (
+          <div className="fixed inset-0 bg-gray-900/40 backdrop-blur-md z-[130] flex items-center justify-center animate-fast-fade p-4">
+            <div className="bg-white/60 backdrop-blur-2xl rounded-3xl shadow-[0_30px_60px_-15px_rgba(0,0,0,0.3)] p-8 w-full max-w-[380px] border border-white/60 relative overflow-hidden flex flex-col animate-scale-up text-center">
+              
+              {/* 경고 느낌을 주는 빨간색 빛망울 효과 */}
+              <div className="absolute -top-24 -right-24 w-48 h-48 bg-red-500/20 rounded-full blur-3xl pointer-events-none"></div>
+              
+              <div className="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-5 shadow-sm border border-red-100 backdrop-blur-sm relative z-10">
+                <Trash2 className="w-8 h-8"/>
+              </div>
+              
+              <h3 className="text-xl font-bold text-gray-800 mb-2 relative z-10 tracking-tight">보드 삭제</h3>
+              <p className="text-sm text-gray-500 mb-8 relative z-10 font-medium leading-relaxed">
+                이 보드를 정말 삭제하시겠습니까?<br/>내부의 모든 문서가 함께 삭제됩니다.
+              </p>
+              
+              <div className="flex space-x-3 relative z-10">
+                <button onClick={() => setDeleteTargetId(null)} className="flex-1 bg-white/70 backdrop-blur-sm text-gray-600 text-sm font-bold py-3.5 rounded-2xl hover:bg-white hover:text-gray-800 transition-colors border border-white/60 shadow-sm">취소</button>
+                <button onClick={executeDeleteLarge} className="flex-1 bg-red-500/90 backdrop-blur-sm text-white text-sm font-bold py-3.5 rounded-2xl hover:bg-red-600 transition-colors shadow-md border border-red-500 hover:shadow-lg">삭제</button>
+              </div>
+            </div>
+          </div>
+        )}
         
         {/* 생성 모달 (공용) */}
         {showModal.type && (
