@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { 
   StickyNote, Plus, X, Maximize2, Minimize2, Bold, Italic, Underline, 
-  Palette, Folder, LayoutDashboard, LogOut, Power, ChevronDown, Trash2
+  Palette, Folder, LayoutDashboard, LogOut, Power, ChevronDown, Trash2, Copy, Check
 } from 'lucide-react';
 import { collection, onSnapshot, doc, updateDoc, addDoc, deleteDoc, query, where, serverTimestamp } from "firebase/firestore";
 import { db } from '../firebaseConfig'; // 🔥 경로가 다르면 프로젝트에 맞게 수정해 주세요.
@@ -327,6 +327,18 @@ const MemoCard = ({ memo, onUpdate, onDelete, onFocus }) => {
   const theme = MEMO_COLORS.find(c => c.id === memo.colorId) || MEMO_COLORS[0];
   
   const cardRef = useRef(null);
+  const contentRef = useRef(null); // ✅ 내용 복사를 위한 참조
+  const [isCopied, setIsCopied] = useState(false); // ✅ 복사 완료 체크 표시용
+  const [isContentFocused, setIsContentFocused] = useState(false); // ✅ 클릭(편집) 중인지 확인용
+
+  const handleCopy = (e) => {
+    e.stopPropagation(); // 카드 닫히는 현상 방지
+    const textToCopy = contentRef.current?.innerText || ''; // HTML 태그 빼고 순수 텍스트만 복사
+    navigator.clipboard.writeText(textToCopy).then(() => {
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 2000); // 2초 뒤 체크모양 원래대로
+    });
+  };
   const clickTimeout = useRef(null);
   const pressTimer = useRef(null);
   const isLongPressActive = useRef(false); 
@@ -460,7 +472,7 @@ const MemoCard = ({ memo, onUpdate, onDelete, onFocus }) => {
       </div>
 
       {/* --- 하단 내용 영역 (Dropdown) --- */}
-      <div 
+     <div 
         className={`absolute top-full left-0 w-full rounded-b-2xl bg-white overflow-hidden transition-all duration-300 ease-out origin-top
           ${memo.isFolded 
             ? 'opacity-0 -translate-y-3 pointer-events-none invisible max-h-0 shadow-none' 
@@ -468,12 +480,29 @@ const MemoCard = ({ memo, onUpdate, onDelete, onFocus }) => {
           }
         `}
       >
-        <div className={`max-h-[35vh] overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] ${theme.text}`}>
+        <div className={`relative group/content max-h-[35vh] overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] ${theme.text}`}>
+          
+          {/* ✅ 복사 버튼 (편집 중이 아닐 때만 호버 시 나타남) */}
+          {!isContentFocused && (
+            <button
+              onClick={handleCopy}
+              className="absolute top-2 right-2 p-1.5 bg-gray-100/80 hover:bg-gray-200 text-gray-500 hover:text-gray-800 rounded-md backdrop-blur-sm opacity-0 group-hover/content:opacity-100 transition-all duration-200 z-20 shadow-sm"
+              title="내용 복사"
+            >
+              {isCopied ? <Check className="w-3.5 h-3.5 text-green-600" /> : <Copy className="w-3.5 h-3.5" />}
+            </button>
+          )}
+
           <div 
+            ref={contentRef} // 👈 텍스트를 읽어오기 위한 참조 달아주기
             contentEditable={!memo.isFolded} 
             suppressContentEditableWarning={true}
             spellCheck={false} 
-            onBlur={(e) => onUpdate({ content: e.currentTarget.innerHTML })}
+            onFocus={() => setIsContentFocused(true)} // 👈 클릭해서 편집 시작하면 버튼 숨김
+            onBlur={(e) => {
+              setIsContentFocused(false); // 👈 밖을 클릭해서 편집 끝나면 다시 버튼 노출
+              onUpdate({ content: e.currentTarget.innerHTML });
+            }}
             dangerouslySetInnerHTML={{ __html: memo.content || '' }}
             data-placeholder="내용이 없습니다. 클릭하여 편집하세요."
             className="w-full min-h-[100px] p-5 pt-2 outline-none focus:outline-none focus:ring-0 text-xs leading-relaxed break-words whitespace-pre-wrap cursor-text empty:before:content-[attr(data-placeholder)] empty:before:text-gray-400 empty:before:italic empty:before:pointer-events-none"
