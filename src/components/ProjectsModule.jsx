@@ -329,6 +329,7 @@ export const ProjectsDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
   const [filterPlatform, setFilterPlatform] = useState('All');
   const [filterReporter, setFilterReporter] = useState('All');
   const [filterPriority, setFilterPriority] = useState('All');
+  const [filterPhenomenon, setFilterPhenomenon] = useState('All'); // ✅ 신규: 현상분류 필터 상태 추가
   
   const [searchInput, setSearchInput] = useState(''); 
   const [searchSummary, setSearchSummary] = useState(''); 
@@ -560,6 +561,7 @@ const [pendingEpicKey, setPendingEpicKey] = useState(null);
       
       if (!isType2) {
         if (filterPlatform !== 'All' && issue.component !== filterPlatform) return false;
+        if (filterPhenomenon !== 'All' && issue.phenomenon !== filterPhenomenon) return false; // ✅ 신규: 현상분류 거르기
       }
       
       if (searchSummary) {
@@ -571,12 +573,13 @@ const [pendingEpicKey, setPendingEpicKey] = useState(null);
       }
       return true;
     });
-  }, [issues, filterStatus, filterPriority, filterReporter, filterPlatform, isType2, searchSummary]);
+  }, [issues, filterStatus, filterPriority, filterReporter, filterPlatform, filterPhenomenon, isType2, searchSummary]);
 
   const statusOptions = useMemo(() => [{value: 'All', label: '상태 전체'}, ...Array.from(new Set(issues.map(i => i.status))).filter(Boolean).map(s => ({value: s, label: s}))], [issues]);
   const platformOptions = useMemo(() => [{value: 'All', label: '플랫폼 전체'}, ...Array.from(new Set(issues.map(i => i.component))).filter(Boolean).map(p => ({value: p, label: p}))], [issues]);
   const reporterOptions = useMemo(() => [{value: 'All', label: '보고자 전체'}, ...Array.from(new Set(issues.map(i => i.reporter))).filter(Boolean).map(p => ({value: p, label: p}))], [issues]);
   const priorityOptions = useMemo(() => [{value: 'All', label: '우선순위 전체'}, ...Array.from(new Set(issues.map(i => i.priority))).filter(Boolean).map(p => ({value: p, label: p}))], [issues]);
+  const phenomenonOptions = useMemo(() => [{value: 'All', label: '현상분류 전체'}, ...Array.from(new Set(issues.map(i => i.phenomenon))).filter(Boolean).map(p => ({value: p, label: p}))], [issues]); // ✅ 신규: 현상분류 드롭다운 목록 생성
 
   const handleTooltip = useCallback((e, text) => {
     const textSpan = e.currentTarget.querySelector('.truncate-summary');
@@ -633,7 +636,7 @@ const [pendingEpicKey, setPendingEpicKey] = useState(null);
     );
   };
 
-  const hasFilters = filterStatus !== 'All' || filterPriority !== 'All' || filterReporter !== 'All' || searchInput || (!isType2 && filterPlatform !== 'All');
+  const hasFilters = filterStatus !== 'All' || filterPriority !== 'All' || filterReporter !== 'All' || searchInput || (!isType2 && (filterPlatform !== 'All' || filterPhenomenon !== 'All'));
 
   return (
     <div className="w-screen h-screen bg-[#f8f9fa] flex flex-col overflow-hidden animate-simple-fade">
@@ -880,6 +883,9 @@ const [pendingEpicKey, setPendingEpicKey] = useState(null);
                       <>
                         <CustomSelect value={filterPlatform} onChange={setFilterPlatform} options={platformOptions} className="bg-transparent text-xs font-medium text-gray-700 outline-none w-32 hover:bg-gray-50 rounded-md transition-colors" />
                         <div className="w-px h-4 bg-gray-200 mx-1"></div>
+                        {/* ✅ 신규: 현상분류 필터 UI */}
+                        <CustomSelect value={filterPhenomenon} onChange={setFilterPhenomenon} options={phenomenonOptions} className="bg-transparent text-xs font-medium text-gray-700 outline-none w-32 hover:bg-gray-50 rounded-md transition-colors" />
+                        <div className="w-px h-4 bg-gray-200 mx-1"></div>
                       </>
                     )}
                     <CustomSelect value={filterReporter} onChange={setFilterReporter} options={reporterOptions} className="bg-transparent text-xs font-medium text-gray-700 outline-none w-32 hover:bg-gray-50 rounded-md transition-colors" />
@@ -896,7 +902,7 @@ const [pendingEpicKey, setPendingEpicKey] = useState(null);
                       )}
                     </div>
                     {(hasFilters) && (
-                      <button onClick={() => { setFilterStatus('All'); setFilterPlatform('All'); setFilterReporter('All'); setFilterPriority('All'); setSearchInput(''); setSearchSummary(''); }} className="text-[10px] text-gray-500 hover:text-gray-800 underline ml-2 font-medium">초기화</button>
+                      <button onClick={() => { setFilterStatus('All'); setFilterPlatform('All'); setFilterPhenomenon('All'); setFilterReporter('All'); setFilterPriority('All'); setSearchInput(''); setSearchSummary(''); }} className="text-[10px] text-gray-500 hover:text-gray-800 underline ml-2 font-medium">초기화</button>
                     )}
                   </div>
 
