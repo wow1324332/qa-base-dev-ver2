@@ -170,10 +170,10 @@ const handleAddMemo = async () => {
             </div>
             
             <button onClick={() => setActiveCategory('All')} className={`w-full flex items-center space-x-3 px-3 py-2 rounded-xl transition-colors ${activeMenuTheme(activeCategory === 'All')}`}>
-              <StickyNote className="w-4 h-4" /><span className="text-sm font-medium">모든 메모</span>
+              <StickyNote className="w-4 h-4" /><span className="text-sm font-medium">All Items</span>
             </button>
             <button onClick={() => setActiveCategory('Uncategorized')} className={`w-full flex items-center space-x-3 px-3 py-2 rounded-xl transition-colors ${activeMenuTheme(activeCategory === 'Uncategorized')}`}>
-              <Folder className="w-4 h-4" /><span className="text-sm font-medium">미분류</span>
+              <Folder className="w-4 h-4" /><span className="text-sm font-medium">Non Category</span>
             </button>
             
             <div className="space-y-0.5 mt-1">
@@ -215,11 +215,11 @@ const handleAddMemo = async () => {
         <main className={`flex-1 overflow-y-auto no-scrollbar p-8 transition-all duration-300 ${!sidebarOpen ? 'ml-12' : ''}`}>
           <div className="flex justify-between items-end mb-8 shrink-0 max-w-7xl mx-auto">
             <div>
-              <h1 className="text-2xl font-bold text-gray-800 mb-1">Quick Memos</h1>
+              <h1 className="text-2xl font-bold text-gray-800 mb-1">Memos</h1>
               <p className="text-sm text-gray-500 font-medium">검증 내용이나 임시 데이터를 빠르게 기록하세요.</p>
             </div>
             <button onClick={handleAddMemo} className="bg-gray-800 text-white text-sm font-semibold px-4 py-2 rounded-lg hover:bg-gray-900 transition-colors shadow-md hover-breath flex items-center">
-              <Plus className="w-4 h-4 mr-1.5" /> 새 메모 추가
+              <Plus className="w-4 h-4 mr-1.5" /> Add Memo
             </button>
           </div>
 
