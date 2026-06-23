@@ -16,6 +16,40 @@ const MEMO_COLORS = [
   { id: 'amber', bg: 'bg-amber-500/10', border: 'border-amber-500/20', text: 'text-amber-800' },
 ];
 
+// ✅ [신규] 텍스트 속의 URL을 찾아 클릭 가능한 링크로 변환해주는 마법 함수
+const applyAutoLink = (html) => {
+  if (!html) return '';
+  const temp = document.createElement('div');
+  temp.innerHTML = html;
+  
+  const walker = document.createTreeWalker(temp, NodeFilter.SHOW_TEXT, null, false);
+  const nodesToReplace = [];
+  
+  let node;
+  while ((node = walker.nextNode())) {
+    // 이미 링크(a 태그)로 바뀐 곳은 두 번 처리하지 않도록 건너뜀
+    if (node.parentNode && node.parentNode.tagName === 'A') continue;
+    const urlRegex = /(https?:\/\/[^\s<]+)/g;
+    if (urlRegex.test(node.nodeValue)) {
+      nodesToReplace.push(node);
+    }
+  }
+  
+  nodesToReplace.forEach(n => {
+    const span = document.createElement('span');
+    // contenteditable="false"를 추가하여 편집기와 커서가 꼬이지 않게 보호합니다.
+    span.innerHTML = n.nodeValue.replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener noreferrer" class="text-blue-500 hover:text-blue-700 underline cursor-pointer" contenteditable="false">$1</a>');
+    n.parentNode.replaceChild(span, n);
+    
+    // 임시 껍데기(span) 제거
+    const parent = span.parentNode;
+    while(span.firstChild) parent.insertBefore(span.firstChild, span);
+    parent.removeChild(span);
+  });
+  
+  return temp.innerHTML;
+};
+
 export const MemoDashboard = ({ user, onNavigate, onLogout, onQuit }) => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [memos, setMemos] = useState([]);
@@ -494,14 +528,23 @@ const MemoCard = ({ memo, onUpdate, onDelete, onFocus }) => {
           )}
 
           <div 
-            ref={contentRef} // 👈 텍스트를 읽어오기 위한 참조 달아주기
+            ref={contentRef} 
             contentEditable={!memo.isFolded} 
             suppressContentEditableWarning={true}
             spellCheck={false} 
-            onFocus={() => setIsContentFocused(true)} // 👈 클릭해서 편집 시작하면 버튼 숨김
+            onFocus={() => setIsContentFocused(true)} 
             onBlur={(e) => {
-              setIsContentFocused(false); // 👈 밖을 클릭해서 편집 끝나면 다시 버튼 노출
-              onUpdate({ content: e.currentTarget.innerHTML });
+              setIsContentFocused(false); 
+              // ✅ 저장 직전에 마법 함수를 통과시켜 URL을 파란색 링크로 바꿉니다.
+              const linkedContent = applyAutoLink(e.currentTarget.innerHTML);
+              onUpdate({ content: linkedContent });
+            }}
+            // ✅ 링크(a 태그)를 클릭했을 때 브라우저 새 창으로 열어주도록 가로채기
+            onClick={(e) => {
+              if (e.target.tagName === 'A') {
+                e.preventDefault();
+                window.open(e.target.href, '_blank');
+              }
             }}
             dangerouslySetInnerHTML={{ __html: memo.content || '' }}
             data-placeholder="내용이 없습니다. 클릭하여 편집하세요."
@@ -536,7 +579,9 @@ const FocusMemoModal = ({ memo, onUpdate, onClose, onDelete, categories = [] }) 
     : categories.find(c => c.id === localCategoryId)?.name || '미분류';
 
   const handleCloseAndSave = () => {
-    const finalContent = contentRef.current ? contentRef.current.innerHTML : memo.content;
+    const rawContent = contentRef.current ? contentRef.current.innerHTML : memo.content;
+    const finalContent = applyAutoLink(rawContent); // ✅ 저장할 때 링크 변환 적용!
+    
     onUpdate({
       title: localTitle,
       colorId: localColorId,
@@ -580,6 +625,12 @@ const FocusMemoModal = ({ memo, onUpdate, onClose, onDelete, categories = [] }) 
             contentEditable
             suppressContentEditableWarning
             spellCheck={false}
+            onClick={(e) => {
+              if (e.target.tagName === 'A') {
+                e.preventDefault();
+                window.open(e.target.href, '_blank');
+              }
+            }}
             data-placeholder="내용이 없습니다. 클릭하여 편집하세요."
             className="outline-none text-sm leading-relaxed min-h-[300px] cursor-text empty:before:content-[attr(data-placeholder)] empty:before:text-gray-400 empty:before:italic empty:before:pointer-events-none text-gray-800"
             dangerouslySetInnerHTML={{ __html: memo.content || '' }}
